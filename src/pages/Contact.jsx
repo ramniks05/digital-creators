@@ -1,0 +1,289 @@
+import { useState } from 'react';
+import { motion } from 'framer-motion';
+import { FaEnvelope, FaPhone, FaMapMarkerAlt, FaCheckCircle } from 'react-icons/fa';
+
+const Contact = () => {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    message: ''
+  });
+  const [errors, setErrors] = useState({});
+  const [isSubmitted, setIsSubmitted] = useState(false);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (!formData.name.trim()) {
+      newErrors.name = 'Name is required';
+    }
+
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email address';
+    }
+
+    if (!formData.phone.trim()) {
+      newErrors.phone = 'Phone number is required';
+    } else if (!/^[0-9+\-\s()]+$/.test(formData.phone)) {
+      newErrors.phone = 'Please enter a valid phone number';
+    }
+
+    if (!formData.message.trim()) {
+      newErrors.message = 'Message is required';
+    } else if (formData.message.trim().length < 10) {
+      newErrors.message = 'Message must be at least 10 characters';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    
+    if (validateForm()) {
+      // In a real application, you would send the data to a backend
+      console.log('Form submitted:', formData);
+      setIsSubmitted(true);
+      
+      // Reset form after 3 seconds
+      setTimeout(() => {
+        setFormData({
+          name: '',
+          email: '',
+          phone: '',
+          message: ''
+        });
+        setIsSubmitted(false);
+      }, 3000);
+    }
+  };
+
+  return (
+    <div>
+      {/* Hero Section */}
+      <section className="pt-32 pb-20 bg-gradient-to-br from-blue-50 via-purple-50 to-blue-50">
+        <div className="container-custom">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="text-center max-w-3xl mx-auto"
+          >
+            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+              Get In <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Touch</span>
+            </h1>
+            <p className="text-lg text-gray-600 leading-relaxed">
+              Have a project in mind? We'd love to hear from you. Send us a message and we'll respond as soon as possible.
+            </p>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Contact Section */}
+      <section className="section-padding bg-white">
+        <div className="container-custom">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            {/* Contact Form */}
+            <motion.div
+              initial={{ opacity: 0, x: -50 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+            >
+              <h2 className="text-3xl font-bold text-gray-900 mb-6">
+                Send Us a Message
+              </h2>
+              
+              {isSubmitted ? (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">
+                  <div className="flex items-center space-x-3">
+                    <FaCheckCircle className="w-6 h-6 text-green-600" />
+                    <p className="text-green-800 font-semibold">
+                      Thank you! Your message has been sent successfully. We'll get back to you soon.
+                    </p>
+                  </div>
+                </div>
+              ) : null}
+
+              <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Name Field */}
+                <div>
+                  <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-2">
+                    Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    className={`w-full px-4 py-3 rounded-lg border ${
+                      errors.name ? 'border-red-500' : 'border-gray-300'
+                    } focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all`}
+                    placeholder="Your full name"
+                  />
+                  {errors.name && (
+                    <p className="mt-1 text-sm text-red-500">{errors.name}</p>
+                  )}
+                </div>
+
+                {/* Email Field */}
+                <div>
+                  <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
+                    Email <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    className={`w-full px-4 py-3 rounded-lg border ${
+                      errors.email ? 'border-red-500' : 'border-gray-300'
+                    } focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all`}
+                    placeholder="your.email@example.com"
+                  />
+                  {errors.email && (
+                    <p className="mt-1 text-sm text-red-500">{errors.email}</p>
+                  )}
+                </div>
+
+                {/* Phone Field */}
+                <div>
+                  <label htmlFor="phone" className="block text-sm font-semibold text-gray-700 mb-2">
+                    Phone <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="tel"
+                    id="phone"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    className={`w-full px-4 py-3 rounded-lg border ${
+                      errors.phone ? 'border-red-500' : 'border-gray-300'
+                    } focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all`}
+                    placeholder="+91 123 456 7890"
+                  />
+                  {errors.phone && (
+                    <p className="mt-1 text-sm text-red-500">{errors.phone}</p>
+                  )}
+                </div>
+
+                {/* Message Field */}
+                <div>
+                  <label htmlFor="message" className="block text-sm font-semibold text-gray-700 mb-2">
+                    Message <span className="text-red-500">*</span>
+                  </label>
+                  <textarea
+                    id="message"
+                    name="message"
+                    value={formData.message}
+                    onChange={handleChange}
+                    rows="6"
+                    className={`w-full px-4 py-3 rounded-lg border ${
+                      errors.message ? 'border-red-500' : 'border-gray-300'
+                    } focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none`}
+                    placeholder="Tell us about your project or inquiry..."
+                  />
+                  {errors.message && (
+                    <p className="mt-1 text-sm text-red-500">{errors.message}</p>
+                  )}
+                </div>
+
+                {/* Submit Button */}
+                <button
+                  type="submit"
+                  className="btn-primary w-full"
+                >
+                  Send Message
+                </button>
+              </form>
+            </motion.div>
+
+            {/* Contact Information */}
+            <motion.div
+              initial={{ opacity: 0, x: 50 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+            >
+              <h2 className="text-3xl font-bold text-gray-900 mb-6">
+                Contact Information
+              </h2>
+              <p className="text-gray-600 mb-8 leading-relaxed">
+                Digital Creatorss is an India-based software development and digital marketing company. We're here to help you with all your digital needs.
+              </p>
+
+              <div className="space-y-6 mb-8">
+                {/* Location */}
+                <div className="flex items-start space-x-4">
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <FaMapMarkerAlt className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-1">Location</h3>
+                    <p className="text-gray-600">India</p>
+                  </div>
+                </div>
+
+                {/* Phone */}
+                <div className="flex items-start space-x-4">
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <FaPhone className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-1">Phone</h3>
+                    <a href="tel:+911234567890" className="text-gray-600 hover:text-blue-600 transition-colors">
+                      +91 123 456 7890
+                    </a>
+                  </div>
+                </div>
+
+                {/* Email */}
+                <div className="flex items-start space-x-4">
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <FaEnvelope className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-1">Email</h3>
+                    <a href="mailto:info@digitalcreatorss.com" className="text-gray-600 hover:text-blue-600 transition-colors break-all">
+                      info@digitalcreatorss.com
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              {/* Additional Info */}
+              <div className="bg-gradient-to-br from-blue-50 to-purple-50 p-6 rounded-lg">
+                <h3 className="font-semibold text-gray-900 mb-3">Business Hours</h3>
+                <p className="text-gray-600 mb-2">Monday - Friday: 9:00 AM - 6:00 PM</p>
+                <p className="text-gray-600">Saturday: 10:00 AM - 4:00 PM</p>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+};
+
+export default Contact;
