@@ -113,16 +113,24 @@ const Footer = () => {
             <ul className="space-y-3">
               <li className="flex items-start space-x-3">
                 <FaMapMarkerAlt className="w-5 h-5 text-blue-500 mt-1 flex-shrink-0" />
-                <span className="text-sm">India</span>
+                <span className="text-sm">C-84, C-Block, Sec - 2, Noida, Uttar Pradesh, 201306</span>
               </li>
-              <li className="flex items-center space-x-3">
-                <FaPhone className="w-5 h-5 text-blue-500 flex-shrink-0" />
-                <a
-                  href="tel:+911234567890"
-                  className="text-sm hover:text-white transition-colors"
-                >
-                  +91 123 456 7890
-                </a>
+              <li className="flex items-start space-x-3">
+                <FaPhone className="w-5 h-5 text-blue-500 mt-1 flex-shrink-0" />
+                <div className="flex flex-col space-y-1">
+                  <a
+                    href="tel:+918851613806"
+                    className="text-sm hover:text-white transition-colors"
+                  >
+                    +91 8851613806
+                  </a>
+                  <a
+                    href="tel:+919311240888"
+                    className="text-sm hover:text-white transition-colors"
+                  >
+                    +91 9311240888
+                  </a>
+                </div>
               </li>
               <li className="flex items-start space-x-3">
                 <FaEnvelope className="w-5 h-5 text-blue-500 mt-1 flex-shrink-0" />

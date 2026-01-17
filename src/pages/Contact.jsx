@@ -60,7 +60,21 @@ const Contact = () => {
     e.preventDefault();
     
     if (validateForm()) {
-      // In a real application, you would send the data to a backend
+      // Format the message for WhatsApp
+      const whatsappMessage = `*New Contact Form Submission*\n\n` +
+        `*Name:* ${formData.name}\n` +
+        `*Email:* ${formData.email}\n` +
+        `*Phone:* ${formData.phone}\n\n` +
+        `*Message:*\n${formData.message}`;
+      
+      // WhatsApp number (without + sign)
+      const phoneNumber = '918851613806';
+      const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(whatsappMessage)}`;
+      
+      // Open WhatsApp with the formatted message
+      window.open(whatsappUrl, '_blank');
+      
+      // Log for debugging
       console.log('Form submitted:', formData);
       setIsSubmitted(true);
       
@@ -181,7 +195,7 @@ const Contact = () => {
                     className={`w-full px-4 py-3 rounded-lg border ${
                       errors.phone ? 'border-red-500' : 'border-gray-300'
                     } focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all`}
-                    placeholder="+91 123 456 7890"
+                    placeholder="+91 8851613806"
                   />
                   {errors.phone && (
                     <p className="mt-1 text-sm text-red-500">{errors.phone}</p>
@@ -241,7 +255,7 @@ const Contact = () => {
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900 mb-1">Location</h3>
-                    <p className="text-gray-600">India</p>
+                    <p className="text-gray-600">C-84, C-Block, Sec - 2, Noida, Uttar Pradesh, 201306</p>
                   </div>
                 </div>
 
@@ -252,9 +266,14 @@ const Contact = () => {
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900 mb-1">Phone</h3>
-                    <a href="tel:+911234567890" className="text-gray-600 hover:text-blue-600 transition-colors">
-                      +91 123 456 7890
-                    </a>
+                    <div className="flex flex-col space-y-1">
+                      <a href="tel:+918851613806" className="text-gray-600 hover:text-blue-600 transition-colors">
+                        +91 8851613806
+                      </a>
+                      <a href="tel:+919311240888" className="text-gray-600 hover:text-blue-600 transition-colors">
+                        +91 9311240888
+                      </a>
+                    </div>
                   </div>
                 </div>
 
