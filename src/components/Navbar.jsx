@@ -80,18 +80,25 @@ const Navbar = () => {
         </div>
 
         {/* Mobile Navigation */}
-        {isOpen && (
-          <div className="md:hidden py-4 border-t border-gray-200">
-            {navLinks.map((link) => (
+        <div
+          className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out ${
+            isOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+          }`}
+        >
+          <div className="py-4 border-t border-gray-200 space-y-2">
+            {navLinks.map((link, index) => (
               <Link
                 key={link.path}
                 to={link.path}
                 onClick={() => setIsOpen(false)}
-                className={`block py-2 font-medium transition-colors ${
+                className={`block py-3 px-4 rounded-lg font-medium transition-all duration-200 min-h-[44px] flex items-center ${
                   isActive(link.path)
-                    ? 'text-blue-600'
-                    : 'text-gray-700 hover:text-blue-600'
+                    ? 'text-blue-600 bg-blue-50'
+                    : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50 active:bg-gray-100'
                 }`}
+                style={{
+                  animation: isOpen ? `slideIn 0.3s ease-out ${index * 0.1}s both` : 'none'
+                }}
               >
                 {link.label}
               </Link>
@@ -99,12 +106,25 @@ const Navbar = () => {
             <Link
               to="/contact"
               onClick={() => setIsOpen(false)}
-              className="btn-primary text-sm px-4 py-2 mt-4 inline-block"
+              className="btn-primary text-sm px-4 py-3 mt-4 inline-block w-full text-center"
             >
               Get Quote
             </Link>
           </div>
-        )}
+        </div>
+        
+        <style>{`
+          @keyframes slideIn {
+            from {
+              opacity: 0;
+              transform: translateX(-20px);
+            }
+            to {
+              opacity: 1;
+              transform: translateX(0);
+            }
+          }
+        `}</style>
       </div>
     </nav>
   );

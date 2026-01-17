@@ -26,16 +26,16 @@ const Home = () => {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8 }}
             >
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-4 sm:mb-6 leading-tight">
                 Building Digital Solutions That{' '}
                 <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                   Grow Your Business
                 </span>
               </h1>
-              <p className="text-lg text-gray-600 mb-8 leading-relaxed">
+              <p className="text-base sm:text-lg text-gray-600 mb-6 sm:mb-8 leading-relaxed">
                 Digital Creatorss is an India-based software development and digital marketing company providing custom software, website development, and online marketing solutions to help businesses thrive in the digital world.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                 <Link to="/contact" className="btn-primary text-center">
                   Contact Us
                 </Link>
@@ -52,11 +52,14 @@ const Home = () => {
               transition={{ duration: 0.8, delay: 0.2 }}
               className="relative"
             >
-              <img
-                src="https://images.unsplash.com/photo-1551434678-e076c223a692?w=800&h=600&fit=crop"
-                alt="Digital Solutions"
-                className="rounded-lg shadow-2xl"
-              />
+              <div className="relative overflow-hidden rounded-lg shadow-2xl">
+                <img
+                  src="https://images.unsplash.com/photo-1551434678-e076c223a692?w=800&h=600&fit=crop"
+                  alt="Digital Solutions"
+                  className="w-full h-auto object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+              </div>
             </motion.div>
           </div>
         </div>
@@ -80,7 +83,7 @@ const Home = () => {
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             {servicesData.slice(0, 6).map((service, index) => {
               const Icon = service.icon;
               return (
@@ -90,7 +93,7 @@ const Home = () => {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.5, delay: index * 0.1 }}
-                  className="bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 border border-gray-100"
+                  className="bg-white p-5 sm:p-6 rounded-lg shadow-md hover:shadow-xl transition-all duration-300 border border-gray-100 card-hover"
                 >
                   <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg flex items-center justify-center mb-4">
                     <Icon className="w-7 h-7 text-white" />
@@ -182,7 +185,7 @@ const Home = () => {
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8">
             {testimonialsData.map((testimonial, index) => (
               <motion.div
                 key={testimonial.id}

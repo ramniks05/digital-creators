@@ -38,7 +38,7 @@ const Footer = () => {
                 href="https://facebook.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-gray-400 hover:text-blue-500 transition-colors"
+                className="text-gray-400 hover:text-blue-500 transition-all duration-300 p-2 rounded-full hover:bg-gray-800 min-w-[44px] min-h-[44px] flex items-center justify-center"
                 aria-label="Facebook"
               >
                 <FaFacebook className="w-5 h-5" />
@@ -47,7 +47,7 @@ const Footer = () => {
                 href="https://twitter.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-gray-400 hover:text-blue-400 transition-colors"
+                className="text-gray-400 hover:text-blue-400 transition-all duration-300 p-2 rounded-full hover:bg-gray-800 min-w-[44px] min-h-[44px] flex items-center justify-center"
                 aria-label="Twitter"
               >
                 <FaTwitter className="w-5 h-5" />
@@ -56,7 +56,7 @@ const Footer = () => {
                 href="https://linkedin.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-gray-400 hover:text-blue-600 transition-colors"
+                className="text-gray-400 hover:text-blue-600 transition-all duration-300 p-2 rounded-full hover:bg-gray-800 min-w-[44px] min-h-[44px] flex items-center justify-center"
                 aria-label="LinkedIn"
               >
                 <FaLinkedin className="w-5 h-5" />
@@ -65,7 +65,7 @@ const Footer = () => {
                 href="https://instagram.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-gray-400 hover:text-pink-500 transition-colors"
+                className="text-gray-400 hover:text-pink-500 transition-all duration-300 p-2 rounded-full hover:bg-gray-800 min-w-[44px] min-h-[44px] flex items-center justify-center"
                 aria-label="Instagram"
               >
                 <FaInstagram className="w-5 h-5" />

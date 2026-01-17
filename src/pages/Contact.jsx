@@ -150,9 +150,9 @@ const Contact = () => {
                     name="name"
                     value={formData.name}
                     onChange={handleChange}
-                    className={`w-full px-4 py-3 rounded-lg border ${
+                    className={`w-full px-4 py-3 sm:py-3.5 rounded-lg border text-base ${
                       errors.name ? 'border-red-500' : 'border-gray-300'
-                    } focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all`}
+                    } focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all min-h-[44px]`}
                     placeholder="Your full name"
                   />
                   {errors.name && (
@@ -171,9 +171,9 @@ const Contact = () => {
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
-                    className={`w-full px-4 py-3 rounded-lg border ${
+                    className={`w-full px-4 py-3 sm:py-3.5 rounded-lg border text-base ${
                       errors.email ? 'border-red-500' : 'border-gray-300'
-                    } focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all`}
+                    } focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all min-h-[44px]`}
                     placeholder="your.email@example.com"
                   />
                   {errors.email && (
@@ -192,9 +192,9 @@ const Contact = () => {
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
-                    className={`w-full px-4 py-3 rounded-lg border ${
+                    className={`w-full px-4 py-3 sm:py-3.5 rounded-lg border text-base ${
                       errors.phone ? 'border-red-500' : 'border-gray-300'
-                    } focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all`}
+                    } focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all min-h-[44px]`}
                     placeholder="+91 8851613806"
                   />
                   {errors.phone && (
@@ -213,9 +213,9 @@ const Contact = () => {
                     value={formData.message}
                     onChange={handleChange}
                     rows="6"
-                    className={`w-full px-4 py-3 rounded-lg border ${
+                    className={`w-full px-4 py-3 sm:py-3.5 rounded-lg border text-base ${
                       errors.message ? 'border-red-500' : 'border-gray-300'
-                    } focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none`}
+                    } focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none min-h-[120px]`}
                     placeholder="Tell us about your project or inquiry..."
                   />
                   {errors.message && (

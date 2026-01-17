@@ -34,17 +34,17 @@ const Portfolio = () => {
       </section>
 
       {/* Filter Buttons */}
-      <section className="py-8 bg-white border-b border-gray-200 sticky top-20 z-40">
+      <section className="py-6 sm:py-8 bg-white border-b border-gray-200 sticky top-20 z-40">
         <div className="container-custom">
-          <div className="flex flex-wrap justify-center gap-4">
+          <div className="flex flex-wrap justify-center gap-2 sm:gap-4">
             {categories.map((category) => (
               <button
                 key={category}
                 onClick={() => setSelectedCategory(category)}
-                className={`px-6 py-2 rounded-full font-semibold transition-all duration-300 ${
+                className={`px-4 py-2 sm:px-6 sm:py-2.5 rounded-full font-semibold transition-all duration-300 text-sm sm:text-base min-h-[44px] ${
                   selectedCategory === category
-                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg scale-105'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200 active:scale-95'
                 }`}
               >
                 {category}
@@ -58,7 +58,7 @@ const Portfolio = () => {
       <section className="section-padding bg-white">
         <div className="container-custom">
           {filteredProjects.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
               {filteredProjects.map((project, index) => (
                 <PortfolioCard key={project.id} project={project} index={index} />
               ))}
