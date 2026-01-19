@@ -18,12 +18,13 @@ const Footer = () => {
     { path: '/about', label: 'About Us' },
     { path: '/services', label: 'Services' },
     { path: '/portfolio', label: 'Portfolio' },
+    { path: '/team', label: 'Team' },
     { path: '/contact', label: 'Contact' },
   ];
 
   return (
-    <footer className="bg-gray-900 text-gray-300">
-      <div className="container-custom section-padding">
+    <footer className="bg-gray-900 text-gray-300 w-full overflow-x-hidden">
+      <div className="container-custom py-8 sm:py-10 md:py-12 w-full">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Company Info */}
           <div>
@@ -38,7 +39,7 @@ const Footer = () => {
                 href="https://facebook.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-gray-400 hover:text-blue-500 transition-all duration-300 p-2 rounded-full hover:bg-gray-800 min-w-[44px] min-h-[44px] flex items-center justify-center"
+                className="text-gray-400 hover:text-orange-500 transition-all duration-300 p-2 rounded-full hover:bg-gray-800 min-w-[44px] min-h-[44px] flex items-center justify-center"
                 aria-label="Facebook"
               >
                 <FaFacebook className="w-5 h-5" />
@@ -56,7 +57,7 @@ const Footer = () => {
                 href="https://linkedin.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-gray-400 hover:text-blue-600 transition-all duration-300 p-2 rounded-full hover:bg-gray-800 min-w-[44px] min-h-[44px] flex items-center justify-center"
+                className="text-gray-400 hover:text-orange-600 transition-all duration-300 p-2 rounded-full hover:bg-gray-800 min-w-[44px] min-h-[44px] flex items-center justify-center"
                 aria-label="LinkedIn"
               >
                 <FaLinkedin className="w-5 h-5" />
@@ -112,11 +113,11 @@ const Footer = () => {
             <h4 className="text-white font-semibold mb-4">Contact Us</h4>
             <ul className="space-y-3">
               <li className="flex items-start space-x-3">
-                <FaMapMarkerAlt className="w-5 h-5 text-blue-500 mt-1 flex-shrink-0" />
+                <FaMapMarkerAlt className="w-5 h-5 text-orange-500 mt-1 flex-shrink-0" />
                 <span className="text-sm">C-84, C-Block, Sec - 2, Noida, Uttar Pradesh, 201306</span>
               </li>
               <li className="flex items-start space-x-3">
-                <FaPhone className="w-5 h-5 text-blue-500 mt-1 flex-shrink-0" />
+                <FaPhone className="w-5 h-5 text-orange-500 mt-1 flex-shrink-0" />
                 <div className="flex flex-col space-y-1">
                   <a
                     href="tel:+918851613806"
@@ -133,7 +134,7 @@ const Footer = () => {
                 </div>
               </li>
               <li className="flex items-start space-x-3">
-                <FaEnvelope className="w-5 h-5 text-blue-500 mt-1 flex-shrink-0" />
+                <FaEnvelope className="w-5 h-5 text-orange-500 mt-1 flex-shrink-0" />
                 <a
                   href="mailto:info@digitalcreatorss.com"
                   className="text-sm hover:text-white transition-colors break-all"
@@ -146,7 +147,7 @@ const Footer = () => {
         </div>
 
         {/* Copyright */}
-        <div className="border-t border-gray-800 mt-12 pt-8 text-center text-sm">
+        <div className="border-t border-gray-800 mt-6 sm:mt-8 pt-4 sm:pt-6 text-center text-sm">
           <p>
             &copy; {currentYear} Digital Creatorss. All rights reserved.
           </p>

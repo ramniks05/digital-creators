@@ -29,9 +29,9 @@ const About = () => {
   ];
 
   return (
-    <div>
+    <div className="w-full overflow-x-hidden">
       {/* Hero Section */}
-      <section className="pt-32 pb-20 bg-gradient-to-br from-blue-50 via-purple-50 to-blue-50">
+      <section className="pt-20 sm:pt-24 md:pt-28 pb-8 sm:pb-10 md:pb-12 bg-gradient-to-br from-orange-50 via-blue-50 to-orange-50 overflow-x-hidden">
         <div className="container-custom">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -39,10 +39,10 @@ const About = () => {
             transition={{ duration: 0.8 }}
             className="text-center max-w-3xl mx-auto"
           >
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              About <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Digital Creatorss</span>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 sm:mb-6 leading-tight break-words">
+              About <span className="bg-gradient-to-r from-orange-600 to-blue-600 bg-clip-text text-transparent break-words">Digital Creatorss</span>
             </h1>
-            <p className="text-lg text-gray-600 leading-relaxed">
+            <p className="text-sm sm:text-base md:text-lg text-gray-600 leading-relaxed break-words">
               We are a team of passionate developers, designers, and digital marketers dedicated to helping businesses succeed in the digital world.
             </p>
           </motion.div>
@@ -52,7 +52,7 @@ const About = () => {
       {/* Company Introduction */}
       <section className="section-padding bg-white">
         <div className="container-custom">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 items-center">
             <motion.div
               initial={{ opacity: 0, x: -50 }}
               whileInView={{ opacity: 1, x: 0 }}
@@ -91,9 +91,9 @@ const About = () => {
       </section>
 
       {/* Stats */}
-      <section className="section-padding bg-gradient-to-br from-blue-600 to-purple-600 text-white">
+      <section className="section-padding bg-gradient-to-br from-orange-600 to-blue-600 text-white">
         <div className="container-custom">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
             {stats.map((stat, index) => {
               const Icon = stat.icon;
               return (
@@ -124,13 +124,13 @@ const About = () => {
       {/* Mission & Vision */}
       <section className="section-padding bg-white">
         <div className="container-custom">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
-              className="bg-gradient-to-br from-blue-50 to-purple-50 p-8 rounded-lg"
+              className="bg-gradient-to-br from-orange-50 to-blue-50 p-8 rounded-lg"
             >
               <h3 className="text-2xl font-bold text-gray-900 mb-4">
                 Our Mission
@@ -145,7 +145,7 @@ const About = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="bg-gradient-to-br from-purple-50 to-blue-50 p-8 rounded-lg"
+              className="bg-gradient-to-br from-blue-50 to-orange-50 p-8 rounded-lg"
             >
               <h3 className="text-2xl font-bold text-gray-900 mb-4">
                 Our Vision
@@ -166,7 +166,7 @@ const About = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="text-center mb-12"
+            className="text-center mb-8"
           >
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
               Why Digital Creatorss?
@@ -176,7 +176,7 @@ const About = () => {
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             {values.map((value, index) => (
               <motion.div
                 key={index}
@@ -201,7 +201,7 @@ const About = () => {
       {/* Experience & Skills */}
       <section className="section-padding bg-white">
         <div className="container-custom">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 items-center">
             <motion.div
               initial={{ opacity: 0, x: -50 }}
               whileInView={{ opacity: 1, x: 0 }}
@@ -239,7 +239,7 @@ const About = () => {
                   'UI/UX Design'
                 ].map((skill, index) => (
                   <div key={index} className="flex items-center space-x-2">
-                    <span className="w-2 h-2 bg-blue-600 rounded-full"></span>
+                    <span className="w-2 h-2 bg-orange-600 rounded-full"></span>
                     <span className="text-gray-700">{skill}</span>
                   </div>
                 ))}

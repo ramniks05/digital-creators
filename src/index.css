@@ -7,9 +7,16 @@
     @apply box-border;
   }
   
+  html {
+    @apply overflow-x-hidden;
+    scroll-behavior: smooth;
+  }
+  
   body {
     @apply text-gray-800 antialiased;
     @apply text-base;
+    @apply overflow-x-hidden;
+    @apply w-full;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -17,6 +24,13 @@
   h1, h2, h3, h4, h5, h6 {
     @apply font-bold;
     @apply leading-tight;
+    @apply break-words;
+    @apply max-w-full;
+  }
+  
+  p {
+    @apply break-words;
+    @apply max-w-full;
   }
   
   /* Better touch targets for mobile */
@@ -28,31 +42,38 @@
   img {
     @apply max-w-full h-auto;
     @apply select-none;
+    @apply w-full;
+  }
+  
+  /* Prevent horizontal overflow */
+  div, section, article, header, footer, main {
+    @apply max-w-full;
   }
 }
 
 @layer components {
   .btn-primary {
-    @apply bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-3 sm:px-6 sm:py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 active:scale-95;
+    @apply bg-gradient-to-r from-orange-600 to-blue-600 text-white px-4 py-3 sm:px-6 sm:py-3 rounded-lg font-semibold hover:from-orange-700 hover:to-blue-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 active:scale-95;
     @apply text-sm sm:text-base;
     @apply min-h-[44px] min-w-[120px];
     @apply flex items-center justify-center;
   }
   
   .btn-secondary {
-    @apply bg-white text-blue-600 px-4 py-3 sm:px-6 sm:py-3 rounded-lg font-semibold border-2 border-blue-600 hover:bg-blue-50 transition-all duration-300 active:scale-95;
+    @apply bg-white text-orange-600 px-4 py-3 sm:px-6 sm:py-3 rounded-lg font-semibold border-2 border-orange-600 hover:bg-orange-50 transition-all duration-300 active:scale-95;
     @apply text-sm sm:text-base;
     @apply min-h-[44px] min-w-[120px];
     @apply flex items-center justify-center;
   }
   
   .section-padding {
-    @apply py-12 sm:py-16 md:py-20 lg:py-24;
+    @apply py-8 sm:py-10 md:py-12 lg:py-14;
   }
   
   .container-custom {
-    @apply container mx-auto px-4 sm:px-6 lg:px-8;
+    @apply w-full mx-auto px-3 sm:px-4 md:px-6 lg:px-8;
     @apply max-w-7xl;
+    @apply overflow-x-hidden;
   }
   
   /* Card hover effects */
@@ -62,7 +83,7 @@
   
   /* Gradient text */
   .gradient-text {
-    @apply bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-orange-600 to-blue-600 bg-clip-text text-transparent;
   }
   
   /* Smooth fade in */
@@ -97,18 +118,27 @@ html {
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-gradient-to-b from-blue-500 to-purple-500 rounded-full;
+  @apply bg-gradient-to-b from-orange-500 to-blue-500 rounded-full;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply from-blue-600 to-purple-600;
+  @apply from-orange-600 to-blue-600;
 }
 
 /* Mobile optimizations */
 @media (max-width: 640px) {
+  /* Prevent overflow */
+  body {
+    @apply overflow-x-hidden;
+  }
+  
   /* Better spacing on mobile */
   .section-padding {
-    @apply py-10;
+    @apply py-6;
+  }
+  
+  .container-custom {
+    @apply px-3;
   }
   
   /* Larger touch targets */
@@ -118,14 +148,24 @@ html {
   
   /* Better text sizing */
   h1 {
-    @apply text-3xl;
+    @apply text-2xl leading-tight;
   }
   
   h2 {
-    @apply text-2xl;
+    @apply text-xl leading-tight;
   }
   
   h3 {
-    @apply text-xl;
+    @apply text-lg leading-tight;
+  }
+  
+  /* Ensure text doesn't overflow */
+  p {
+    @apply text-sm leading-relaxed;
+  }
+  
+  /* Button adjustments */
+  .btn-primary, .btn-secondary {
+    @apply w-full text-sm px-4 py-3;
   }
 }

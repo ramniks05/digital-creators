@@ -5,9 +5,9 @@ import { FaCheck } from 'react-icons/fa';
 
 const Services = () => {
   return (
-    <div>
+    <div className="w-full overflow-x-hidden">
       {/* Hero Section */}
-      <section className="pt-32 pb-20 bg-gradient-to-br from-blue-50 via-purple-50 to-blue-50">
+      <section className="pt-20 sm:pt-24 md:pt-28 pb-8 sm:pb-10 md:pb-12 bg-gradient-to-br from-orange-50 via-blue-50 to-orange-50 overflow-x-hidden">
         <div className="container-custom">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -15,10 +15,10 @@ const Services = () => {
             transition={{ duration: 0.8 }}
             className="text-center max-w-3xl mx-auto"
           >
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              Our <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Services</span>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 sm:mb-6 leading-tight break-words">
+              Our <span className="bg-gradient-to-r from-orange-600 to-blue-600 bg-clip-text text-transparent break-words">Services</span>
             </h1>
-            <p className="text-lg text-gray-600 leading-relaxed">
+            <p className="text-sm sm:text-base md:text-lg text-gray-600 leading-relaxed break-words">
               Comprehensive digital solutions tailored to help your business grow and succeed in the digital landscape.
             </p>
           </motion.div>
@@ -28,7 +28,7 @@ const Services = () => {
       {/* Services Grid */}
       <section className="section-padding bg-white">
         <div className="container-custom">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {servicesData.map((service, index) => {
               const Icon = service.icon;
               return (
@@ -40,7 +40,7 @@ const Services = () => {
                   transition={{ duration: 0.5, delay: index * 0.1 }}
                   className="bg-white p-8 rounded-lg shadow-md hover:shadow-xl transition-all duration-300 border border-gray-100 group"
                 >
-                  <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                  <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-blue-500 rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
                     <Icon className="w-8 h-8 text-white" />
                   </div>
                   <h3 className="text-2xl font-bold text-gray-900 mb-4">
@@ -74,7 +74,7 @@ const Services = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
-              className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center"
+              className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 items-center"
             >
               <div>
                 <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
@@ -89,7 +89,7 @@ const Services = () => {
                 <ul className="space-y-3">
                   {servicesData[0].features.map((feature, idx) => (
                     <li key={idx} className="flex items-center space-x-3">
-                      <FaCheck className="w-5 h-5 text-blue-600" />
+                      <FaCheck className="w-5 h-5 text-orange-600" />
                       <span className="text-gray-700">{feature}</span>
                     </li>
                   ))}
@@ -112,7 +112,7 @@ const Services = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
-              className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center"
+              className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 items-center"
             >
               <div className="order-2 lg:order-1">
                 <img
@@ -134,7 +134,7 @@ const Services = () => {
                 <ul className="space-y-3">
                   {servicesData[1].features.map((feature, idx) => (
                     <li key={idx} className="flex items-center space-x-3">
-                      <FaCheck className="w-5 h-5 text-blue-600" />
+                      <FaCheck className="w-5 h-5 text-orange-600" />
                       <span className="text-gray-700">{feature}</span>
                     </li>
                   ))}
@@ -150,7 +150,7 @@ const Services = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
-              className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center"
+              className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 items-center"
             >
               <div>
                 <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
@@ -165,7 +165,7 @@ const Services = () => {
                 <ul className="space-y-3">
                   {servicesData[3].features.map((feature, idx) => (
                     <li key={idx} className="flex items-center space-x-3">
-                      <FaCheck className="w-5 h-5 text-blue-600" />
+                      <FaCheck className="w-5 h-5 text-orange-600" />
                       <span className="text-gray-700">{feature}</span>
                     </li>
                   ))}
@@ -184,7 +184,7 @@ const Services = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="section-padding bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+      <section className="section-padding bg-gradient-to-r from-orange-600 to-blue-600 text-white">
         <div className="container-custom text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -195,12 +195,12 @@ const Services = () => {
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
               Ready to Get Started?
             </h2>
-            <p className="text-lg mb-8 max-w-2xl mx-auto opacity-90">
+            <p className="text-lg mb-6 max-w-2xl mx-auto opacity-90">
               Let's discuss your project and find the perfect solution for your business needs
             </p>
             <Link
               to="/contact"
-              className="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 inline-block"
+              className="bg-white text-orange-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 inline-block"
             >
               Contact Us Today
             </Link>

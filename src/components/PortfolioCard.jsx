@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FaExternalLinkAlt } from 'react-icons/fa';
 
@@ -24,12 +25,12 @@ const PortfolioCard = ({ project, index }) => {
       {/* Project Info */}
       <div className="p-4 sm:p-6">
         {/* Category Badge */}
-        <span className="inline-block px-3 py-1 bg-blue-100 text-blue-600 text-xs font-semibold rounded-full mb-3">
+        <span className="inline-block px-3 py-1 bg-orange-100 text-orange-600 text-xs font-semibold rounded-full mb-3">
           {project.category}
         </span>
 
         {/* Title */}
-        <h3 className="text-xl font-bold text-gray-800 mb-2 group-hover:text-blue-600 transition-colors">
+        <h3 className="text-xl font-bold text-gray-800 mb-2 group-hover:text-orange-600 transition-colors">
           {project.title}
         </h3>
 
@@ -51,15 +52,13 @@ const PortfolioCard = ({ project, index }) => {
         </div>
 
         {/* View Project Button */}
-        <a
-          href={project.link}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center space-x-2 text-blue-600 font-semibold hover:text-blue-700 transition-colors group/btn min-h-[44px] py-2"
+        <Link
+          to={`/portfolio/${project.id}`}
+          className="inline-flex items-center space-x-2 text-orange-600 font-semibold hover:text-orange-700 transition-colors group/btn min-h-[44px] py-2"
         >
-          <span className="text-sm sm:text-base">View Project</span>
+          <span className="text-sm sm:text-base">View Project Details</span>
           <FaExternalLinkAlt className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
-        </a>
+        </Link>
       </div>
     </motion.div>
   );

@@ -1,0 +1,25 @@
+INSTRUCTIONS FOR ADDING DIRECTOR IMAGE
+=======================================
+
+1. Place your director image in this folder: public/images/team/
+
+2. Supported image formats:
+   - .jpg or .jpeg
+   - .png
+   - .webp
+
+3. Image filename options (the code will try to find any of these):
+   - director.jpg
+   - director.jpeg
+   - director.png
+   - director.webp
+   - Or update the image path in src/pages/Team.jsx
+
+4. Current image path in code: /images/team/director.jpg
+
+5. If your image has a different name, update line 12 in src/pages/Team.jsx:
+   image: "/images/team/YOUR_FILENAME.jpg"
+
+6. Make sure the image file is actually in: E:\Digital Creators\website\public\images\team\
+
+7. After adding the image, refresh your browser to see it.

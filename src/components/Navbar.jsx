@@ -20,6 +20,7 @@ const Navbar = () => {
     { path: '/about', label: 'About Us' },
     { path: '/services', label: 'Services' },
     { path: '/portfolio', label: 'Portfolio' },
+    { path: '/team', label: 'Team' },
     { path: '/contact', label: 'Contact' },
   ];
 
@@ -27,7 +28,7 @@ const Navbar = () => {
 
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 w-full overflow-x-hidden ${
         scrolled
           ? 'bg-white shadow-lg'
           : 'bg-white/95 backdrop-blur-sm'
@@ -36,8 +37,8 @@ const Navbar = () => {
       <div className="container-custom">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2">
-            <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          <Link to="/" className="flex items-center space-x-2 flex-shrink-0">
+            <span className="text-lg sm:text-xl md:text-2xl font-bold bg-gradient-to-r from-orange-600 to-blue-600 bg-clip-text text-transparent break-words">
               Digital Creatorss
             </span>
           </Link>
@@ -50,8 +51,8 @@ const Navbar = () => {
                 to={link.path}
                 className={`font-medium transition-colors duration-200 ${
                   isActive(link.path)
-                    ? 'text-blue-600'
-                    : 'text-gray-700 hover:text-blue-600'
+                    ? 'text-orange-600'
+                    : 'text-gray-700 hover:text-orange-600'
                 }`}
               >
                 {link.label}
@@ -93,8 +94,8 @@ const Navbar = () => {
                 onClick={() => setIsOpen(false)}
                 className={`block py-3 px-4 rounded-lg font-medium transition-all duration-200 min-h-[44px] flex items-center ${
                   isActive(link.path)
-                    ? 'text-blue-600 bg-blue-50'
-                    : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50 active:bg-gray-100'
+                    ? 'text-orange-600 bg-orange-50'
+                    : 'text-gray-700 hover:text-orange-600 hover:bg-gray-50 active:bg-gray-100'
                 }`}
                 style={{
                   animation: isOpen ? `slideIn 0.3s ease-out ${index * 0.1}s both` : 'none'

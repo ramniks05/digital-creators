@@ -92,9 +92,9 @@ const Contact = () => {
   };
 
   return (
-    <div>
+    <div className="w-full overflow-x-hidden">
       {/* Hero Section */}
-      <section className="pt-32 pb-20 bg-gradient-to-br from-blue-50 via-purple-50 to-blue-50">
+      <section className="pt-20 sm:pt-24 md:pt-28 pb-8 sm:pb-10 md:pb-12 bg-gradient-to-br from-orange-50 via-blue-50 to-orange-50 overflow-x-hidden">
         <div className="container-custom">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -102,10 +102,10 @@ const Contact = () => {
             transition={{ duration: 0.8 }}
             className="text-center max-w-3xl mx-auto"
           >
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              Get In <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Touch</span>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 sm:mb-6 leading-tight break-words">
+              Get In <span className="bg-gradient-to-r from-orange-600 to-blue-600 bg-clip-text text-transparent break-words">Touch</span>
             </h1>
-            <p className="text-lg text-gray-600 leading-relaxed">
+            <p className="text-sm sm:text-base md:text-lg text-gray-600 leading-relaxed break-words">
               Have a project in mind? We'd love to hear from you. Send us a message and we'll respond as soon as possible.
             </p>
           </motion.div>
@@ -113,9 +113,9 @@ const Contact = () => {
       </section>
 
       {/* Contact Section */}
-      <section className="section-padding bg-white">
-        <div className="container-custom">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+      <section className="section-padding bg-white overflow-x-hidden">
+        <div className="container-custom w-full">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
             {/* Contact Form */}
             <motion.div
               initial={{ opacity: 0, x: -50 }}
@@ -152,7 +152,7 @@ const Contact = () => {
                     onChange={handleChange}
                     className={`w-full px-4 py-3 sm:py-3.5 rounded-lg border text-base ${
                       errors.name ? 'border-red-500' : 'border-gray-300'
-                    } focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all min-h-[44px]`}
+                    } focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all min-h-[44px]`}
                     placeholder="Your full name"
                   />
                   {errors.name && (
@@ -173,7 +173,7 @@ const Contact = () => {
                     onChange={handleChange}
                     className={`w-full px-4 py-3 sm:py-3.5 rounded-lg border text-base ${
                       errors.email ? 'border-red-500' : 'border-gray-300'
-                    } focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all min-h-[44px]`}
+                    } focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all min-h-[44px]`}
                     placeholder="your.email@example.com"
                   />
                   {errors.email && (
@@ -194,7 +194,7 @@ const Contact = () => {
                     onChange={handleChange}
                     className={`w-full px-4 py-3 sm:py-3.5 rounded-lg border text-base ${
                       errors.phone ? 'border-red-500' : 'border-gray-300'
-                    } focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all min-h-[44px]`}
+                    } focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all min-h-[44px]`}
                     placeholder="+91 8851613806"
                   />
                   {errors.phone && (
@@ -243,14 +243,14 @@ const Contact = () => {
               <h2 className="text-3xl font-bold text-gray-900 mb-6">
                 Contact Information
               </h2>
-              <p className="text-gray-600 mb-8 leading-relaxed">
+              <p className="text-gray-600 mb-6 leading-relaxed">
                 Digital Creatorss is an India-based software development and digital marketing company. We're here to help you with all your digital needs.
               </p>
 
-              <div className="space-y-6 mb-8">
+              <div className="space-y-4 mb-6">
                 {/* Location */}
                 <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
                     <FaMapMarkerAlt className="w-6 h-6 text-white" />
                   </div>
                   <div>
@@ -261,16 +261,16 @@ const Contact = () => {
 
                 {/* Phone */}
                 <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
                     <FaPhone className="w-6 h-6 text-white" />
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900 mb-1">Phone</h3>
                     <div className="flex flex-col space-y-1">
-                      <a href="tel:+918851613806" className="text-gray-600 hover:text-blue-600 transition-colors">
-                        +91 8851613806
+                      <a href="tel:+918851613806" className="text-gray-600 hover:text-orange-600 transition-colors">
+                      +91 8851613806
                       </a>
-                      <a href="tel:+919311240888" className="text-gray-600 hover:text-blue-600 transition-colors">
+                      <a href="tel:+919311240888" className="text-gray-600 hover:text-orange-600 transition-colors">
                         +91 9311240888
                       </a>
                     </div>
@@ -279,12 +279,12 @@ const Contact = () => {
 
                 {/* Email */}
                 <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
                     <FaEnvelope className="w-6 h-6 text-white" />
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900 mb-1">Email</h3>
-                    <a href="mailto:info@digitalcreatorss.com" className="text-gray-600 hover:text-blue-600 transition-colors break-all">
+                    <a href="mailto:info@digitalcreatorss.com" className="text-gray-600 hover:text-orange-600 transition-colors break-all">
                       info@digitalcreatorss.com
                     </a>
                   </div>
@@ -292,7 +292,7 @@ const Contact = () => {
               </div>
 
               {/* Additional Info */}
-              <div className="bg-gradient-to-br from-blue-50 to-purple-50 p-6 rounded-lg">
+              <div className="bg-gradient-to-br from-orange-50 to-blue-50 p-6 rounded-lg">
                 <h3 className="font-semibold text-gray-900 mb-3">Business Hours</h3>
                 <p className="text-gray-600 mb-2">Monday - Friday: 9:00 AM - 6:00 PM</p>
                 <p className="text-gray-600">Saturday: 10:00 AM - 4:00 PM</p>
