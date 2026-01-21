@@ -2,21 +2,25 @@
 export const portfolioData = [
   {
     id: 1,
-    title: "Business Website",
+    title: "Chandra Muditta",
     category: "Website",
-    description: "A modern, responsive business website with custom design and seamless user experience for a growing company.",
-    technologies: ["React", "HTML", "CSS", "JavaScript"],
-    image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=600&fit=crop",
-    link: "#"
+    description:
+      "A modern, responsive business website with custom design and seamless user experience for a growing company.",
+    technologies: ["PHP", "HTML", "CSS", "JavaScript"],
+    image:
+      "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=600&fit=crop",
+    link: "https://www.chandramuditta.com/",
   },
   {
     id: 2,
-    title: "Corporate Website",
+    title: "Anhad Arts Foundations",
     category: "Website",
-    description: "Professional corporate website with advanced features, CMS integration, and optimized performance.",
-    technologies: ["WordPress", "PHP", "CSS", "JavaScript"],
-    image: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800&h=600&fit=crop",
-    link: "#"
+    description:
+      "Professional corporate website with advanced features, CMS integration, and optimized performance.",
+    technologies: ["PHP","HTML", "CSS", "JavaScript"],
+    image:
+      "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800&h=600&fit=crop",
+    link: "https://anhadartsfoundation.org/",
   },
   {
     id: 3,
@@ -29,12 +33,14 @@ export const portfolioData = [
   },
   {
     id: 4,
-    title: "Portfolio Website",
+    title: "CareLix Health Care",
     category: "Website",
-    description: "Creative portfolio website showcasing work with stunning animations and interactive elements.",
+    description:
+      "Creative portfolio website showcasing work with stunning animations and interactive elements.",
     technologies: ["React", "Tailwind CSS", "Framer Motion"],
-    image: "https://images.unsplash.com/photo-1467232004584-a241de8bcf5d?w=800&h=600&fit=crop",
-    link: "#"
+    image:
+      "https://images.unsplash.com/photo-1467232004584-a241de8bcf5d?w=800&h=600&fit=crop",
+    link: "https://carelixhealthcare.com/",
   },
   {
     id: 5,
@@ -56,12 +62,14 @@ export const portfolioData = [
   },
   {
     id: 7,
-    title: "Startup Website",
+    title: "CoreOn Fit",
     category: "Website",
-    description: "Dynamic startup website with modern design, fast loading times, and conversion-optimized layout.",
+    description:
+      "Dynamic startup website with modern design, fast loading times, and conversion-optimized layout.",
     technologies: ["Next.js", "TypeScript", "Tailwind CSS"],
-    image: "https://images.unsplash.com/photo-1551650975-87deedd944c3?w=800&h=600&fit=crop",
-    link: "#"
+    image:
+      "https://images.unsplash.com/photo-1551650975-87deedd944c3?w=800&h=600&fit=crop",
+    link: "https://coreonfit.com/",
   },
   {
     id: 8,
@@ -69,7 +77,7 @@ export const portfolioData = [
     category: "Marketing",
     description: "Complete SEO optimization project improving search rankings by 250% and organic traffic by 400%.",
     technologies: ["SEO", "Content Strategy", "Technical SEO", "Analytics"],
-    image: "https://images.unsplash.com/photo-1432888622747-4eb9a8f2d1c6?w=800&h=600&fit=crop",
+    image:       "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800&h=600&fit=crop",
     link: "#"
   },
   {
