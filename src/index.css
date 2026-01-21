@@ -1,0 +1,171 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply box-border;
+  }
+  
+  html {
+    @apply overflow-x-hidden;
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    @apply text-gray-800 antialiased;
+    @apply text-base;
+    @apply overflow-x-hidden;
+    @apply w-full;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-bold;
+    @apply leading-tight;
+    @apply break-words;
+    @apply max-w-full;
+  }
+  
+  p {
+    @apply break-words;
+    @apply max-w-full;
+  }
+  
+  /* Better touch targets for mobile */
+  button, a, input, textarea, select {
+    @apply touch-manipulation;
+  }
+  
+  /* Improve image rendering */
+  img {
+    @apply max-w-full h-auto;
+    @apply select-none;
+    @apply w-full;
+  }
+  
+  /* Prevent horizontal overflow */
+  div, section, article, header, footer, main {
+    @apply max-w-full;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-gradient-to-r from-orange-600 to-blue-600 text-white px-4 py-3 sm:px-6 sm:py-3 rounded-lg font-semibold hover:from-orange-700 hover:to-blue-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 active:scale-95;
+    @apply text-sm sm:text-base;
+    @apply min-h-[44px] min-w-[120px];
+    @apply flex items-center justify-center;
+  }
+  
+  .btn-secondary {
+    @apply bg-white text-orange-600 px-4 py-3 sm:px-6 sm:py-3 rounded-lg font-semibold border-2 border-orange-600 hover:bg-orange-50 transition-all duration-300 active:scale-95;
+    @apply text-sm sm:text-base;
+    @apply min-h-[44px] min-w-[120px];
+    @apply flex items-center justify-center;
+  }
+  
+  .section-padding {
+    @apply py-8 sm:py-10 md:py-12 lg:py-14;
+  }
+  
+  .container-custom {
+    @apply w-full mx-auto px-3 sm:px-4 md:px-6 lg:px-8;
+    @apply max-w-7xl;
+    @apply overflow-x-hidden;
+  }
+  
+  /* Card hover effects */
+  .card-hover {
+    @apply transition-all duration-300 hover:shadow-xl hover:-translate-y-2;
+  }
+  
+  /* Gradient text */
+  .gradient-text {
+    @apply bg-gradient-to-r from-orange-600 to-blue-600 bg-clip-text text-transparent;
+  }
+  
+  /* Smooth fade in */
+  .fade-in {
+    animation: fadeIn 0.6s ease-in;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar for webkit browsers */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-gray-100;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-gradient-to-b from-orange-500 to-blue-500 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply from-orange-600 to-blue-600;
+}
+
+/* Mobile optimizations */
+@media (max-width: 640px) {
+  /* Prevent overflow */
+  body {
+    @apply overflow-x-hidden;
+  }
+  
+  /* Better spacing on mobile */
+  .section-padding {
+    @apply py-6;
+  }
+  
+  .container-custom {
+    @apply px-3;
+  }
+  
+  /* Larger touch targets */
+  button, a {
+    @apply min-h-[44px];
+  }
+  
+  /* Better text sizing */
+  h1 {
+    @apply text-2xl leading-tight;
+  }
+  
+  h2 {
+    @apply text-xl leading-tight;
+  }
+  
+  h3 {
+    @apply text-lg leading-tight;
+  }
+  
+  /* Ensure text doesn't overflow */
+  p {
+    @apply text-sm leading-relaxed;
+  }
+  
+  /* Button adjustments */
+  .btn-primary, .btn-secondary {
+    @apply w-full text-sm px-4 py-3;
+  }
+}
