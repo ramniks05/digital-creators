@@ -2,26 +2,27 @@
 export const portfolioData = [
   {
     id: 1,
-    title: "Chandra Muditta",
-    category: "Website",
-    description:
-      "A modern, responsive business website with custom design and seamless user experience for a growing company.",
-    technologies: ["PHP", "HTML", "CSS", "JavaScript"],
-    image:
-      "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=600&fit=crop",
-    link: "https://www.chandramuditta.com/",
-  },
-  {
-    id: 2,
     title: "Anhad Arts Foundations",
     category: "Website",
     description:
-      "Professional corporate website with advanced features, CMS integration, and optimized performance.",
+      "Anhad Arts Foundation is committed to fostering inclusive growth through art, education, and cultural development.",
     technologies: ["PHP","HTML", "CSS", "JavaScript"],
     image:
-      "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800&h=600&fit=crop",
+      "/anhad.jpg",
     link: "https://anhadartsfoundation.org/",
   },
+  {
+    id: 2,
+    title: "Chandra Muditta",
+    category: "Website",
+    description:
+      "Chandra Muddita a rapidly emerging name in the agro-export industry, headquartered in Hyderabad.",
+    technologies: ["PHP", "HTML", "CSS", "JavaScript"],
+    image:
+      "/chandra.png",
+    link: "https://www.chandramuditta.com/",
+  },
+  
   {
     id: 3,
     title: "E-commerce Website",
@@ -36,10 +37,10 @@ export const portfolioData = [
     title: "CareLix Health Care",
     category: "Website",
     description:
-      "Creative portfolio website showcasing work with stunning animations and interactive elements.",
+      "Welcome to Carelix Home HealthCare, your reliable partner in providing top-quality healthcare services right at your doorstep.",
     technologies: ["React", "Tailwind CSS", "Framer Motion"],
     image:
-      "https://images.unsplash.com/photo-1467232004584-a241de8bcf5d?w=800&h=600&fit=crop",
+      "/carelix.png",
     link: "https://carelixhealthcare.com/",
   },
   {
@@ -65,10 +66,10 @@ export const portfolioData = [
     title: "CoreOn Fit",
     category: "Website",
     description:
-      "Dynamic startup website with modern design, fast loading times, and conversion-optimized layout.",
+      "At CoreOn Fit, we believe performance starts with comfort. Our mission is to create footwear and sportswear that move with you—designed to feel natural, supportive, and smart.",
     technologies: ["Next.js", "TypeScript", "Tailwind CSS"],
     image:
-      "https://images.unsplash.com/photo-1551650975-87deedd944c3?w=800&h=600&fit=crop",
+      "/coreon.png",
     link: "https://coreonfit.com/",
   },
   {
