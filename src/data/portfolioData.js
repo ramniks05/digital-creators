@@ -7,8 +7,7 @@ export const portfolioData = [
     description:
       "Anhad Arts Foundation is committed to fostering inclusive growth through art, education, and cultural development.",
     technologies: ["PHP","HTML", "CSS", "JavaScript"],
-    image:
-      "/anhad.jpg",
+    image:"/anhad.jpg",
     link: "https://anhadartsfoundation.org/",
   },
   {
@@ -18,19 +17,18 @@ export const portfolioData = [
     description:
       "Chandra Muddita a rapidly emerging name in the agro-export industry, headquartered in Hyderabad.",
     technologies: ["PHP", "HTML", "CSS", "JavaScript"],
-    image:
-      "/chandra.png",
+    image: "/chandra.png",
     link: "https://www.chandramuditta.com/",
   },
   
   {
     id: 3,
-    title: "E-commerce Website",
+    title: "DFOHO Website",
     category: "Software",
-    description: "Full-featured e-commerce platform with payment integration, inventory management, and admin dashboard.",
-    technologies: ["React", "Node.js", "MongoDB", "Stripe"],
-    image: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800&h=600&fit=crop",
-    link: "#"
+    description: "At DFOHO, we are transforming the highway dining experience through a smart, seamless platform that connects users and vendors in the food and hospitality sector.",
+    technologies: ["React-Native", "Node.js", "MongoDB", "Stripe"],
+    image: "/Dfoho.png",
+    link: "https://play.google.com/store/apps/details?id=com.dfoho.drive"
   },
   {
     id: 4,
@@ -39,8 +37,7 @@ export const portfolioData = [
     description:
       "Welcome to Carelix Home HealthCare, your reliable partner in providing top-quality healthcare services right at your doorstep.",
     technologies: ["React", "Tailwind CSS", "Framer Motion"],
-    image:
-      "/carelix.png",
+    image: "/carelix.png",
     link: "https://carelixhealthcare.com/",
   },
   {
@@ -68,8 +65,7 @@ export const portfolioData = [
     description:
       "At CoreOn Fit, we believe performance starts with comfort. Our mission is to create footwear and sportswear that move with you—designed to feel natural, supportive, and smart.",
     technologies: ["Next.js", "TypeScript", "Tailwind CSS"],
-    image:
-      "/coreon.png",
+    image: "/coreon.png",
     link: "https://coreonfit.com/",
   },
   {
@@ -89,7 +85,76 @@ export const portfolioData = [
     technologies: ["React", "Node.js", "AWS", "Stripe"],
     image: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=800&h=600&fit=crop",
     link: "#"
-  }
+  },
+  {
+    id: 10,
+    title: "DFOHO",
+    category: "Website",
+    description: "At DFOHO, we are transforming the highway dining experience through a smart, seamless platform that connects users and vendors in the food and hospitality sector.",
+    technologies: ["PHP", "HTML", "CSS", "BootStrap"],
+    image: "/Dfoho.png",
+    link: "https://dfoho.com/"
+  },
+  {
+    id: 11,
+    title: "Repair Service",
+    category: "Website",
+    description:
+      "We provide professional appliance repair service in Greater Noida West and nearby areas. Our technician in Greater Noida West serves all societies and sectors within 10 km radius.",
+    technologies: ["PHP","HTML", "CSS", "JavaScript"],
+    image:"/Repair.png",
+    link: "https://www.repaircares.com/",
+  },
+  {
+    id: 12,
+    title: "DravyaTech Payout System",
+    category: "Website",
+    description:
+      "We provide professional appliance repair service in Greater Noida West and nearby areas. Our technician in Greater Noida West serves all societies and sectors within 10 km radius.",
+    technologies: ["PHP","HTML", "CSS", "JavaScript"],
+    image:"/Dravya.png",
+    link: "https://www.dravaytech.com/vendor",
+  },
+  {
+    id: 13,
+    title: "Dr Shivam Khare",
+    category: "Website",
+    description:
+      "We provide professional appliance repair service in Greater Noida West and nearby areas. Our technician in Greater Noida West serves all societies and sectors within 10 km radius.",
+    technologies: ["PHP","HTML", "CSS", "JavaScript"],
+    image:"/DrKhare.png",
+    link: "https://drkhare.vercel.app/",
+  },
+  {
+    id: 14,
+    title: "Om Sai Security Service",
+    category: "Website",
+    description:
+      "We provide professional appliance repair service in Greater Noida West and nearby areas. Our technician in Greater Noida West serves all societies and sectors within 10 km radius.",
+    technologies: ["PHP","HTML", "CSS", "JavaScript"],
+    image:"/OmSai.png",
+    link: "https://omsaisecurityservices.in/",
+  },
+  {
+    id: 15,
+    title: "RAYPAN Group",
+    category: "Website",
+    description:
+      "We provide professional appliance repair service in Greater Noida West and nearby areas. Our technician in Greater Noida West serves all societies and sectors within 10 km radius.",
+    technologies: ["PHP","HTML", "CSS", "JavaScript"],
+    image:"/Raypan.png",
+    link: "https://raypangroup.com/",
+  },
+  {
+    id: 16,
+    title: "ANKK VASTU",
+    category: "Website",
+    description:
+      "We provide professional appliance repair service in Greater Noida West and nearby areas. Our technician in Greater Noida West serves all societies and sectors within 10 km radius.",
+    technologies: ["PHP","HTML", "CSS", "JavaScript"],
+    image:"/Ankvastu.png",
+    link: "https://ankkvastu.com/",
+  },
 ];
 
 // Categories for filtering
