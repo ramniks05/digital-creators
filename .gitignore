@@ -12,6 +12,10 @@ dist
 dist-ssr
 *.local
 assets/images.zip
+includes/config.local.php
+assets/uploads/*
+!assets/uploads/.gitkeep
+!assets/uploads/.htaccess
 
 # Editor directories and files
 .vscode/*

@@ -7,7 +7,8 @@ require_once dirname(__DIR__) . '/includes/db.php';
 
 $config = require dirname(__DIR__) . '/includes/config.php';
 
-// Ensure database exists
+// Create the database locally when permitted. Shared hosts normally provide
+// an existing database and deny CREATE DATABASE, so continue in that case.
 $hostDsn = sprintf(
     'mysql:host=%s;port=%s;charset=%s',
     $config['db']['host'],
@@ -17,7 +18,11 @@ $hostDsn = sprintf(
 $pdo = new PDO($hostDsn, $config['db']['user'], $config['db']['pass'], [
     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
 ]);
-$pdo->exec('CREATE DATABASE IF NOT EXISTS `' . str_replace('`', '``', $config['db']['name']) . '` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci');
+try {
+    $pdo->exec('CREATE DATABASE IF NOT EXISTS `' . str_replace('`', '``', $config['db']['name']) . '` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci');
+} catch (PDOException $e) {
+    // Expected on Hostinger/shared hosting where databases are created in hPanel.
+}
 $pdo->exec('USE `' . str_replace('`', '``', $config['db']['name']) . '`');
 
 $schema = file_get_contents(__DIR__ . '/schema.sql');
@@ -43,9 +48,12 @@ $pdo->exec('DELETE FROM testimonials');
 $pdo->exec('DELETE FROM settings');
 $pdo->exec('DELETE FROM admins');
 
-$hash = password_hash('Admin@123', PASSWORD_DEFAULT);
-$pdo->prepare('INSERT INTO admins (username, password_hash) VALUES (?, ?)')->execute(['admin', $hash]);
-echo "Admin user: admin / Admin@123\n";
+$adminUser = getenv('ADMIN_USER') ?: 'admin';
+$adminPass = getenv('ADMIN_PASS') ?: bin2hex(random_bytes(8));
+$hash = password_hash($adminPass, PASSWORD_DEFAULT);
+$pdo->prepare('INSERT INTO admins (username, password_hash) VALUES (?, ?)')->execute([$adminUser, $hash]);
+echo "Admin user: {$adminUser} / {$adminPass}\n";
+echo "Save this password now; it is not stored in plain text.\n";
 
 $settings = [
     'phone_1' => '+91-8851613806',
