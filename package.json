@@ -1,0 +1,13 @@
+{
+  "name": "dc-new-website",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "watch:css": "cd css && npx @tailwindcss/cli -i index.css -o style.css --watch",
+    "build:css": "cd css && npx @tailwindcss/cli -i index.css -o style.css --minify"
+  },
+  "devDependencies": {
+    "tailwindcss": "^4.3.1",
+    "@tailwindcss/cli": "^4.3.1"
+  }
+}

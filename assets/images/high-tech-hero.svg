@@ -1,0 +1,124 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 560" fill="none" role="img" aria-label="Web, CRM, LMS, e-commerce and business software solutions">
+  <defs>
+    <linearGradient id="phoneGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#20c997"/>
+      <stop offset="55%" stop-color="#17a2b8"/>
+      <stop offset="100%" stop-color="#007bff"/>
+    </linearGradient>
+    <linearGradient id="crmGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#007bff"/>
+      <stop offset="100%" stop-color="#6610f2"/>
+    </linearGradient>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#343a40" flood-opacity="0.14"/>
+    </filter>
+  </defs>
+
+  <!-- Tablet / monitor -->
+  <g filter="url(#softShadow)" transform="translate(118 72)">
+    <rect x="0" y="0" width="420" height="300" rx="18" fill="#343a40"/>
+    <rect x="14" y="14" width="392" height="272" rx="10" fill="#f8f9fa"/>
+    <rect x="188" y="300" width="44" height="28" rx="4" fill="#343a40"/>
+    <rect x="148" y="328" width="176" height="10" rx="5" fill="#6c757d"/>
+  </g>
+
+  <!-- Phone -->
+  <g filter="url(#softShadow)" transform="translate(248 118)">
+    <rect x="0" y="0" width="148" height="268" rx="22" fill="#343a40"/>
+    <rect x="10" y="12" width="128" height="248" rx="16" fill="url(#phoneGrad)"/>
+    <circle cx="74" cy="22" r="4" fill="#fff" opacity="0.85"/>
+    <rect x="44" y="230" width="40" height="4" rx="2" fill="#fff" opacity="0.5"/>
+  </g>
+
+  <!-- CRM badge -->
+  <g filter="url(#softShadow)" transform="translate(188 148)">
+    <circle cx="72" cy="72" r="72" fill="url(#crmGrad)"/>
+    <circle cx="72" cy="72" r="34" fill="#ffc107"/>
+    <text x="72" y="78" text-anchor="middle" fill="#343a40" font-family="Arial,sans-serif" font-size="18" font-weight="700">CRM</text>
+    <path d="M72 18 L82 42 L58 42 Z" fill="#007bff"/>
+    <path d="M126 72 L102 82 L102 58 Z" fill="#6610f2"/>
+    <path d="M72 126 L58 102 L82 102 Z" fill="#17a2b8"/>
+    <path d="M18 72 L42 58 L42 82 Z" fill="#20c997"/>
+    <circle cx="72" cy="38" r="8" fill="#fff" opacity="0.9"/>
+    <rect x="96" y="66" width="14" height="12" rx="2" fill="#fff" opacity="0.85"/>
+    <path d="M52 88 L60 76 L68 88 Z" fill="#fff" opacity="0.85"/>
+    <circle cx="48" cy="64" r="6" fill="#fff" opacity="0.85"/>
+  </g>
+
+  <!-- LMS badge -->
+  <g filter="url(#softShadow)" transform="translate(72 88)">
+    <rect x="0" y="28" width="96" height="52" rx="26" fill="#17a2b8"/>
+    <text x="48" y="60" text-anchor="middle" fill="#fff" font-family="Arial,sans-serif" font-size="16" font-weight="700">LMS</text>
+    <path d="M48 8 C38 8 30 16 30 26 L30 34 L42 34 L42 26 C42 22 45 18 48 18 C51 18 54 22 54 26 L66 26 C66 16 58 8 48 8Z" fill="#007bff"/>
+    <rect x="40" y="30" width="16" height="4" rx="2" fill="#fff"/>
+  </g>
+
+  <!-- House / real estate -->
+  <g transform="translate(88 248)">
+    <rect x="18" y="34" width="44" height="36" fill="none" stroke="#343a40" stroke-width="3"/>
+    <path d="M40 18 L8 38 L72 38 L40 18Z" fill="none" stroke="#343a40" stroke-width="3" stroke-linejoin="round"/>
+    <rect x="30" y="46" width="14" height="18" fill="#6c757d"/>
+  </g>
+
+  <!-- Inventory / search monitor -->
+  <g transform="translate(96 360)">
+    <rect x="0" y="16" width="72" height="48" rx="4" fill="none" stroke="#343a40" stroke-width="3"/>
+    <rect x="24" y="64" width="24" height="8" fill="#343a40"/>
+    <circle cx="52" cy="28" r="16" fill="none" stroke="#007bff" stroke-width="3"/>
+    <line x1="62" y1="38" x2="72" y2="48" stroke="#007bff" stroke-width="3" stroke-linecap="round"/>
+    <rect x="12" y="30" width="18" height="18" rx="3" fill="#17a2b8" opacity="0.35"/>
+  </g>
+
+  <!-- E-commerce cart (outline) -->
+  <g transform="translate(500 108)">
+    <circle cx="28" cy="28" r="26" fill="none" stroke="#343a40" stroke-width="3"/>
+    <path d="M18 22 L22 14 L38 14 L42 22" fill="none" stroke="#343a40" stroke-width="3" stroke-linecap="round"/>
+    <rect x="16" y="22" width="28" height="18" rx="3" fill="none" stroke="#343a40" stroke-width="3"/>
+    <circle cx="22" cy="44" r="3" fill="#343a40"/>
+    <circle cx="38" cy="44" r="3" fill="#343a40"/>
+  </g>
+
+  <!-- E-commerce cart (red) -->
+  <g filter="url(#softShadow)" transform="translate(548 168)">
+    <circle cx="34" cy="34" r="34" fill="#dc3545"/>
+    <path d="M22 28 L26 18 L42 18 L46 28" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+    <rect x="20" y="28" width="28" height="20" rx="4" fill="none" stroke="#fff" stroke-width="3"/>
+    <circle cx="26" cy="54" r="3" fill="#fff"/>
+    <circle cx="42" cy="54" r="3" fill="#fff"/>
+  </g>
+
+  <!-- Folder / files -->
+  <g filter="url(#softShadow)" transform="translate(520 72)">
+    <circle cx="34" cy="34" r="34" fill="none" stroke="#007bff" stroke-width="3"/>
+    <path d="M18 30 L18 48 C18 50 20 52 22 52 L46 52 C48 52 50 50 50 48 L50 26 C50 24 48 22 46 22 L34 22 L30 18 L22 18 C20 18 18 20 18 22 Z" fill="#28a745"/>
+    <circle cx="42" cy="20" r="10" fill="#ffc107"/>
+    <text x="42" y="24" text-anchor="middle" fill="#343a40" font-family="Arial,sans-serif" font-size="9" font-weight="700">2</text>
+    <circle cx="40" cy="38" r="10" fill="none" stroke="#fff" stroke-width="2.5"/>
+    <line x1="46" y1="44" x2="52" y2="50" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
+  </g>
+
+  <!-- Government / enterprise building -->
+  <g transform="translate(548 360)">
+    <rect x="16" y="34" width="56" height="42" fill="#6c757d"/>
+    <rect x="8" y="28" width="72" height="8" fill="#007bff"/>
+    <rect x="22" y="44" width="10" height="24" fill="#f8f9fa"/>
+    <rect x="38" y="44" width="10" height="24" fill="#f8f9fa"/>
+    <rect x="54" y="44" width="10" height="24" fill="#f8f9fa"/>
+    <path d="M40 12 L48 20 L32 20 Z" fill="#fd7e14"/>
+    <rect x="38" y="20" width="4" height="8" fill="#fd7e14"/>
+  </g>
+
+  <!-- SaaS / cloud accent -->
+  <g transform="translate(430 420)">
+    <ellipse cx="36" cy="28" rx="28" ry="16" fill="#6610f2" opacity="0.15"/>
+    <ellipse cx="28" cy="24" rx="18" ry="12" fill="#6f42c1" opacity="0.35"/>
+    <ellipse cx="46" cy="26" rx="16" ry="11" fill="#007bff" opacity="0.35"/>
+    <text x="36" y="32" text-anchor="middle" fill="#6610f2" font-family="Arial,sans-serif" font-size="11" font-weight="700">SaaS</text>
+  </g>
+
+  <!-- HRM pill -->
+  <g transform="translate(300 420)">
+    <rect x="0" y="0" width="108" height="36" rx="18" fill="#6f42c1" opacity="0.12"/>
+    <text x="54" y="24" text-anchor="middle" fill="#6f42c1" font-family="Arial,sans-serif" font-size="13" font-weight="700">HRM &amp; ERP</text>
+  </g>
+</svg>

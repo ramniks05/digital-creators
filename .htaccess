@@ -1,0 +1,10 @@
+RewriteEngine On
+
+# 1. Redirect external requests from /DC/file.php to /DC/file (using 302 to bypass browser cache)
+RewriteCond %{THE_REQUEST} \s/+(.+)\.php[\s?] [NC]
+RewriteRule ^ /%1 [R=302,L]
+
+# 2. Map extensionless URLs internally back to PHP files
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME}\.php -f
+RewriteRule ^(.*?)/?$ $1.php [L]
