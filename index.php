@@ -159,7 +159,7 @@
           // 1. Animate the progress bar and percentage value (0% to 100%)
           introTl.to(progressObj, {
             val: 100,
-            duration: 2.2,
+            duration: 0.65,
             ease: 'power1.inOut',
             onUpdate: () => {
               const p = Math.floor(progressObj.val);
@@ -181,31 +181,31 @@
 
           introTl.to('#loader-elements', {
             opacity: 0,
-            duration: 0.35,
+            duration: 0.12,
             ease: 'power2.inOut'
           });
 
           // Reveal the brand mark before transitioning into the hero.
           introTl.fromTo('#brand-zoom-container',
             { opacity: 0 },
-            { opacity: 1, duration: 0.3, ease: 'power2.out' }
+            { opacity: 1, duration: 0.18, ease: 'power2.out' }
           );
 
           introTl.fromTo('.intro-brand-wrapper',
             { opacity: 0, scale: 0.82, y: 12 },
-            { opacity: 1, scale: 1, y: 0, duration: 0.65, ease: 'back.out(1.7)' },
+            { opacity: 1, scale: 1, y: 0, duration: 0.3, ease: 'back.out(1.7)' },
             '<'
           );
 
           introTl.to('.intro-brand-wrapper', {
             scale: 1.04,
-            duration: 0.35,
+            duration: 0.12,
             ease: 'power1.inOut'
           });
 
           introTl.to(preloader, {
             opacity: 0,
-            duration: 0.45,
+            duration: 0.2,
             ease: 'power2.out',
             onComplete: () => {
               window.clearTimeout(window.introPreloaderSafetyTimer);
@@ -214,7 +214,7 @@
               document.body.classList.remove('overflow-hidden');
               heroTl.play();
             }
-          }, '-=0.15');
+          }, '-=0.08');
         }
       } else {
         // If preloader element not present, run entrance animation immediately

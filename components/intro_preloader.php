@@ -62,6 +62,6 @@
     };
 
     window.releaseIntroPreloader = revealPage;
-    window.introPreloaderSafetyTimer = window.setTimeout(revealPage, 6000);
+    window.introPreloaderSafetyTimer = window.setTimeout(revealPage, 2000);
   })();
 </script>
