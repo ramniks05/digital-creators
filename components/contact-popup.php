@@ -856,7 +856,7 @@
           budget: budget
         };
 
-        fetch('api/contact', {
+        fetch('/api/contact', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -899,18 +899,25 @@
               if (window.lucide) {
                 window.lucide.createIcons();
               }
-            } else if (data.errors) {
-              if (newTab) newTab.close();
-              Object.keys(data.errors).forEach(key => {
-                showError(key, data.errors[key]);
-              });
-            }
+              } else if (data.errors) {
+                if (newTab) newTab.close();
+                Object.keys(data.errors).forEach(key => {
+                  showError(key, data.errors[key]);
+                });
+                if (data.errors.form) {
+                  alert(data.errors.form);
+                }
+              } else {
+                if (newTab) newTab.close();
+                alert('Something went wrong. Please try again.');
+              }
           })
           .catch(err => {
             if (newTab) newTab.close();
             submitBtn.disabled = false;
             submitBtn.innerHTML = originalText;
             console.error('Error submitting popup form:', err);
+            alert('Could not submit the form. Please try again.');
           });
       });
     }

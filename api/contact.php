@@ -56,6 +56,7 @@ try {
     $stmt->execute([$name, $email, $phone, $service, $message, $budget]);
 } catch (Throwable $e) {
     http_response_code(500);
+    error_log('Contact form save failed: ' . $e->getMessage());
     echo json_encode(['success' => false, 'errors' => ['form' => 'Could not save your enquiry. Please try again.']]);
     exit;
 }

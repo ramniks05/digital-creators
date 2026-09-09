@@ -760,7 +760,7 @@
             budget: budget
           };
 
-          fetch('api/contact', {
+          fetch('/api/contact', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'
@@ -806,6 +806,12 @@
                 Object.keys(data.errors).forEach(f => {
                   showError(f, data.errors[f]);
                 });
+                if (data.errors.form) {
+                  alert(data.errors.form);
+                }
+              } else {
+                if (newTab) newTab.close();
+                alert('Something went wrong. Please try again.');
               }
             })
             .catch(err => {
@@ -813,6 +819,7 @@
               submitBtn.disabled = false;
               submitBtn.innerHTML = originalHtml;
               console.error('Submission error:', err);
+              alert('Could not submit the form. Please try again.');
             });
         });
 
