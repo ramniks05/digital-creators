@@ -58,19 +58,19 @@
     <?php include 'components/footer.php'; ?>
   </div>
 
-  <!-- Lucide Icons CDN -->
-  <script src="https://unpkg.com/lucide@latest"></script>
-
-  <!-- GSAP, ScrollTrigger & Lenis CDN -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
-  <script src="https://unpkg.com/lenis@1.1.18/dist/lenis.min.js"></script>
+  <!-- Local animation libraries prevent CDN failures from blocking the page. -->
+  <script src="assets/vendor/lucide.min.js"></script>
+  <script src="assets/vendor/gsap.min.js"></script>
+  <script src="assets/vendor/ScrollTrigger.min.js"></script>
+  <script src="assets/vendor/lenis.min.js"></script>
 
   <!-- Interactive behaviors and animations script -->
   <script>
     window.DC_WHATSAPP = <?php require_once __DIR__ . '/includes/content.php'; echo json_encode(whatsapp_number()); ?>;
     // Initialize Lucide Icons
-    lucide.createIcons();
+    if (window.lucide) {
+      window.lucide.createIcons();
+    }
 
     // Register GSAP ScrollTrigger
     gsap.registerPlugin(ScrollTrigger);
@@ -208,6 +208,7 @@
             duration: 0.45,
             ease: 'power2.out',
             onComplete: () => {
+              window.clearTimeout(window.introPreloaderSafetyTimer);
               preloader.remove();
               if (window.lenis) window.lenis.start();
               document.body.classList.remove('overflow-hidden');

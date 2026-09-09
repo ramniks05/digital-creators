@@ -28,3 +28,40 @@
     </div>
   </div>
 </div>
+
+<script>
+  // Independent safety release: the page must never remain blocked if an
+  // animation CDN, sessionStorage, or the main animation script fails.
+  (() => {
+    const revealPage = () => {
+      const loader = document.getElementById('intro-preloader');
+      if (loader) {
+        loader.style.transition = 'opacity 300ms ease';
+        loader.style.opacity = '0';
+        loader.style.pointerEvents = 'none';
+        window.setTimeout(() => loader.remove(), 320);
+      }
+
+      document.body.classList.remove('overflow-hidden');
+      const revealSelectors = [
+        '.hero-badge',
+        '.hero-title span',
+        '.hero-desc',
+        '.hero-cta-group',
+        '.hero-features li',
+        '.hero-stats'
+      ];
+      document.querySelectorAll(revealSelectors.join(',')).forEach((element) => {
+        element.style.opacity = '1';
+        element.style.transform = 'none';
+      });
+
+      if (window.lenis && typeof window.lenis.start === 'function') {
+        window.lenis.start();
+      }
+    };
+
+    window.releaseIntroPreloader = revealPage;
+    window.introPreloaderSafetyTimer = window.setTimeout(revealPage, 6000);
+  })();
+</script>
