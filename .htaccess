@@ -1,12 +1,8 @@
 RewriteEngine On
 
-# Keep POST/PUT/DELETE on .php endpoints (forms/API) — do not redirect them.
-RewriteCond %{REQUEST_METHOD} !^(GET|HEAD)$ [NC]
-RewriteCond %{REQUEST_FILENAME} -f
-RewriteRule \.php$ - [L]
-
-# Redirect external GET requests from /file.php to /file
-RewriteCond %{THE_REQUEST} ^[A-Z]+\s/+(.+)\.php[\s?] [NC]
+# Pretty URLs: only redirect GET/HEAD away from .php (keep POST for forms/API)
+RewriteCond %{REQUEST_METHOD} ^(GET|HEAD)$ [NC]
+RewriteCond %{THE_REQUEST} \s/+(.+)\.php[\s?] [NC]
 RewriteRule ^ /%1 [R=302,L]
 
 # Map extensionless URLs internally back to PHP files
