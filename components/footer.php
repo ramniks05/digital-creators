@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../includes/content.php';
 $footerServices = array_slice(get_services(), 0, 6);
-$email = setting('email', 'sales@digitalcreatorss.com');
+$email = setting('email', 'info@digitalcreatorss.com');
 $address = setting('address', 'C-84, C Block, Sec-2, Noida, Uttar Pradesh');
 $whatsapp = whatsapp_number();
 

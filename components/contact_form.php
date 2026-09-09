@@ -39,9 +39,9 @@
           </span>
           <div class="flex flex-col">
             <span class="text-[0.7rem] font-bold text-slate-500 uppercase tracking-wider mb-0.5">Email Support</span>
-            <a href="mailto:<?php echo htmlspecialchars(setting('email', 'sales@digitalcreatorss.com')); ?>"
+            <a href="mailto:<?php echo htmlspecialchars(setting('email', 'info@digitalcreatorss.com')); ?>"
               class="text-base font-semibold text-text-primary group-hover:text-primary transition-colors duration-300">
-              <?php echo htmlspecialchars(setting('email', 'sales@digitalcreatorss.com')); ?>
+              <?php echo htmlspecialchars(setting('email', 'info@digitalcreatorss.com')); ?>
             </a>
           </div>
         </div>

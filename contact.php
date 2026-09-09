@@ -87,7 +87,11 @@
             </a>
 
             <!-- Email Contact Card -->
-            <a href="mailto:sales@digitalcreatorss.com"
+            <?php
+            require_once __DIR__ . '/includes/content.php';
+            $siteEmail = setting('email', 'info@digitalcreatorss.com');
+            ?>
+            <a href="mailto:<?php echo htmlspecialchars($siteEmail); ?>"
               class="group flex items-start gap-4 p-5 rounded-2xl border border-slate-200 bg-white/80 hover:border-primary/30 hover:bg-white/80 transition-all duration-300">
               <div
                 class="p-3 bg-primary/10 border border-primary/20 rounded-xl text-primary group-hover:scale-105 transition-transform duration-300">
@@ -97,7 +101,7 @@
                 <span class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Email
                   Query</span>
                 <span
-                  class="text-base font-semibold text-text-primary group-hover:text-primary transition-colors">sales@digitalcreatorss.com</span>
+                  class="text-base font-semibold text-text-primary group-hover:text-primary transition-colors"><?php echo htmlspecialchars($siteEmail); ?></span>
               </div>
             </a>
 

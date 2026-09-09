@@ -34,14 +34,18 @@
           </a>
 
           <!-- Email Address -->
-          <a href="mailto:sales@digitalcreatorss.com" class="group flex items-start gap-4">
+          <?php
+          require_once __DIR__ . '/../includes/content.php';
+          $popupEmail = setting('email', 'info@digitalcreatorss.com');
+          ?>
+          <a href="mailto:<?php echo htmlspecialchars($popupEmail); ?>" class="group flex items-start gap-4">
             <div
               class="p-2.5 bg-slate-100 border border-slate-300 rounded-xl group-hover:scale-105 transition-transform duration-300">
               <i data-lucide="mail" class="w-4 h-4 text-text-primary"></i>
             </div>
             <div>
               <span class="block text-[9px] font-bold text-text-primary/50 uppercase tracking-wider mb-0.5">Email</span>
-              <span class="text-sm font-semibold text-text-primary group-hover:underline">sales@digitalcreatorss.com</span>
+              <span class="text-sm font-semibold text-text-primary group-hover:underline"><?php echo htmlspecialchars($popupEmail); ?></span>
             </div>
           </a>
 

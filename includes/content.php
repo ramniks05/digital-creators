@@ -21,7 +21,7 @@ function fallback_services(): array
 function fallback_team_members(): array
 {
     return [
-        ['id' => 1, 'name' => 'Neekita Kumari', 'role' => 'Director', 'bio' => 'Leads strategy, delivery, client success, and day-to-day operations at Digital Creatorss.', 'image' => 'assets/images/Nikita_Maam.webp', 'specialty' => null, 'member_type' => 'director', 'email' => 'director@digitalcreatorss.com', 'phone' => '+917903152429', 'education' => 'MBA (IT)', 'icon' => 'briefcase'],
+        ['id' => 1, 'name' => 'Neekita Kumari', 'role' => 'Director', 'bio' => 'Leads strategy, delivery, client success, and day-to-day operations at Digital Creatorss.', 'image' => 'assets/images/Nikita_Maam.webp', 'specialty' => null, 'member_type' => 'director', 'email' => 'info@digitalcreatorss.com', 'phone' => '+917903152429', 'education' => 'MBA (IT)', 'icon' => 'briefcase'],
         ['id' => 2, 'name' => 'Dharmendra Kumar', 'role' => 'Senior Frontend Developer', 'bio' => 'Builds interactive web interfaces and consistent responsive design systems.', 'image' => 'assets/images/DK.webp', 'specialty' => 'TailwindCSS / Next.js / GSAP', 'member_type' => 'core', 'email' => null, 'phone' => null, 'education' => null, 'icon' => 'layout'],
         ['id' => 3, 'name' => 'Mohit Chauhan', 'role' => 'Cloud & Hosting Engineer', 'bio' => 'Manages cloud deployment, SSL, DNS, and scalable hosting environments.', 'image' => 'assets/images/mohit.webp', 'specialty' => 'AWS / Linux / CDN', 'member_type' => 'core', 'email' => null, 'phone' => null, 'education' => null, 'icon' => 'cloud'],
     ];
