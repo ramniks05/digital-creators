@@ -1,7 +1,14 @@
 <?php
 /**
- * Copy this file to config.local.php on Hostinger and enter the
- * database values shown in hPanel. config.local.php is ignored by Git.
+ * Hostinger production database config.
+ *
+ * IMPORTANT: Do NOT put this inside public_html.
+ * Git deploy overwrites public_html and will delete config.local.php.
+ *
+ * Create this file on Hostinger at:
+ *   domains/digitalcreatorss.com/private/digital_creators_config.php
+ *
+ * Then replace REPLACE_WITH_DATABASE_PASSWORD with your MySQL password.
  */
 return [
     'db' => [

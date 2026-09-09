@@ -1,6 +1,7 @@
 <?php
 /**
- * Database & app config — update for your XAMPP MySQL credentials.
+ * Database & app config.
+ * Local XAMPP defaults can be overridden by env vars or a local config file.
  */
 $config = [
     'db' => [
@@ -18,13 +19,26 @@ $config = [
     ],
 ];
 
-// Production credentials belong in this ignored file, never in Git.
-$localConfig = __DIR__ . '/config.local.php';
-if (is_file($localConfig)) {
+/**
+ * Hostinger-safe locations (checked first to last):
+ * 1) domains/.../private/digital_creators_config.php  <- survives Git deploy
+ * 2) includes/config.local.php                        <- local/dev only
+ */
+$candidateConfigs = [
+    dirname(__DIR__, 2) . '/private/digital_creators_config.php',
+    dirname(__DIR__) . '/../private/digital_creators_config.php',
+    __DIR__ . '/config.local.php',
+];
+
+foreach ($candidateConfigs as $localConfig) {
+    if (!is_file($localConfig)) {
+        continue;
+    }
     $overrides = require $localConfig;
     if (is_array($overrides)) {
         $config = array_replace_recursive($config, $overrides);
     }
+    break;
 }
 
 return $config;
