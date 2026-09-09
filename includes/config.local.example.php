@@ -7,8 +7,8 @@ return [
     'db' => [
         'host' => 'localhost',
         'port' => '3306',
-        'name' => 'u123456789_digital_creators',
-        'user' => 'u123456789_dc_user',
+        'name' => 'u922228303_digitalcreator',
+        'user' => 'u922228303_digitalcreator',
         'pass' => 'REPLACE_WITH_DATABASE_PASSWORD',
     ],
 ];
