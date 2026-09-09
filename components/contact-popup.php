@@ -1,22 +1,23 @@
 ﻿<!-- Contact Popup Modal Component -->
 <div id="contact-popup-modal"
-  class="fixed inset-0 z-[99999] opacity-0 pointer-events-none transition-all duration-300 flex items-center justify-center p-4">
+  class="fixed inset-0 z-[99999] opacity-0 pointer-events-none transition-all duration-300 flex items-center justify-center p-3 sm:p-5">
   <!-- Backdrop Overlay -->
   <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm cursor-pointer" onclick="closeContactPopup()"></div>
 
   <!-- Modal Card -->
   <div
-    class="relative w-full max-w-4xl bg-white border border-slate-200 rounded-[28px] sm:rounded-[36px] overflow-hidden shadow-2xl scale-95 transition-transform duration-300 flex flex-col md:flex-row z-10 max-h-[90vh] md:max-h-none overflow-y-auto md:overflow-y-visible">
+    class="contact-popup-card relative w-full max-w-4xl bg-white border border-slate-200 rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl scale-95 transition-transform duration-300 flex flex-col md:flex-row z-10">
 
-    <!-- Left Column: Premium Contact Details (Teal/Blue Gradient) -->
-    <div class="hidden md:flex w-full md:w-5/12 bg-slate-50 p-8 flex-col justify-between text-text-primary relative">
+    <!-- Left Column: Contact Details -->
+    <div class="popup-info-panel hidden md:flex w-full md:w-5/12 p-7 lg:p-8 flex-col justify-between relative">
       <!-- Glow decoration -->
       <div class="absolute top-0 right-0 w-32 h-32 bg-slate-100 rounded-full blur-2xl pointer-events-none"></div>
 
       <div>
-        <h2 class="font-headings text-3xl font-black tracking-tight leading-none mb-4">Contact Us</h2>
-        <p class="text-text-primary/80 font-light text-sm sm:text-base leading-relaxed mb-8">
-          We'd love to hear from you. Get in touch with us using the information below.
+        <span class="popup-kicker">Digital Creatorss</span>
+        <h2 class="font-headings text-2xl font-bold tracking-tight leading-tight mb-3">Let’s build something great.</h2>
+        <p class="popup-info-copy font-light text-sm leading-relaxed mb-7">
+          Tell us what you need and our team will get back to you within one business day.
         </p>
 
         <div class="flex flex-col gap-5">
@@ -112,18 +113,21 @@
       </div>
     </div>
 
-    <!-- Right Column: Premium Form Card -->
-    <div class="w-full md:w-7/12 bg-bg-secondary p-8 md:p-10 flex flex-col justify-center relative">
+    <!-- Right Column: Project Enquiry Form -->
+    <div class="popup-form-panel w-full md:w-7/12 bg-white p-5 sm:p-7 lg:p-8 flex flex-col relative overflow-y-auto">
       <!-- Close Button -->
       <button type="button" onclick="closeContactPopup()" class="popup-close-btn" aria-label="Close contact form">
         <i data-lucide="x" class="w-5 h-5"></i>
       </button>
 
       <!-- Form Content -->
-      <div id="popup-form-wrapper" class="pt-4">
-        <h2 class="font-headings text-2xl font-bold text-text-primary text-center mb-6">Register Now</h2>
+      <div id="popup-form-wrapper">
+        <div class="popup-form-heading mb-5 pr-10">
+          <span class="section-eyebrow !mb-1">Project enquiry</span>
+          <h2 class="font-headings text-xl sm:text-2xl font-bold text-text-primary">Let’s Talk</h2>
+        </div>
 
-        <form id="popup-contact-form" class="flex flex-col gap-4">
+        <form id="popup-contact-form" class="flex flex-col gap-3">
           <!-- Full Name -->
           <div class="popup-field-group">
             <div class="popup-icon-container">
@@ -518,6 +522,190 @@
     cursor: pointer;
     box-shadow: 0 2px 8px rgba(37, 99, 235, 0.35);
     border: 2px solid #ffffff;
+  }
+
+  /* Current compact popup theme */
+  .contact-popup-card {
+    max-height: calc(100vh - 1.5rem);
+    max-height: calc(100dvh - 1.5rem);
+  }
+
+  .popup-info-panel {
+    color: #ffffff;
+    background:
+      radial-gradient(circle at 100% 0%, rgba(23, 162, 184, 0.2), transparent 34%),
+      linear-gradient(155deg, #343a40 0%, #212529 100%);
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  .popup-info-panel .text-text-primary,
+  .popup-info-panel .text-text-primary\/80 {
+    color: #ffffff !important;
+  }
+
+  .popup-info-panel .text-text-primary\/50 {
+    color: rgba(255, 255, 255, 0.58) !important;
+  }
+
+  .popup-info-panel .bg-slate-100 {
+    background: rgba(255, 255, 255, 0.1) !important;
+  }
+
+  .popup-info-panel .border-slate-300 {
+    border-color: rgba(255, 255, 255, 0.16) !important;
+  }
+
+  .popup-info-copy {
+    color: rgba(255, 255, 255, 0.72);
+  }
+
+  .popup-kicker {
+    display: inline-flex;
+    width: fit-content;
+    margin-bottom: 1rem;
+    padding: 0.35rem 0.65rem;
+    border: 1px solid rgba(23, 162, 184, 0.35);
+    border-radius: 9999px;
+    background: rgba(23, 162, 184, 0.12);
+    color: #67d8e8;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .popup-form-panel {
+    min-height: 0;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(108, 117, 125, 0.4) transparent;
+  }
+
+  .popup-form-heading {
+    text-align: left;
+  }
+
+  .popup-close-btn {
+    top: 1rem;
+    right: 1rem;
+    color: #6c757d;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+  }
+
+  .popup-close-btn:hover {
+    color: #343a40;
+    background: #e9ecef;
+  }
+
+  .popup-input,
+  .popup-select {
+    height: 2.8rem;
+    padding-left: 2.85rem;
+    border-radius: 0.7rem;
+    border: 1px solid #dee2e6;
+    background: #f8f9fa;
+    color: #343a40;
+    font-size: 0.85rem;
+  }
+
+  .popup-select {
+    padding-right: 2.5rem;
+  }
+
+  .popup-textarea {
+    min-height: 4.75rem;
+    padding: 0.8rem 1rem 0.8rem 2.85rem;
+    border-radius: 0.7rem;
+    border: 1px solid #dee2e6;
+    background: #f8f9fa;
+    color: #343a40;
+    font-size: 0.85rem;
+  }
+
+  .popup-icon-container {
+    left: 1rem;
+    color: #6c757d;
+  }
+
+  .popup-field-group:has(.popup-textarea) .popup-icon-container {
+    top: 0.95rem;
+    transform: none;
+  }
+
+  .popup-input::placeholder,
+  .popup-textarea::placeholder {
+    color: #6c757d;
+  }
+
+  .popup-input:focus,
+  .popup-select:focus,
+  .popup-textarea:focus {
+    background: #ffffff;
+    border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.12);
+  }
+
+  .popup-field-group:focus-within .popup-icon-container {
+    color: #007bff;
+  }
+
+  .popup-submit {
+    min-height: 2.8rem;
+    padding: 0.75rem 1.25rem;
+    border-radius: 0.7rem;
+    background: #007bff;
+    color: #ffffff;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8rem;
+    box-shadow: 0 8px 18px -10px rgba(0, 123, 255, 0.6);
+  }
+
+  .popup-submit:hover {
+    background: #0056b3;
+    color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 10px 22px -10px rgba(0, 123, 255, 0.65);
+  }
+
+  .popup-error-msg {
+    color: #dc3545;
+    font-size: 0.68rem;
+    margin-top: 0.25rem;
+  }
+
+  @media (max-width: 767px) {
+    .contact-popup-card {
+      max-height: calc(100vh - 1rem);
+      max-height: calc(100dvh - 1rem);
+    }
+
+    .popup-form-panel {
+      width: 100%;
+      padding: 1.25rem;
+    }
+  }
+
+  @media (min-width: 768px) and (max-height: 760px) {
+    .popup-info-panel {
+      padding: 1.5rem;
+    }
+
+    .popup-form-panel {
+      padding: 1.25rem 1.5rem;
+    }
+
+    #popup-contact-form {
+      gap: 0.55rem;
+    }
+
+    .popup-form-heading {
+      margin-bottom: 0.75rem;
+    }
+
+    .popup-info-panel .gap-5 {
+      gap: 0.8rem;
+    }
   }
 </style>
 
