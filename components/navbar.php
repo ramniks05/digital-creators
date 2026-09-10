@@ -90,7 +90,7 @@
     </a>
 
     <!-- Desktop Nav Links -->
-    <div class="hidden md:flex items-center gap-10">
+    <div class="hidden lg:flex items-center gap-6 xl:gap-10">
       <?php $base_classes = "nav-link text-[1.05rem] font-semibold text-text-secondary cursor-pointer hover:text-text-primary transition-all duration-200 relative py-1.5 after:content-[''] after:absolute after:bottom-0 after:left-1/2 after:-translate-x-1/2 after:w-0 after:h-[2px] after:bg-primary after:transition-all after:duration-200 hover:after:w-full"; ?>
       <a href="services.php" class="<?= $base_classes ?> <?= $current_page === 'services' ? 'nav-active' : '' ?>">Services</a>
       <a href="work.php" class="<?= $base_classes ?> <?= $current_page === 'work' ? 'nav-active' : '' ?>">Portfolio</a>
@@ -103,7 +103,7 @@
     </div>
  
     <!-- Mobile Menu Icon -->
-    <div id="mobile-menu-btn" role="button" tabindex="0" aria-label="Toggle Navigation Menu" class="md:hidden text-text-primary cursor-pointer hover:opacity-80 transition-opacity">
+    <div id="mobile-menu-btn" role="button" tabindex="0" aria-label="Toggle Navigation Menu" class="lg:hidden text-text-primary cursor-pointer hover:opacity-80 transition-opacity">
       <i data-lucide="menu" id="menu-icon" class="w-[24px] h-[24px]"></i>
       <i data-lucide="x" id="close-icon" class="w-[24px] h-[24px] hidden"></i>
     </div>
@@ -111,7 +111,7 @@
 </nav>
 
   <!-- Mobile Navigation Drawer -->
-  <div id="mobile-drawer" class="md:hidden fixed inset-0 overflow-hidden flex flex-col items-center justify-center transition-all duration-300 opacity-0 pointer-events-none z-[997]" style="background-color: rgba(255, 255, 255, 0.98); position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100vw; height: 100vh; z-index: 997;">
+  <div id="mobile-drawer" class="lg:hidden fixed inset-0 overflow-hidden flex flex-col items-center justify-center transition-all duration-300 opacity-0 pointer-events-none z-[997]" style="background-color: rgba(255, 255, 255, 0.98); position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100vw; height: 100vh; z-index: 997;">
     <div class="flex flex-col items-center w-full -mt-12">
       <?php $mob_classes = "nav-link-mobile w-full text-center font-headings text-3xl font-bold text-text-secondary cursor-pointer hover:text-text-primary transition-all duration-200 py-4 border-b border-slate-200"; ?>
       <a href="services.php" class="<?= $mob_classes ?> <?= $current_page === 'services' ? 'nav-active' : '' ?>">Services</a>

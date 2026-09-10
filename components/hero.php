@@ -1,9 +1,8 @@
 ﻿<?php require_once __DIR__ . '/../includes/media_icons.php'; ?>
 <!-- Hero Section -->
 <section id="hero"
-  class="min-h-[64vh] relative flex flex-col justify-start px-6 pt-[5.75rem] pb-6 overflow-hidden bg-transparent text-text-primary site-section-band">
-  <div class="absolute bottom-0 left-0 right-0 h-32 pointer-events-none z-0"
-    style="background: linear-gradient(to bottom, transparent, rgba(248,249,250,0.9));" aria-hidden="true"></div>
+  class="relative flex flex-col justify-start px-4 sm:px-6 overflow-hidden bg-transparent text-text-primary site-section-band">
+  <div class="hero-bottom-fade absolute bottom-0 left-0 right-0 pointer-events-none z-0" aria-hidden="true"></div>
   <canvas id="hero-particles-canvas" class="absolute inset-0 w-full h-full pointer-events-none z-0 opacity-[0.06]"></canvas>
 
   <div class="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] pointer-events-none -z-10"
@@ -11,23 +10,23 @@
   </div>
 
   <div class="w-full max-w-7xl mx-auto z-10 desktop-only">
-    <div class="hero-unified flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 lg:gap-4 xl:gap-6">
+    <div class="hero-unified flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 lg:gap-3 xl:gap-5">
       <div class="hero-content flex flex-col items-start lg:w-[44%] xl:w-[42%] lg:pl-6 xl:pl-10 lg:pr-2">
-      <span class="section-eyebrow hero-badge opacity-0 mb-3 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/15">
+      <span class="section-eyebrow hero-badge opacity-0 mb-2.5 sm:mb-3 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/15">
         <?php echo media_icon_img('code-2', '', 'media-icon-inline'); ?>
         Web, Cloud &amp; Software
       </span>
 
-      <h1 class="hero-title hero-display-title mb-3 flex flex-col items-start">
+      <h1 class="hero-title hero-display-title mb-2.5 sm:mb-3 flex flex-col items-start">
         <span class="title-block opacity-0">Web &amp; App Development</span>
         <span class="title-block text-primary opacity-0">Cloud &amp; SaaS</span>
       </h1>
 
-      <p class="hero-desc text-[0.95rem] text-text-secondary max-w-[480px] mb-5 leading-relaxed font-light opacity-0">
+      <p class="hero-desc text-[0.95rem] text-text-secondary max-w-[480px] mb-4 sm:mb-5 leading-relaxed font-light opacity-0">
         Websites, apps, CRM, school ERP, and SaaS — with hosting and servers.
       </p>
 
-      <div class="hero-cta-group flex flex-col sm:flex-row gap-3 mb-5 w-full sm:w-auto justify-start opacity-0">
+      <div class="hero-cta-group flex flex-col sm:flex-row gap-3 mb-4 sm:mb-5 w-full sm:w-auto justify-start opacity-0">
         <a href="contact.php" class="btn-primary">
           Start Your Project <i data-lucide="arrow-right" class="w-[18px] h-[18px]"></i>
         </a>
@@ -71,18 +70,18 @@
     </div>
   </div>
 
-  <div class="w-full max-w-7xl mx-auto z-10 flex flex-col gap-3 text-start mobile-only">
+  <div class="hero-mobile w-full max-w-7xl mx-auto z-10 flex flex-col text-start mobile-only">
     <span class="section-eyebrow hero-badge opacity-0">Web, Cloud &amp; Software</span>
-    <h1 class="hero-title hero-display-title mb-1 flex flex-col items-start">
+    <h1 class="hero-title hero-display-title flex flex-col items-start">
       <span class="title-block opacity-0">Web &amp; App Development</span>
       <span class="title-block text-primary opacity-0">Cloud &amp; SaaS</span>
     </h1>
-    <p class="hero-desc text-sm text-text-secondary leading-relaxed font-light mb-2 opacity-0">
+    <p class="hero-desc text-sm sm:text-[0.95rem] text-text-secondary leading-relaxed font-light opacity-0">
       Websites, apps, CRM, ERP, and SaaS — with hosting and servers.
     </p>
 
-    <div class="hero-visual w-full mb-2">
-      <div class="hero-visual-frame">
+    <div class="hero-visual w-full">
+      <div class="hero-visual-frame mx-auto">
         <img
           src="assets/images/high-tech-hero.svg"
           alt="Web development, CRM, e-commerce, and SaaS solutions"
@@ -96,12 +95,12 @@
       </div>
     </div>
 
-    <div class="hero-cta-group flex flex-col gap-2 w-full opacity-0">
+    <div class="hero-cta-group flex flex-col sm:flex-row gap-2.5 sm:gap-3 w-full opacity-0">
       <a href="contact.php" class="btn-primary justify-center py-3">Start Your Project</a>
       <a href="services.php" class="btn-secondary justify-center py-3">Explore Services</a>
     </div>
 
-    <ul class="hero-stats hero-features flex flex-wrap gap-2 list-none p-0 mt-1">
+    <ul class="hero-stats hero-features flex flex-wrap gap-2 list-none p-0">
       <li class="icon-pill-advanced opacity-0 !shadow-none text-xs">
         <?php echo media_icon_html('folder-kanban', 'Projects', 'sm'); ?>
         <span><span class="font-headings font-bold text-primary">350+</span> Projects</span>
@@ -122,6 +121,11 @@
   document.addEventListener('DOMContentLoaded', () => {
     const canvas = document.getElementById('hero-particles-canvas');
     if (!canvas) return;
+    // Skip particle animation on phones/tablets for smoother scrolling
+    if (window.matchMedia('(max-width: 1023px)').matches) {
+      canvas.style.display = 'none';
+      return;
+    }
     const ctx = canvas.getContext('2d');
 
     let width = 0;

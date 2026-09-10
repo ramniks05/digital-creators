@@ -105,7 +105,7 @@
               </div>
 
               <!-- Image Container -->
-              <div class="relative w-full h-[420px] overflow-hidden">
+              <div class="relative w-full h-[300px] sm:h-[360px] md:h-[420px] overflow-hidden">
                 <img src="<?php echo htmlspecialchars($dir['image']); ?>"
                   alt="<?php echo htmlspecialchars($dir['name']); ?>"
                   class="w-full h-full object-cover group-hover:scale-102 transition-transform duration-800 <?php echo isset($dir['position']) ? htmlspecialchars($dir['position']) : 'object-center'; ?>" />

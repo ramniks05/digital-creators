@@ -11,7 +11,7 @@ $default_icons = ['code-2', 'layout-dashboard', 'cloud-cog', 'server', 'shield-c
 ?>
 
 <!-- Services Section -->
-<section id="services" class="relative site-section site-section-band services-section w-full overflow-hidden border-t border-slate-200/80 bg-transparent">
+<section id="services" class="relative site-section site-section-tight-top site-section-band services-section w-full overflow-hidden border-t border-slate-200/80 bg-transparent">
   <div class="site-container relative z-10">
     <!-- Header -->
     <div class="services-header section-header-center flex flex-col items-center text-center max-w-3xl mx-auto">
@@ -81,7 +81,7 @@ $default_icons = ['code-2', 'layout-dashboard', 'cloud-cog', 'server', 'shield-c
 </section>
 
 <!-- Services marquee -->
-<div class="section-marquee select-none">
+<div class="section-marquee select-none hidden md:block">
   <div class="marquee-track flex whitespace-nowrap gap-10 text-sm font-semibold font-headings uppercase tracking-wide text-white/95">
     <div class="marquee-content flex gap-12 items-center animate-marquee transform-gpu will-change-transform">
       <span>Precision Engineering</span>

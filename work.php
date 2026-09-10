@@ -86,7 +86,7 @@
       <!-- Sticky portfolio stack -->
       <section class="w-full py-6 relative z-10 portfolio-stack-section" id="portfolio-stack-section">
         <!-- Ambient Decorative BG text -->
-        <div id="giant-bg-text-container" class="absolute inset-0 flex items-center justify-center pointer-events-none select-none opacity-5 overflow-hidden whitespace-nowrap z-0">
+        <div id="giant-bg-text-container" class="absolute inset-0 hidden md:flex items-center justify-center pointer-events-none select-none opacity-5 overflow-hidden whitespace-nowrap z-0">
           <span id="giant-bg-text" class="text-[25vw] font-black uppercase tracking-tighter text-outline select-none transition-all duration-1000">CREATIONS</span>
         </div>
 

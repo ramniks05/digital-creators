@@ -175,7 +175,13 @@ body.site-canvas {
     ),
     linear-gradient(180deg, #ffffff 0%, #f8f9fa 48%, #ffffff 100%);
   background-size: auto, auto, auto;
-  background-attachment: fixed;
+  background-attachment: scroll;
+}
+
+@media (min-width: 1024px) {
+  .site-bg-pattern {
+    background-attachment: fixed;
+  }
 }
 
 .site-bg-orbs {
@@ -246,8 +252,14 @@ body.site-canvas {
   border: 1px solid #dee2e6;
   border-left: 4px solid var(--teal);
   border-radius: 0.75rem;
-  padding: 2rem;
+  padding: 1.25rem;
   transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+@media (min-width: 640px) {
+  .testimonial-card {
+    padding: 1.75rem;
+  }
 }
 
 @media (min-width: 768px) {
@@ -360,6 +372,18 @@ body.home-page #main-nav:not(.scrolled) #mobile-menu-btn {
   padding-bottom: clamp(3rem, 5vw, 4.25rem);
   padding-left: 1.5rem;
   padding-right: 1.5rem;
+}
+
+@media (max-width: 639px) {
+  .site-section {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .site-container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
 }
 
 .site-section-tight-bottom {
@@ -584,6 +608,8 @@ body.home-page #main-nav:not(.scrolled) #mobile-menu-btn {
   color: #ffffff;
   border-color: transparent;
   box-shadow: none;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .industry-types .icon-pill-advanced:hover {
@@ -1613,6 +1639,11 @@ a.footer-contact-card:hover {
   flex-shrink: 0;
 }
 
+.hero-bottom-fade {
+  height: 2.5rem;
+  background: linear-gradient(to bottom, transparent, rgba(248, 249, 250, 0.85));
+}
+
 .hero-visual-frame {
   position: relative;
   width: 100%;
@@ -1620,8 +1651,8 @@ a.footer-contact-card:hover {
   background: transparent;
   border: none;
   box-shadow: none;
-  overflow: visible;
-  border-radius: 0;
+  overflow: hidden;
+  border-radius: 1rem;
   padding: 0;
 }
 
@@ -1633,10 +1664,11 @@ a.footer-contact-card:hover {
   display: block;
   width: 100%;
   height: auto;
-  aspect-ratio: 4 / 3;
-  object-fit: contain;
+  aspect-ratio: 16 / 11;
+  object-fit: cover;
+  object-position: center 42%;
   background: transparent;
-  border-radius: 1.25rem;
+  border-radius: 1rem;
 }
 
 .hero-visual {
@@ -1649,10 +1681,161 @@ a.footer-contact-card:hover {
   display: none;
 }
 
+/* Phone: stacked layout, crop image whitespace, clear fixed nav */
+#hero {
+  padding-top: 5.15rem;
+  padding-bottom: 1rem;
+}
+
+.hero-mobile {
+  gap: 0.65rem;
+}
+
+.hero-mobile .hero-title {
+  margin-bottom: 0;
+}
+
+.hero-mobile .hero-desc {
+  margin-bottom: 0;
+}
+
+.hero-mobile .hero-visual {
+  margin-top: -0.85rem;
+  margin-bottom: -0.65rem;
+}
+
+.hero-mobile .hero-visual-frame {
+  max-width: 100%;
+}
+
+.hero-mobile .hero-visual-svg {
+  aspect-ratio: 16 / 12;
+  object-position: center 40%;
+  border-radius: 0.875rem;
+}
+
+.hero-mobile .hero-cta-group {
+  margin-top: 0.15rem;
+}
+
+.hero-mobile .hero-stats {
+  margin-top: 0.15rem;
+  margin-bottom: 0;
+}
+
+/* Large phone / small tablet */
+@media (min-width: 640px) {
+  #hero {
+    padding-top: 5.25rem;
+    padding-bottom: 1.1rem;
+  }
+
+  .hero-mobile {
+    gap: 0.75rem;
+  }
+
+  .hero-mobile .hero-visual {
+    margin-top: -1rem;
+    margin-bottom: -0.75rem;
+  }
+
+  .hero-mobile .hero-visual-frame {
+    max-width: 34rem;
+  }
+
+  .hero-mobile .hero-visual-svg {
+    aspect-ratio: 16 / 11.5;
+  }
+
+  .hero-bottom-fade {
+    height: 3rem;
+  }
+}
+
+/* Tablet (still uses stacked mobile layout until lg) */
+@media (min-width: 768px) and (max-width: 1023px) {
+  #hero {
+    padding-top: 5.35rem;
+    padding-bottom: 1.25rem;
+  }
+
+  .hero-mobile {
+    gap: 0.85rem;
+    max-width: 44rem;
+  }
+
+  .hero-mobile .hero-visual {
+    margin-top: -1.15rem;
+    margin-bottom: -0.9rem;
+  }
+
+  .hero-mobile .hero-visual-frame {
+    max-width: 38rem;
+  }
+
+  .hero-mobile .hero-visual-svg {
+    aspect-ratio: 16 / 11;
+    object-position: center 42%;
+  }
+
+  .hero-mobile .hero-cta-group {
+    max-width: 28rem;
+  }
+}
+
+/* Desktop: side-by-side, pull illustration into image whitespace */
+@media (min-width: 1024px) {
+  #hero {
+    padding-top: 4.5rem;
+    padding-bottom: 0;
+  }
+
+  .hero-unified .hero-content {
+    padding-top: 0.5rem;
+  }
+
+  .hero-unified .hero-visual {
+    margin-top: -2.25rem;
+    margin-bottom: -2.5rem;
+  }
+
+  .hero-visual-frame {
+    overflow: hidden;
+    border-radius: 1.25rem;
+  }
+
+  .hero-visual-svg {
+    aspect-ratio: 16 / 11;
+    object-position: center 42%;
+    border-radius: 1.25rem;
+  }
+
+  .hero-bottom-fade {
+    height: 4rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  #hero {
+    padding-top: 4.35rem;
+  }
+
+  .hero-unified .hero-visual {
+    margin-top: -2.75rem;
+    margin-bottom: -2.85rem;
+  }
+}
+
 /* Services ? expertise section */
 .services-section {
-  padding-top: clamp(3rem, 5vw, 4.25rem);
+  padding-top: clamp(1.5rem, 2.8vw, 2.5rem);
   padding-bottom: clamp(3rem, 5vw, 4.25rem);
+}
+
+@media (max-width: 767px) {
+  .services-section {
+    padding-top: 1.35rem;
+  }
 }
 
 .services-header {
@@ -2024,12 +2207,31 @@ body:has(#main-nav.scrolled) .portfolio-stack-section {
 
 @media (max-width: 767px) {
   .portfolio-stack-section {
-    --portfolio-stack-scroll-gap: 2.5rem;
+    --portfolio-stack-scroll-gap: 1.25rem;
+    --portfolio-edge-gap: 0.75rem;
+  }
+
+  .portfolio-stack-card {
+    position: relative;
+    top: auto;
+    margin-bottom: 1rem;
+    border-radius: 1rem;
   }
 
   .portfolio-stack-media {
-    height: calc(100dvh - var(--portfolio-sticky-top) - (var(--portfolio-edge-gap) * 2));
-    min-height: 240px;
+    height: auto;
+    min-height: 0;
+    max-height: none;
+    aspect-ratio: 16 / 10;
+  }
+
+  .portfolio-stack-overlay {
+    padding: 1rem !important;
+  }
+
+  .portfolio-stack-overlay h3 {
+    font-size: 1.15rem !important;
+    line-height: 1.25 !important;
   }
 }
 
@@ -2043,4 +2245,44 @@ body:has(#main-nav.scrolled) .portfolio-stack-section {
 .custom-cursor-dot,
 .custom-cursor-ring {
   display: none !important;
+}
+
+/* Mobile / tablet global polish */
+@media (max-width: 1023px) {
+  #hero-particles-canvas {
+    display: none !important;
+  }
+
+  #scroll-progress {
+    bottom: 1rem;
+    right: 1rem;
+  }
+}
+
+@media (max-width: 639px) {
+  #scroll-progress {
+    display: none !important;
+  }
+
+  .project-deck-container {
+    gap: 1rem;
+  }
+
+  .project-deck-card {
+    border-radius: 1.25rem;
+  }
+
+  .footer-cap-strip {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee {
+    animation: none !important;
+  }
+
+  #hero-particles-canvas {
+    display: none !important;
+  }
 }

@@ -20,12 +20,13 @@ $reels = [
             </p>
         </div>
 
-        <div class="flex md:grid overflow-x-auto md:overflow-x-visible snap-x snap-mandatory md:snap-none md:grid-cols-3 gap-5 lg:gap-6 max-w-5xl mx-auto pb-4 md:pb-0 scrollbar-none px-2 md:px-0">
+        <div class="flex md:grid overflow-x-auto md:overflow-x-visible snap-x snap-mandatory md:snap-none md:grid-cols-3 gap-4 sm:gap-5 lg:gap-6 max-w-5xl mx-auto pb-2 md:pb-0 scrollbar-none px-1 md:px-0">
             <?php foreach ($reels as $index => $reel): ?>
-                <div class="reel-card flex-shrink-0 w-[280px] md:w-auto snap-center relative aspect-[9/16] rounded-2xl overflow-hidden bg-bg-card border border-slate-200 group cursor-default shadow-md hover:border-primary/30 hover:shadow-lg transition-all duration-300 opacity-0"
+                <div class="reel-card flex-shrink-0 w-[72vw] max-w-[280px] md:w-auto md:max-w-none snap-center relative aspect-[9/16] rounded-2xl overflow-hidden bg-bg-card border border-slate-200 group cursor-default shadow-md hover:border-primary/30 hover:shadow-lg transition-all duration-300 opacity-0"
                     data-index="<?php echo $index; ?>">
-                    <video loop muted autoplay playsinline
-                        class="w-full h-full object-cover pointer-events-none">
+                    <video loop muted playsinline preload="<?php echo $index === 0 ? 'metadata' : 'none'; ?>"
+                        class="w-full h-full object-cover pointer-events-none"
+                        <?php echo $index === 0 ? 'data-autoplay-desktop="1"' : ''; ?>>
                         <source src="<?php echo htmlspecialchars($reel['video']); ?>" type="video/mp4" />
                     </video>
                     <div class="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-all duration-300 z-10"></div>
@@ -43,9 +44,34 @@ $reels = [
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
-        document.querySelectorAll('.reel-card video').forEach((video) => {
+        const videos = Array.from(document.querySelectorAll('.reel-card video'));
+        const isDesktop = window.matchMedia('(min-width: 768px)').matches;
+
+        videos.forEach((video) => {
             video.muted = true;
-            video.play().catch(() => {});
+            video.pause();
         });
+
+        // Desktop: play when visible; mobile: play only the centered/first card when visible
+        if ('IntersectionObserver' in window) {
+            const io = new IntersectionObserver((entries) => {
+                entries.forEach((entry) => {
+                    const video = entry.target;
+                    if (entry.isIntersecting && entry.intersectionRatio > 0.55) {
+                        video.play().catch(() => {});
+                    } else {
+                        video.pause();
+                    }
+                });
+            }, { threshold: [0.55] });
+
+            videos.forEach((video, index) => {
+                if (isDesktop || index === 0) {
+                    io.observe(video);
+                }
+            });
+        } else if (isDesktop && videos[0]) {
+            videos[0].play().catch(() => {});
+        }
     });
 </script>

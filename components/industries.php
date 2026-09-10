@@ -96,7 +96,7 @@ $industries = [
       </p>
     </div>
 
-    <div class="flex flex-wrap justify-center gap-3 sm:gap-4 mb-8 lg:mb-10 industry-types">
+    <div class="flex flex-nowrap justify-start sm:justify-center gap-2.5 sm:gap-3 mb-8 lg:mb-10 industry-types overflow-x-auto scrollbar-none pb-1 -mx-1 px-1">
       <?php foreach ($product_types as $type): ?>
       <div class="icon-pill-advanced industry-type-<?php echo htmlspecialchars($type['tone'], ENT_QUOTES, 'UTF-8'); ?>">
         <?php echo media_icon_html($type['icon'], $type['label'], 'sm'); ?>

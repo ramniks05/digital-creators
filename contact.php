@@ -142,7 +142,7 @@
           <!-- Right side: Modern Form Card -->
           <div class="lg:col-span-7">
             <div
-              class="bg-white/80 border border-slate-200 hover:border-primary/20 transition-colors duration-300 shadow-2xl rounded-3xl p-8 md:p-10 relative overflow-hidden min-h-[500px] flex flex-col justify-center">
+              class="bg-white/80 border border-slate-200 hover:border-primary/20 transition-colors duration-300 shadow-2xl rounded-3xl p-5 sm:p-8 md:p-10 relative overflow-hidden min-h-0 md:min-h-[500px] flex flex-col justify-center">
 
               <!-- Form Container -->
               <form id="contact-form" class="flex flex-col gap-5">

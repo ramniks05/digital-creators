@@ -543,15 +543,21 @@
       let autoplayTimer = null;
 
       function updateCarousel() {
+        const slideWrap = document.getElementById('test-slides');
         slides.forEach((slide, idx) => {
           if (idx === activeIdx) {
-            slide.classList.remove('opacity-0', 'scale-98', 'pointer-events-none', 'z-0');
+            slide.classList.remove('opacity-0', 'scale-98', 'pointer-events-none', 'z-0', 'absolute');
             slide.classList.add('opacity-100', 'scale-100', 'pointer-events-auto', 'relative', 'z-10');
           } else {
             slide.classList.remove('opacity-100', 'scale-100', 'pointer-events-auto', 'relative', 'z-10');
             slide.classList.add('opacity-0', 'scale-98', 'pointer-events-none', 'absolute', 'z-0');
           }
         });
+
+        if (slideWrap && slides[activeIdx]) {
+          // Let active slide define height so long reviews don't clip on mobile
+          slideWrap.style.minHeight = Math.max(slides[activeIdx].offsetHeight, 220) + 'px';
+        }
 
         dots.forEach((dot, idx) => {
           if (idx === activeIdx) {
@@ -884,7 +890,7 @@
   <div class="custom-cursor-ring hidden md:block"></div>
 
 
-  <div id="scroll-progress" class="fixed bottom-8 right-8 z-50 w-12 h-12 cursor-pointer transition-all duration-300 hover:scale-110 opacity-0 pointer-events-none hover:shadow-[0_0_20px_rgba(0,123,255,0.35)] rounded-full">
+  <div id="scroll-progress" class="fixed bottom-4 right-4 md:bottom-8 md:right-8 z-50 w-11 h-11 md:w-12 md:h-12 cursor-pointer transition-all duration-300 hover:scale-110 opacity-0 pointer-events-none hover:shadow-[0_0_20px_rgba(0,123,255,0.35)] rounded-full hidden sm:block">
     <div class="absolute inset-0 bg-slate-50 rounded-full flex items-center justify-center">
       <i data-lucide="arrow-up" class="w-5 h-5 text-primary"></i>
     </div>

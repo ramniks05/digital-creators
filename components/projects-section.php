@@ -19,7 +19,7 @@ try {
     $projects = [];
 }
 ?>
-<section class="relative w-full border-t border-slate-200/80 overflow-hidden font-sans py-16 md:py-0 md:h-screen bg-transparent site-section-band home-section-tint-slate" id="work">
+<section class="relative w-full border-t border-slate-200/80 overflow-hidden font-sans py-10 sm:py-14 md:py-0 md:h-screen bg-transparent site-section-band home-section-tint-slate" id="work">
 
     <!-- Ambient blue glow -->
     <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] rounded-full pointer-events-none z-0"
@@ -44,13 +44,14 @@ try {
             <?php
             $featured_projects = array_slice($projects, 0, 5);
             foreach ($featured_projects as $index => $project):
+                $mobileHide = $index >= 3 ? ' hidden md:block' : '';
                 ?>
-                <div class="project-stack-card project-deck-card relative md:absolute md:inset-0 w-full min-h-0 aspect-[16/10] md:aspect-auto md:h-full"
+                <div class="project-stack-card project-deck-card relative md:absolute md:inset-0 w-full min-h-0 aspect-[16/10] md:aspect-auto md:h-full<?php echo $mobileHide; ?>"
                     style="z-index: <?php echo ($index + 1) * 10; ?>;" data-index="<?php echo $index; ?>"
                     data-bg="<?php echo $project['bg_color']; ?>">
                     <!-- Clickable Stack Card -->
                     <a href="<?php echo htmlspecialchars($project['link']); ?>" target="_blank" rel="noopener noreferrer"
-                        class="project-deck-card-link absolute inset-0 bg-bg-card border border-slate-200 shadow-2xl rounded-[32px] sm:rounded-[40px] overflow-hidden block origin-center transition-shadow duration-300 hover:shadow-[0_20px_50px_rgba(37,99,235,0.12)] group cursor-pointer">
+                        class="project-deck-card-link absolute inset-0 bg-bg-card border border-slate-200 shadow-2xl rounded-[24px] sm:rounded-[32px] md:rounded-[40px] overflow-hidden block origin-center transition-shadow duration-300 hover:shadow-[0_20px_50px_rgba(37,99,235,0.12)] group cursor-pointer">
 
                         <!-- Project screenshot — fills card without overflow -->
                         <div class="project-deck-media">
@@ -65,7 +66,7 @@ try {
 
                         <!-- Category Badge (Top-Right) -->
                         <div
-                            class="absolute top-4 right-4 sm:top-8 sm:right-8 px-4 py-2 bg-white/95 backdrop-blur-sm rounded-full shadow-sm flex items-center gap-2 border border-slate-200 transition-transform duration-300 group-hover:scale-105 z-20">
+                            class="absolute top-3 right-3 sm:top-6 sm:right-6 md:top-8 md:right-8 px-3 py-1.5 sm:px-4 sm:py-2 bg-white/95 backdrop-blur-sm rounded-full shadow-sm flex items-center gap-2 border border-slate-200 transition-transform duration-300 group-hover:scale-105 z-20">
                             <span class="text-[10px] sm:text-xs font-bold text-slate-700 tracking-wider uppercase">
                                 <?php echo htmlspecialchars($project['category']); ?>
                             </span>
@@ -73,6 +74,14 @@ try {
                     </a>
                 </div>
             <?php endforeach; ?>
+
+            <!-- Mobile CTA -->
+            <div class="w-full md:hidden flex justify-center pt-2 pb-1">
+                <a href="work.php"
+                    class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-primary text-white font-semibold text-sm shadow-lg shadow-primary/20">
+                    Explore All Projects <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                </a>
+            </div>
 
             <!-- Final CTA Card in the Stack -->
             <div class="project-stack-card project-deck-card hidden md:block md:absolute md:inset-0 w-full min-h-0 md:h-full aspect-[16/10] md:aspect-auto"

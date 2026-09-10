@@ -23,33 +23,33 @@ try {
     </div>
 
     <div
-      class="relative w-full max-w-3xl mx-auto min-h-[320px] flex items-center justify-center z-10 test-carousel opacity-0 px-12 md:px-16">
+      class="relative w-full max-w-3xl mx-auto min-h-0 flex items-center justify-center z-10 test-carousel opacity-0 px-2 sm:px-4 md:px-16">
       <button id="test-prev" aria-label="Previous testimonial"
         class="test-nav-btn absolute left-0 top-1/2 -translate-y-1/2 p-2 bg-white border border-slate-200 rounded-lg text-text-secondary transition-all duration-200 z-20 hidden md:flex">
         <i data-lucide="chevron-left" class="w-[18px] h-[18px]"></i>
       </button>
 
       <!-- Testimonials Slides container -->
-      <div class="w-full relative min-h-[300px] md:min-h-[260px] flex items-stretch">
+      <div id="test-slides" class="w-full relative min-h-[280px] md:min-h-[260px] flex items-stretch">
         <?php foreach ($testimonials_data as $idx => $t): ?>
           <div
-            class="test-slide absolute inset-0 w-full transition-all duration-500 ease-in-out flex justify-center opacity-0 scale-98 pointer-events-none z-0"
+            class="test-slide absolute inset-x-0 top-0 w-full transition-all duration-500 ease-in-out flex justify-center opacity-0 scale-98 pointer-events-none z-0"
             data-index="<?php echo $idx; ?>">
             <div class="testimonial-card w-full relative flex flex-col items-start group">
 
               <!-- Decorative Quote Icon -->
               <i data-lucide="quote"
-                class="absolute right-8 md:right-12 top-8 w-12 h-12 testimonials-quote pointer-events-none"></i>
+                class="absolute right-5 md:right-12 top-5 md:top-8 w-10 h-10 md:w-12 md:h-12 testimonials-quote pointer-events-none"></i>
 
               <!-- Star Rating -->
-              <div class="flex gap-1 mb-6 testimonials-stars">
+              <div class="flex gap-1 mb-4 md:mb-6 testimonials-stars">
                 <?php for ($i = 0; $i < $t['rating']; $i++): ?>
                   <i data-lucide="star" class="w-3.5 h-3.5 fill-current"></i>
                 <?php endfor; ?>
               </div>
 
               <!-- Review Text -->
-              <p class="text-base sm:text-lg leading-relaxed text-text-primary mb-8 font-light">
+              <p class="text-[0.95rem] sm:text-base md:text-lg leading-relaxed text-text-primary mb-6 md:mb-8 font-light">
                 "<?php echo htmlspecialchars($t['review']); ?>"
               </p>
 
