@@ -22,23 +22,25 @@ $config = [
 /**
  * Hostinger-safe locations (checked first to last):
  * 1) domains/.../private/digital_creators_config.php  <- survives Git deploy
- * 2) includes/config.local.php                        <- local/dev only
+ * 2) public_html/private/...                          <- if created in wrong place
+ * 3) includes/config.local.php                        <- wiped by Git deploy
  */
 $candidateConfigs = [
     dirname(__DIR__, 2) . '/private/digital_creators_config.php',
     dirname(__DIR__) . '/../private/digital_creators_config.php',
+    dirname(__DIR__) . '/private/digital_creators_config.php',
     __DIR__ . '/config.local.php',
 ];
 
 foreach ($candidateConfigs as $localConfig) {
-    if (!is_file($localConfig)) {
+    if (!is_file($localConfig) || !is_readable($localConfig)) {
         continue;
     }
     $overrides = require $localConfig;
     if (is_array($overrides)) {
         $config = array_replace_recursive($config, $overrides);
+        break;
     }
-    break;
 }
 
 return $config;
