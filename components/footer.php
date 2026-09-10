@@ -8,6 +8,7 @@ $whatsapp = whatsapp_number();
 $quickLinks = [
     ['href' => 'index.php', 'label' => 'Home', 'icon' => 'home'],
     ['href' => 'services.php', 'label' => 'Services', 'icon' => 'layers'],
+    ['href' => 'products.php', 'label' => 'Products', 'icon' => 'package'],
     ['href' => 'work.php', 'label' => 'Portfolio', 'icon' => 'briefcase'],
     ['href' => 'why-us.php', 'label' => 'Why Us', 'icon' => 'award'],
     ['href' => 'team.php', 'label' => 'Our Team', 'icon' => 'users'],

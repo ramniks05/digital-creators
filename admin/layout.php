@@ -10,6 +10,7 @@ function admin_header(string $title, string $active = ''): void
         'services.php' => 'Services',
         'team.php' => 'Team',
         'projects.php' => 'Projects',
+        'demo-products.php' => 'Demo Products',
         'blog.php' => 'Blog',
         'testimonials.php' => 'Testimonials',
         'leads.php' => 'Leads',

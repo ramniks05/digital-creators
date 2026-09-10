@@ -45,6 +45,7 @@ $pdo->exec('DELETE FROM team_members');
 $pdo->exec('DELETE FROM projects');
 $pdo->exec('DELETE FROM blog_posts');
 $pdo->exec('DELETE FROM testimonials');
+$pdo->exec('DELETE FROM demo_products');
 $pdo->exec('DELETE FROM settings');
 $pdo->exec('DELETE FROM admins');
 
@@ -149,6 +150,21 @@ foreach ($testimonials as $i => $t) {
     $insT->execute([$t[0], $t[1], $t[2], $t[3], $i]);
 }
 echo count($testimonials) . " testimonials.\n";
+
+$demoProducts = [
+    ['Gym Management Software', 'gym', 'Fitness', 'Memberships, attendance, trainers, billing, and class schedules — ready to demo and customize for your gym brand.', 'assets/images/products/gym.webp', 'https://example.com/gym-demo', 'https://example.com/gym-user-guide', 'live', 1, ['Member registration & membership plans', 'Trainer & class scheduling', 'Attendance & access tracking', 'Billing, invoices & renewals', 'Admin dashboard & reports']],
+    ['Multivendor E-commerce', 'ecommerce', 'E-commerce', 'Marketplace with vendor stores, commissions, product catalogs, and order workflows — brandable for your business.', 'assets/images/products/multivendor.webp', '', '', 'coming_soon', 0, []],
+    ['News Portal', 'news', 'Publishing', 'Editorial CMS, categories, breaking news layouts, and ad-ready pages for digital newsrooms.', 'assets/images/products/news.webp', '', '', 'coming_soon', 0, []],
+    ['CRM System', 'crm', 'CRM', 'Leads, pipelines, follow-ups, and team activity tracking for sales-driven organizations.', 'assets/images/products/crm.webp', '', '', 'coming_soon', 0, []],
+    ['School Management', 'school', 'Education', 'Students, fees, attendance, staff, and academic operations in one school admin platform.', 'assets/images/products/school.webp', '', '', 'coming_soon', 0, []],
+    ['Tuition Management', 'tuition', 'Education', 'Batches, fees, student progress, and coaching-center operations built for tuition institutes.', 'assets/images/products/tuition.webp', '', '', 'coming_soon', 0, []],
+    ['Single Vendor E-commerce', 'ecommerce', 'E-commerce', 'Storefront, cart, checkout, inventory, and order management for a single brand shop.', 'assets/images/products/ecommerce.webp', '', '', 'coming_soon', 0, []],
+];
+$insDemo = $pdo->prepare('INSERT INTO demo_products (title, category, category_label, summary, image, demo_url, guide_url, status, is_featured, features_json, sort_order, is_active) VALUES (?,?,?,?,?,?,?,?,?,?,?,1)');
+foreach ($demoProducts as $i => $p) {
+    $insDemo->execute([$p[0], $p[1], $p[2], $p[3], $p[4], $p[5], $p[6], $p[7], $p[8], json_encode($p[9]), $i]);
+}
+echo count($demoProducts) . " demo products.\n";
 
 $uploadDir = $config['app']['upload_dir'];
 if (!is_dir($uploadDir)) {

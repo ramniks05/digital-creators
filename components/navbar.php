@@ -93,6 +93,7 @@
     <div class="hidden lg:flex items-center gap-6 xl:gap-10">
       <?php $base_classes = "nav-link text-[1.05rem] font-semibold text-text-secondary cursor-pointer hover:text-text-primary transition-all duration-200 relative py-1.5 after:content-[''] after:absolute after:bottom-0 after:left-1/2 after:-translate-x-1/2 after:w-0 after:h-[2px] after:bg-primary after:transition-all after:duration-200 hover:after:w-full"; ?>
       <a href="services.php" class="<?= $base_classes ?> <?= $current_page === 'services' ? 'nav-active' : '' ?>">Services</a>
+      <a href="products.php" class="<?= $base_classes ?> <?= $current_page === 'products' ? 'nav-active' : '' ?>">Products</a>
       <a href="work.php" class="<?= $base_classes ?> <?= $current_page === 'work' ? 'nav-active' : '' ?>">Portfolio</a>
       <a href="why-us.php" class="<?= $base_classes ?> <?= $current_page === 'why-us' ? 'nav-active' : '' ?>">Why Us</a>
       <a href="team.php" class="<?= $base_classes ?> <?= $current_page === 'team' ? 'nav-active' : '' ?>">Our Team</a>
@@ -115,6 +116,7 @@
     <div class="flex flex-col items-center w-full -mt-12">
       <?php $mob_classes = "nav-link-mobile w-full text-center font-headings text-3xl font-bold text-text-secondary cursor-pointer hover:text-text-primary transition-all duration-200 py-4 border-b border-slate-200"; ?>
       <a href="services.php" class="<?= $mob_classes ?> <?= $current_page === 'services' ? 'nav-active' : '' ?>">Services</a>
+      <a href="products.php" class="<?= $mob_classes ?> <?= $current_page === 'products' ? 'nav-active' : '' ?>">Products</a>
       <a href="work.php" class="<?= $mob_classes ?> <?= $current_page === 'work' ? 'nav-active' : '' ?>">Portfolio</a>
       <a href="why-us.php" class="<?= $mob_classes ?> <?= $current_page === 'why-us' ? 'nav-active' : '' ?>">Why Us</a>
       <a href="team.php" class="<?= $mob_classes ?> <?= $current_page === 'team' ? 'nav-active' : '' ?>">Our Team</a>

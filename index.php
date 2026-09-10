@@ -40,6 +40,9 @@
       <!-- Why Choose Us Section -->
       <?php include 'components/why_choose_us.php'; ?>
 
+      <!-- Ready demo products teaser -->
+      <?php include 'components/products_teaser.php'; ?>
+
        <!-- Video Showcase Section -->
       
       <?php include 'components/projects-section.php'; ?>
