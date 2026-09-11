@@ -1,4 +1,71 @@
-﻿<?php require_once __DIR__ . '/../includes/media_icons.php'; ?>
+﻿<?php
+require_once __DIR__ . '/../includes/media_icons.php';
+
+$heroSlides = [
+  [
+    'src' => 'assets/service/custom_software.png',
+    'fallback' => 'assets/service/custom_software.webp',
+    'label' => 'Custom Software',
+    'alt' => 'Custom Software — enterprise systems by Digital Creatorss',
+  ],
+  [
+    'src' => 'assets/service/webdevelopment.png',
+    'fallback' => 'assets/images/web_design_showcase.webp',
+    'label' => 'Website Development',
+    'alt' => 'Website Development — fast secure mobile-first sites',
+  ],
+  [
+    'src' => 'assets/service/AppDevelopment.png',
+    'fallback' => 'assets/service/app_development.png',
+    'label' => 'App Development',
+    'alt' => 'App Development — iOS and Android apps',
+  ],
+  [
+    'src' => 'assets/service/web_applications.png',
+    'fallback' => '',
+    'label' => 'Web Applications',
+    'alt' => 'Web Applications — cloud native SaaS platforms',
+  ],
+  [
+    'src' => 'assets/service/cloud_hosting.png',
+    'fallback' => '',
+    'label' => 'Cloud Hosting',
+    'alt' => 'Cloud Hosting — scalable infrastructure and uptime',
+  ],
+  [
+    'src' => 'assets/service/server_management.png',
+    'fallback' => '',
+    'label' => 'Server Management',
+    'alt' => 'Server Management — 24/7 operations and security',
+  ],
+  [
+    'src' => 'assets/service/devops_infrastructure.png',
+    'fallback' => '',
+    'label' => 'DevOps & Infrastructure',
+    'alt' => 'DevOps & Infrastructure — CI/CD and automation',
+  ],
+];
+
+// Keep only slides whose image file exists
+$heroSlides = array_values(array_filter($heroSlides, static function (array $slide): bool {
+  $root = dirname(__DIR__) . '/';
+  if (is_file($root . $slide['src'])) {
+    return true;
+  }
+  return !empty($slide['fallback']) && is_file($root . $slide['fallback']);
+}));
+
+foreach ($heroSlides as &$slide) {
+  $abs = dirname(__DIR__) . '/' . $slide['src'];
+  if (!is_file($abs) && !empty($slide['fallback']) && is_file(dirname(__DIR__) . '/' . $slide['fallback'])) {
+    $slide['src'] = $slide['fallback'];
+  }
+  $slide['ver'] = is_file(dirname(__DIR__) . '/' . $slide['src'])
+    ? ('?v=' . filemtime(dirname(__DIR__) . '/' . $slide['src']))
+    : '';
+}
+unset($slide);
+?>
 <!-- Hero Section -->
 <section id="hero"
   class="relative flex flex-col justify-start px-4 sm:px-6 overflow-hidden bg-transparent text-text-primary site-section-band">
@@ -17,10 +84,10 @@
         Web, Cloud &amp; Software
       </span>
 
-      <h1 class="hero-title hero-display-title mb-2.5 sm:mb-3 flex flex-col items-start">
+      <p class="hero-title hero-display-title mb-2.5 sm:mb-3 flex flex-col items-start">
         <span class="title-block opacity-0">Web &amp; App Development</span>
         <span class="title-block text-primary opacity-0">Cloud &amp; SaaS</span>
-      </h1>
+      </p>
 
       <p class="hero-desc text-[0.95rem] text-text-secondary max-w-[480px] mb-4 sm:mb-5 leading-relaxed font-light opacity-0">
         Websites, apps, CRM, school ERP, and SaaS — with hosting and servers.
@@ -52,18 +119,33 @@
       </div>
 
       <div class="hero-visual flex flex-col items-start shrink-0 lg:w-[56%] xl:w-[58%] lg:-ml-4 xl:-ml-8">
-        <div class="relative w-full max-w-[620px] xl:max-w-[680px]">
-          <div class="hero-visual-frame">
-            <img
-              src="assets/images/high-tech-hero.svg"
-              alt="Web development, CRM, e-commerce, and SaaS solutions by Digital Creatorss"
-              class="hero-visual-svg w-full h-auto"
-              width="1024"
-              height="768"
-              loading="eager"
-              decoding="async"
-              onerror="this.onerror=null;this.src='assets/images/software_engineering_mockup.webp';"
-            />
+        <div class="hero-slider-shell relative w-full max-w-[620px] xl:max-w-[680px]">
+          <div class="hero-visual-frame hero-slider" data-hero-slider>
+            <div class="hero-slider-track">
+              <?php foreach ($heroSlides as $i => $slide): ?>
+                <figure class="hero-slide<?php echo $i === 0 ? ' is-active' : ''; ?>" data-slide-index="<?php echo $i; ?>">
+                  <img
+                    src="<?php echo htmlspecialchars($slide['src'] . $slide['ver']); ?>"
+                    alt="<?php echo htmlspecialchars($slide['alt']); ?>"
+                    class="hero-slide-img"
+                    width="1280"
+                    height="720"
+                    <?php echo $i === 0 ? 'loading="eager"' : 'loading="lazy"'; ?>
+                    decoding="async"
+                  />
+                  <figcaption class="hero-slide-caption"><?php echo htmlspecialchars($slide['label']); ?></figcaption>
+                </figure>
+              <?php endforeach; ?>
+            </div>
+            <div class="hero-slider-dots" role="tablist" aria-label="Hero service slides">
+              <?php foreach ($heroSlides as $i => $slide): ?>
+                <button type="button"
+                  class="hero-slider-dot<?php echo $i === 0 ? ' is-active' : ''; ?>"
+                  data-slide-to="<?php echo $i; ?>"
+                  aria-label="<?php echo htmlspecialchars($slide['label']); ?>"
+                  aria-selected="<?php echo $i === 0 ? 'true' : 'false'; ?>"></button>
+              <?php endforeach; ?>
+            </div>
           </div>
         </div>
       </div>
@@ -81,17 +163,34 @@
     </p>
 
     <div class="hero-visual w-full">
-      <div class="hero-visual-frame mx-auto">
-        <img
-          src="assets/images/high-tech-hero.svg"
-          alt="Web development, CRM, e-commerce, and SaaS solutions"
-          class="hero-visual-svg w-full h-auto"
-          width="1024"
-          height="768"
-          loading="eager"
-          decoding="async"
-          onerror="this.onerror=null;this.src='assets/images/software_engineering_mockup.webp';"
-        />
+      <div class="hero-slider-shell relative w-full mx-auto">
+        <div class="hero-visual-frame hero-slider mx-auto" data-hero-slider>
+          <div class="hero-slider-track">
+            <?php foreach ($heroSlides as $i => $slide): ?>
+              <figure class="hero-slide<?php echo $i === 0 ? ' is-active' : ''; ?>" data-slide-index="<?php echo $i; ?>">
+                <img
+                  src="<?php echo htmlspecialchars($slide['src'] . $slide['ver']); ?>"
+                  alt="<?php echo htmlspecialchars($slide['alt']); ?>"
+                  class="hero-slide-img"
+                  width="1280"
+                  height="720"
+                  <?php echo $i === 0 ? 'loading="eager"' : 'loading="lazy"'; ?>
+                  decoding="async"
+                />
+                <figcaption class="hero-slide-caption"><?php echo htmlspecialchars($slide['label']); ?></figcaption>
+              </figure>
+            <?php endforeach; ?>
+          </div>
+          <div class="hero-slider-dots" role="tablist" aria-label="Hero service slides">
+            <?php foreach ($heroSlides as $i => $slide): ?>
+              <button type="button"
+                class="hero-slider-dot<?php echo $i === 0 ? ' is-active' : ''; ?>"
+                data-slide-to="<?php echo $i; ?>"
+                aria-label="<?php echo htmlspecialchars($slide['label']); ?>"
+                aria-selected="<?php echo $i === 0 ? 'true' : 'false'; ?>"></button>
+            <?php endforeach; ?>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -119,6 +218,51 @@
 
 <script>
   document.addEventListener('DOMContentLoaded', () => {
+    // Hero core-service slideshow (one-by-one)
+    document.querySelectorAll('[data-hero-slider]').forEach((slider) => {
+      const slides = Array.from(slider.querySelectorAll('.hero-slide'));
+      const dots = Array.from(slider.querySelectorAll('.hero-slider-dot'));
+      if (slides.length < 2) return;
+
+      let index = 0;
+      let timer = null;
+      const INTERVAL = 2600;
+
+      const show = (next) => {
+        index = (next + slides.length) % slides.length;
+        slides.forEach((slide, i) => slide.classList.toggle('is-active', i === index));
+        dots.forEach((dot, i) => {
+          const active = i === index;
+          dot.classList.toggle('is-active', active);
+          dot.setAttribute('aria-selected', active ? 'true' : 'false');
+        });
+      };
+
+      const start = () => {
+        stop();
+        timer = window.setInterval(() => show(index + 1), INTERVAL);
+      };
+      const stop = () => {
+        if (timer) window.clearInterval(timer);
+        timer = null;
+      };
+
+      dots.forEach((dot) => {
+        dot.addEventListener('click', () => {
+          const to = Number(dot.getAttribute('data-slide-to') || 0);
+          show(to);
+          start();
+        });
+      });
+
+      slider.addEventListener('mouseenter', stop);
+      slider.addEventListener('mouseleave', start);
+      slider.addEventListener('focusin', stop);
+      slider.addEventListener('focusout', start);
+
+      start();
+    });
+
     const canvas = document.getElementById('hero-particles-canvas');
     if (!canvas) return;
     // Skip particle animation on phones/tablets for smoother scrolling
@@ -149,21 +293,20 @@
         this.vy = (Math.random() - 0.5) * 0.2;
       }
       update() {
+        let dx = this.x - mouseX;
+        let dy = this.y - mouseY;
+        let distance = Math.sqrt(dx * dx + dy * dy);
+        if (distance < repulsionRadius) {
+          const force = (repulsionRadius - distance) / repulsionRadius;
+          const angle = Math.atan2(dy, dx);
+          this.vx += Math.cos(angle) * force * forceFactor * 0.12;
+          this.vy += Math.sin(angle) * force * forceFactor * 0.12;
+        }
+        this.vx *= 0.95;
+        this.vy *= 0.95;
         this.x += this.vx;
         this.y += this.vy;
-        const dx = this.x - mouseX;
-        const dy = this.y - mouseY;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < repulsionRadius) {
-          const force = (repulsionRadius - dist) / repulsionRadius;
-          const angle = Math.atan2(dy, dx);
-          this.x += Math.cos(angle) * force * forceFactor;
-          this.y += Math.sin(angle) * force * forceFactor;
-        }
-        if (this.x < 0) this.x = width;
-        if (this.x > width) this.x = 0;
-        if (this.y < 0) this.y = height;
-        if (this.y > height) this.y = 0;
+        if (this.x < 0 || this.x > width || this.y < 0 || this.y > height) this.reset();
       }
       draw() {
         ctx.beginPath();
@@ -175,29 +318,27 @@
 
     function resize() {
       const parent = canvas.parentElement || document.getElementById('hero');
-      width = canvas.width = parent.clientWidth || window.innerWidth;
-      height = canvas.height = parent.clientHeight || window.innerHeight;
-      const count = Math.min(Math.floor(width / 10), 120);
-      particles = [];
-      for (let i = 0; i < count; i++) particles.push(new Particle());
+      width = parent.clientWidth;
+      height = parent.clientHeight;
+      canvas.width = width;
+      canvas.height = height;
+      const count = Math.min(70, Math.floor((width * height) / 18000));
+      particles = Array.from({ length: count }, () => new Particle());
     }
 
     function animate() {
       ctx.clearRect(0, 0, width, height);
-      particles.forEach(p => { p.update(); p.draw(); });
+      particles.forEach((p) => { p.update(); p.draw(); });
       requestAnimationFrame(animate);
     }
 
+    window.addEventListener('resize', resize);
     window.addEventListener('mousemove', (e) => {
       const rect = canvas.getBoundingClientRect();
       mouseX = e.clientX - rect.left;
       mouseY = e.clientY - rect.top;
     });
-    window.addEventListener('mouseleave', () => { mouseX = -1000; mouseY = -1000; });
-
     resize();
     animate();
-    window.addEventListener('resize', resize);
-    window.addEventListener('load', resize);
   });
 </script>

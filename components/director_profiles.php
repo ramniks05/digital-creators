@@ -30,10 +30,17 @@ try {
     <?php foreach ($directors_data as $dir): ?>
       <div class="team-card bg-white/80 border border-slate-200 rounded-2xl overflow-hidden flex flex-col group hover:border-primary/30 hover:bg-slate-50 transition-all duration-300 relative">
         <div class="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
-        <div class="relative w-full h-[420px] overflow-hidden">
-          <img src="<?php echo htmlspecialchars($dir['image'] ?? ''); ?>"
+        <div class="relative w-full h-[420px] overflow-hidden bg-slate-100">
+          <?php
+            $dirImg = (string) ($dir['image'] ?? '');
+            $dirVer = $dirImg && is_file(__DIR__ . '/../' . $dirImg) ? ('?v=' . filemtime(__DIR__ . '/../' . $dirImg)) : '';
+          ?>
+          <img src="<?php echo htmlspecialchars($dirImg . $dirVer); ?>"
             alt="<?php echo htmlspecialchars($dir['name'] ?? ''); ?>"
-            class="w-full h-full object-cover group-hover:scale-102 transition-transform duration-800 object-top" />
+            class="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-[1.02]"
+            loading="eager"
+            decoding="async"
+            onerror="this.onerror=null;this.src='assets/images/director.jpg';" />
         </div>
         <div class="p-8 flex flex-col flex-grow items-center text-center relative z-10">
           <h3 class="font-headings text-xl sm:text-2xl font-bold mb-1.5 text-text-primary group-hover:text-primary transition-colors">

@@ -2,13 +2,14 @@
 <html lang="en">
 
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta charset="UTF-8" />
-  <?php include 'includes/head-fonts.php'; ?>
-  <link rel="stylesheet" href="css/style.css?v=<?php echo time(); ?>" />
-  <title>Demo Software Products | Digital Creatorss</title>
-  <meta name="description"
-    content="Ready-made gym, ecommerce, CRM, school, and portal software demos. Customize UI/UX for your brand with Digital Creatorss." />
+  <?php
+  require_once __DIR__ . '/includes/seo.php';
+  render_seo_head([
+    'title' => 'Demo Software Products | Gym, CRM, Ecommerce | Digital Creatorss',
+    'description' => 'Ready-made gym, ecommerce, CRM, school, and portal software demos. Customize UI/UX for your brand with Digital Creatorss.',
+    'path' => 'products.php',
+  ]);
+  ?>
 </head>
 
 <body class="bg-bg-primary text-text-primary font-sans antialiased overflow-x-hidden site-canvas">
@@ -42,11 +43,11 @@
         <!-- Featured sample -->
         <section class="max-w-7xl mx-auto px-4 sm:px-6 mb-12 sm:mb-16" id="featured-product">
           <article class="product-featured grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-stretch border border-slate-200 bg-white rounded-2xl sm:rounded-3xl overflow-hidden shadow-sm">
-            <div class="lg:col-span-6 relative min-h-[220px] sm:min-h-[280px] lg:min-h-0">
+            <div class="lg:col-span-6 relative bg-white flex items-center justify-center p-3 sm:p-4 min-h-[200px]">
               <img
                 src="<?php echo htmlspecialchars($featured['image']); ?>"
                 alt="<?php echo htmlspecialchars($featured['title']); ?>"
-                class="absolute inset-0 w-full h-full object-cover"
+                class="w-full h-auto max-h-[360px] object-contain"
                 loading="eager"
                 decoding="async"
               />
@@ -130,11 +131,11 @@
               data-category="<?php echo htmlspecialchars($product['category']); ?>"
               data-search="<?php echo htmlspecialchars($searchBlob); ?>"
               data-id="<?php echo htmlspecialchars($product['id']); ?>">
-              <div class="relative aspect-[16/10] overflow-hidden bg-slate-100">
+              <div class="relative overflow-hidden bg-white border-b border-slate-100 p-2">
                 <img
                   src="<?php echo htmlspecialchars($product['image']); ?>"
                   alt="<?php echo htmlspecialchars($product['title']); ?>"
-                  class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                  class="w-full h-auto object-contain transition-transform duration-500 group-hover:scale-[1.015]"
                   loading="lazy"
                   decoding="async"
                 />

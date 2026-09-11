@@ -34,7 +34,7 @@ $capabilityPills = [
     <div class="site-footer-topline"></div>
   </div>
 
-  <div class="site-container relative z-10 pt-12 pb-6 md:pt-14 md:pb-8">
+  <div class="site-container relative z-10 pt-12 pb-0 md:pt-14">
     <!-- CTA band -->
     <div class="footer-cta-panel mb-10 md:mb-12">
       <div class="footer-cta-panel-inner">

@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+Disallow: /admin/
+Disallow: /includes/
+Disallow: /sql/
+Disallow: /private/
+
+Sitemap: https://digitalcreatorss.com/sitemap.xml

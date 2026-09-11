@@ -2,19 +2,14 @@
 <html lang="en">
 
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <meta charset="UTF-8" />
-  <!-- Preconnect for premium Google Fonts -->
-  <?php include 'includes/head-fonts.php'; ?>
-
-  <!-- Compiled Tailwind CSS style sheet -->
-  <link rel="stylesheet" href="css/style.css?v=<?php echo time(); ?>" />
-
-  <!-- SEO Meta Tags -->
-  <title>Our Team | Digital Creatorss</title>
-  <meta name="description"
-    content="Meet the digital architects, designers, and engineers behind Digital Creatorss. We combine visual luxury with elite code." />
+  <?php
+  require_once __DIR__ . '/includes/seo.php';
+  render_seo_head([
+    'title' => 'Our Team | Developers, Cloud & Design | Digital Creatorss',
+    'description' => 'Meet the developers, designers, and cloud engineers behind Digital Creatorss — building web, SaaS, and hosting solutions.',
+    'path' => 'team.php',
+  ]);
+  ?>
 </head>
 
 <body class="bg-bg-primary text-text-primary font-sans antialiased overflow-x-hidden site-canvas">
@@ -105,10 +100,17 @@
               </div>
 
               <!-- Image Container -->
-              <div class="relative w-full h-[300px] sm:h-[360px] md:h-[420px] overflow-hidden">
-                <img src="<?php echo htmlspecialchars($dir['image']); ?>"
-                  alt="<?php echo htmlspecialchars($dir['name']); ?>"
-                  class="w-full h-full object-cover group-hover:scale-102 transition-transform duration-800 <?php echo isset($dir['position']) ? htmlspecialchars($dir['position']) : 'object-center'; ?>" />
+              <div class="relative w-full h-[300px] sm:h-[360px] md:h-[420px] overflow-hidden bg-slate-100">
+                <?php
+                  $dirImg = (string) ($dir['image'] ?? '');
+                  $dirVer = $dirImg && is_file(__DIR__ . '/' . $dirImg) ? ('?v=' . filemtime(__DIR__ . '/' . $dirImg)) : '';
+                ?>
+                <img src="<?php echo htmlspecialchars($dirImg . $dirVer); ?>"
+                  alt="<?php echo htmlspecialchars($dir['name'] ?? ''); ?>"
+                  class="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-[1.02]"
+                  loading="eager"
+                  decoding="async"
+                  onerror="this.onerror=null;this.src='assets/images/director.jpg';" />
               </div>
 
               <!-- Profile Details -->
@@ -180,11 +182,30 @@
               </div>
 
               <!-- Member Photo Container -->
-              <div class="relative w-full h-[250px] overflow-hidden bg-slate-50 flex items-center justify-center">
-                <?php if (!empty($member['image'])): ?>
-                  <img src="<?php echo htmlspecialchars($member['image']); ?>"
+              <div class="relative w-full h-[250px] overflow-hidden bg-slate-100 flex items-center justify-center">
+                <?php
+                  $memberImg = (string) ($member['image'] ?? '');
+                  $memberVer = $memberImg && is_file(__DIR__ . '/' . $memberImg) ? ('?v=' . filemtime(__DIR__ . '/' . $memberImg)) : '';
+                ?>
+                <?php if ($memberImg): ?>
+                  <img src="<?php echo htmlspecialchars($memberImg . $memberVer); ?>"
                     alt="<?php echo htmlspecialchars($member['name']); ?>"
-                    class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-102" />
+                    class="w-full h-full object-contain object-center p-6 sm:p-8 bg-slate-50 transition-transform duration-500 group-hover:scale-[1.02]"
+                    loading="lazy"
+                    decoding="async"
+                    onerror="this.style.display='none'; this.nextElementSibling && this.nextElementSibling.classList.remove('hidden');" />
+                  <div class="hidden absolute inset-0 flex flex-col items-center justify-center p-4 bg-slate-50">
+                    <div class="w-16 h-16 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-headings text-xl font-bold tracking-wider">
+                      <?php
+                      $words = explode(' ', (string) $member['name']);
+                      $monogram = '';
+                      foreach ($words as $w) {
+                        $monogram .= strtoupper(substr($w, 0, 1));
+                      }
+                      echo htmlspecialchars($monogram);
+                      ?>
+                    </div>
+                  </div>
                 <?php else: ?>
                   <!-- Futuristic Monogram/HUD Placeholder for Blank Photo -->
                   <div class="absolute inset-0 flex flex-col items-center justify-center p-4">
@@ -212,21 +233,22 @@
                   </div>
                 <?php endif; ?>
 
-                <div
-                  class="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-90 pointer-events-none">
-                </div>
+                <!-- Soft bottom shade only (keep faces visible) -->
+                <div class="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/45 to-transparent pointer-events-none"></div>
 
                 <!-- Floated Icon Badge -->
                 <div
-                  class="absolute top-4 right-4 w-8 h-8 rounded-lg bg-white/80 border border-slate-200 flex items-center justify-center text-primary backdrop-blur-sm">
-                  <i data-lucide="<?php echo $member['icon']; ?>" class="w-4 h-4"></i>
+                  class="absolute top-4 right-4 w-8 h-8 rounded-lg bg-white/90 border border-slate-200 flex items-center justify-center text-primary backdrop-blur-sm shadow-sm">
+                  <i data-lucide="<?php echo htmlspecialchars($member['icon'] ?? 'user'); ?>" class="w-4 h-4"></i>
                 </div>
 
                 <!-- Specialty overlay label -->
+                <?php if (!empty($member['specialty'])): ?>
                 <div
-                  class="absolute bottom-3 left-4 px-2 py-0.5 bg-primary/10 border border-primary/20 rounded text-[9px] font-semibold text-primary">
+                  class="absolute bottom-3 left-4 px-2 py-0.5 bg-white/95 border border-slate-200 rounded text-[9px] font-semibold text-primary shadow-sm">
                   <?php echo htmlspecialchars($member['specialty']); ?>
                 </div>
+                <?php endif; ?>
               </div>
 
               <!-- Member Details -->

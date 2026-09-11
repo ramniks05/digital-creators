@@ -2,20 +2,14 @@
 <html lang="en">
 
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta charset="UTF-8" />
-    <!-- Preconnect for premium Google Fonts -->
-    <?php include 'includes/head-fonts.php'; ?>
-
-  <!-- Compiled Tailwind CSS style sheet -->
-  <link rel="stylesheet" href="css/style.css?v=<?php echo time(); ?>" />
-
-  <!-- SEO Meta Tags -->
-  <title>Our Services | Digital Creatorss</title>
-  <meta name="description"
-    content="Web development, custom software, cloud hosting, server management, DevOps, and ongoing maintenance from Digital Creatorss." />
+  <?php
+  require_once __DIR__ . '/includes/seo.php';
+  render_seo_head([
+    'title' => 'Our Services | Web, App, Cloud & DevOps | Digital Creatorss',
+    'description' => 'Web development, custom software, cloud hosting, server management, DevOps, and ongoing maintenance from Digital Creatorss.',
+    'path' => 'services.php',
+  ]);
+  ?>
 </head>
 
 <body class="bg-bg-primary text-text-primary font-sans antialiased site-canvas">
@@ -64,32 +58,32 @@
           <div class="hidden lg:flex lg:col-span-6 sticky top-28 lg:top-32 lg:h-[calc(100vh-200px)] items-center justify-center z-30 order-1 lg:order-1 select-none self-start desktop-only">
             
             <!-- Picture Frame Container -->
-            <div class="w-full max-w-sm aspect-[4/5] rounded-[32px] bg-slate-50 border border-slate-200 relative overflow-hidden shadow-[0_25px_60px_-15px_rgba(37,99,235,0.3)]">
+            <div class="w-full max-w-md aspect-[16/10] rounded-[28px] bg-white border border-slate-200 relative overflow-hidden shadow-[0_25px_60px_-15px_rgba(15,23,42,0.2)] flex items-center justify-center p-3">
               
               <!-- Ambient background glows behind the card -->
               <div class="absolute -top-24 -left-24 w-48 h-48 bg-primary/10 rounded-full blur-2xl pointer-events-none"></div>
-              <div class="absolute -bottom-24 -right-24 w-48 h-48 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none"></div>
+              <div class="absolute -bottom-24 -right-24 w-48 h-48 bg-orange-500/10 rounded-full blur-2xl pointer-events-none"></div>
 
               <!-- Overlapping Visual Content Cards for each service -->
               <?php foreach ($services_data as $index => $srv): 
                 $spot = $srv['spotlight'];
               ?>
-                <div class="visual-card absolute inset-0 rounded-[32px] overflow-hidden transition-all duration-700 transform <?php echo $index === 0 ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-8 pointer-events-none'; ?>" data-index="<?php echo $index; ?>">
+                <div class="visual-card absolute inset-3 rounded-[22px] overflow-hidden bg-white transition-all duration-700 transform <?php echo $index === 0 ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-8 pointer-events-none'; ?>" data-index="<?php echo $index; ?>">
                   <!-- Background Image -->
-                  <img src="<?php echo htmlspecialchars($srv['image']); ?>" alt="<?php echo htmlspecialchars($srv['title']); ?>" class="w-full h-full object-cover" />
+                  <img src="<?php echo htmlspecialchars($srv['image']); ?>" alt="<?php echo htmlspecialchars($srv['title']); ?>" class="w-full h-full object-contain" />
                   
-                  <!-- Dark gradient overlay for text protection -->
-                  <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent p-6 flex flex-col justify-end">
-                    <span class="px-3.5 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-primary/90 border border-primary/30 text-white w-fit mb-3 shadow-sm">
+                  <!-- Soft bottom label bar (does not cover the artwork) -->
+                  <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/35 to-transparent p-4 pt-10 flex flex-col justify-end pointer-events-none">
+                    <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-primary/90 border border-primary/30 text-white w-fit mb-2 shadow-sm">
                       <?php echo htmlspecialchars($spot['tag']); ?>
                     </span>
                     
-                    <h3 class="font-headings text-xl font-bold text-white mb-2"><?php echo htmlspecialchars($srv['title']); ?></h3>
+                    <h3 class="font-headings text-lg font-bold text-white mb-1"><?php echo htmlspecialchars($srv['title']); ?></h3>
                     
                     <!-- Technologies -->
-                    <div class="flex flex-wrap gap-1.5 mt-2">
+                    <div class="flex flex-wrap gap-1.5 mt-1">
                       <?php foreach ($spot['stack'] as $tech): ?>
-                        <span class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-white/90 border border-slate-200 text-slate-700 backdrop-blur-sm">
+                        <span class="px-2 py-0.5 rounded-lg text-[11px] font-semibold bg-white/90 border border-slate-200 text-slate-700 backdrop-blur-sm">
                           <?php echo htmlspecialchars($tech); ?>
                         </span>
                       <?php endforeach; ?>
@@ -165,8 +159,8 @@
                     data-pane-idx="<?php echo $index; ?>">
                     
                     <!-- Card Image Frame -->
-                    <div class="w-full aspect-[16/10] rounded-[20px] border border-slate-200 overflow-hidden relative shadow-md bg-slate-50">
-                      <img src="<?php echo htmlspecialchars($srv['image']); ?>" alt="<?php echo htmlspecialchars($srv['title']); ?>" class="w-full h-full object-cover" />
+                    <div class="w-full rounded-[20px] border border-slate-200 overflow-hidden relative shadow-md bg-white p-2">
+                      <img src="<?php echo htmlspecialchars($srv['image']); ?>" alt="<?php echo htmlspecialchars($srv['title']); ?>" class="w-full h-auto object-contain" />
                       <!-- Spotlight tag -->
                       <span class="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider bg-white/90 border border-slate-200 text-text-secondary backdrop-blur-md">
                         <?php echo htmlspecialchars($spot['tag']); ?>

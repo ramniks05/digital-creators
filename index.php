@@ -2,20 +2,15 @@
 <html lang="en" class="site-canvas-root">
 
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta charset="UTF-8" />
-  <!-- Preconnect for premium Google Fonts -->
-  <?php include 'includes/head-fonts.php'; ?>
-
-  <!-- Compiled Tailwind CSS style sheet -->
-  <link rel="stylesheet" href="css/style.css?v=<?php echo time(); ?>" />
-
-  <!-- SEO Meta Tags -->
-  <title>Digital Creatorss | Web Development, Hosting & Server Management</title>
-  <meta name="description"
-    content="Digital Creatorss delivers web and app development, websites, portals, CRM, HRM, school management systems, and SaaS platforms with cloud hosting and server management." />
+  <?php
+  require_once __DIR__ . '/includes/seo.php';
+  render_seo_head([
+    'title' => 'Digital Creatorss | Web Development, Hosting & Server Management',
+    'description' => 'Digital Creatorss builds websites, apps, CRM, school ERP, and SaaS — with cloud hosting and server management.',
+    'path' => '/',
+    'json_ld' => [seo_organization_graph(), seo_website_graph()],
+  ]);
+  ?>
 </head>
 
 <body class="home-page text-text-primary font-sans antialiased overflow-x-hidden site-canvas">

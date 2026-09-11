@@ -23,9 +23,9 @@ $teaserProducts = array_slice(get_demo_products(), 0, 3);
         ?>
         <a href="products.php<?php echo !empty($product['featured']) ? '#featured-product' : ''; ?>"
           class="group flex flex-col border border-slate-200 bg-white rounded-2xl overflow-hidden hover:border-primary/30 hover:shadow-md transition-all duration-300">
-          <div class="aspect-[16/10] overflow-hidden bg-slate-100">
-            <img src="<?php echo htmlspecialchars($product['image']); ?>" alt=""
-              class="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500" loading="lazy" decoding="async" />
+          <div class="overflow-hidden bg-white border-b border-slate-100 p-2">
+            <img src="<?php echo htmlspecialchars($product['image']); ?>?v=<?php echo @filemtime(__DIR__ . '/../' . $product['image']) ?: time(); ?>" alt="<?php echo htmlspecialchars($product['title']); ?>"
+              class="w-full h-auto object-contain group-hover:scale-[1.015] transition-transform duration-500" loading="lazy" decoding="async" />
           </div>
           <div class="p-4">
             <span class="text-[10px] font-bold uppercase tracking-wider <?php echo $isLive ? 'text-primary' : 'text-slate-500'; ?>">

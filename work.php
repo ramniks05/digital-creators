@@ -2,20 +2,14 @@
 <html lang="en">
 
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta charset="UTF-8" />
-  <!-- Preconnect for premium Google Fonts -->
-  <?php include 'includes/head-fonts.php'; ?>
-
-  <!-- Compiled Tailwind CSS style sheet -->
-  <link rel="stylesheet" href="css/style.css?v=<?php echo time(); ?>" />
-
-  <!-- SEO Meta Tags -->
-  <title>Our Work | Digital Creatorss</title>
-  <meta name="description"
-    content="Browse our portfolio of high-performance B2B web applications, e-commerce marketplaces, and custom digital creations." />
+  <?php
+  require_once __DIR__ . '/includes/seo.php';
+  render_seo_head([
+    'title' => 'Our Work | Web & Software Portfolio | Digital Creatorss',
+    'description' => 'Browse our portfolio of high-performance B2B web applications, e-commerce marketplaces, and custom digital products.',
+    'path' => 'work.php',
+  ]);
+  ?>
 </head>
 
 <body class="bg-bg-primary text-text-primary font-sans antialiased overflow-x-hidden site-canvas">

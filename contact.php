@@ -2,32 +2,26 @@
 <html lang="en">
 
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta charset="UTF-8" />
-  <!-- Preconnect for premium Google Fonts -->
-  <?php include 'includes/head-fonts.php'; ?>
-
-  <!-- Compiled Tailwind CSS style sheet -->
-  <link rel="stylesheet" href="css/style.css?v=<?php echo time(); ?>" />
-
-  <!-- SEO Meta Tags -->
-  <title>Contact Us | Digital Creatorss</title>
-  <meta name="description"
-    content="Get in touch with Digital Creatorss for custom software, website development, cloud hosting, and server management." />
-
+  <?php
+  require_once __DIR__ . '/includes/seo.php';
+  $contactMapCss = <<<'CSS'
   <style>
-    /* Styling map iframe with a luxury dark theme filter to match HUD look */
     .dark-map-container iframe {
       filter: invert(90%) hue-rotate(180deg) brightness(85%) contrast(90%) grayscale(40%);
       transition: filter 0.5s ease;
     }
-
     .dark-map-container:hover iframe {
       filter: invert(90%) hue-rotate(180deg) brightness(95%) contrast(95%);
     }
   </style>
+CSS;
+  render_seo_head([
+    'title' => 'Contact Us | Digital Creatorss',
+    'description' => 'Get in touch with Digital Creatorss for custom software, website development, cloud hosting, and server management.',
+    'path' => 'contact.php',
+    'extra_head' => $contactMapCss,
+  ]);
+  ?>
 </head>
 
 <body class="bg-bg-primary text-text-primary font-sans antialiased overflow-x-hidden site-canvas">

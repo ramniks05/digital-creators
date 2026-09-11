@@ -2,20 +2,14 @@
 <html lang="en">
 
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta charset="UTF-8" />
-  <!-- Preconnect for premium Google Fonts -->
-  <?php include 'includes/head-fonts.php'; ?>
-
-  <!-- Compiled Tailwind CSS style sheet -->
-  <link rel="stylesheet" href="css/style.css?v=<?php echo time(); ?>" />
-
-  <!-- SEO Meta Tags -->
-  <title>Why Us | Digital Creatorss</title>
-  <meta name="description"
-    content="Discover what sets Digital Creatorss apart: our focus on high-performance code, luxury custom design, and data-backed business conversions." />
+  <?php
+  require_once __DIR__ . '/includes/seo.php';
+  render_seo_head([
+    'title' => 'Why Choose Digital Creatorss | Web & Cloud Experts',
+    'description' => 'High-performance code, custom UI/UX, and conversion-focused delivery — see why teams choose Digital Creatorss for web, cloud, and software.',
+    'path' => 'why-us.php',
+  ]);
+  ?>
 </head>
 
 <body class="bg-bg-primary text-text-primary font-sans antialiased site-canvas">
@@ -208,104 +202,84 @@
       <?php
       $phases = [
         [
-          "title" => "Planning (Without Guessing)",
-          "phase_num" => "Phase 01",
-          "description" => "Before writing a single line of code, we map out sitemaps and target metrics. No, we don't just guess or throw ideas at a wall to see what sticks.",
-          "image" => "assets/images/process_phase1_planning.webp",
+          "title" => "Planning",
+          "subtitle" => "Without Guessing",
+          "phase_num" => "01",
+          "description" => "Before writing a single line of code, we map out sitemaps, goals, and architecture so the build stays clear and measurable.",
+          "image" => "assets/images/process_phase1_planning.png",
           "deliverables" => ["Business Discovery", "Technical Architecture", "Interactive Wireframes", "UX Sitemapping"]
         ],
         [
-          "title" => "Designing (Figma Wizardry)",
-          "phase_num" => "Phase 02",
-          "description" => "We build pixel-perfect interactive mockups. You get to inspect every single layout detail inside Figma before we write the actual code.",
-          "image" => "assets/images/process_phase2_designing.webp",
-          "deliverables" => ["Custom Moodboards", "Hi-Fi Figma Design", "Interactive Prototypes", "Component System Design"]
+          "title" => "Designing",
+          "subtitle" => "Figma Wizardry",
+          "phase_num" => "02",
+          "description" => "Pixel-perfect interactive mockups in Figma. You review every layout detail before we write production code.",
+          "image" => "assets/images/process_phase2_designing.png",
+          "deliverables" => ["Custom Moodboards", "Hi-Fi Figma Design", "Interactive Prototypes", "Component System"]
         ],
         [
-          "title" => "Engineering (Real Custom Code)",
-          "phase_num" => "Phase 03",
-          "description" => "We write real custom code. No slow builders, no weird plugins, and zero boilerplate code that breaks if you breathe on it too hard.",
-          "image" => "assets/images/process_phase3_engineering.webp",
-          "deliverables" => ["Pixel-Perfect Templates", "Robust System Logic", "API & Third-Party Hookups", "Strict Database Security"]
+          "title" => "Engineering",
+          "subtitle" => "Real Custom Code",
+          "phase_num" => "03",
+          "description" => "We write real custom code — no slow builders, no fragile plugins, and no boilerplate that breaks under growth.",
+          "image" => "assets/images/process_phase3_engineering.png",
+          "deliverables" => ["Pixel-Perfect Templates", "System Logic", "API Integrations", "Database Security"]
         ],
         [
-          "title" => "Tuning (Whiplash Speed)",
-          "phase_num" => "Phase 04",
-          "description" => "We tune page speeds to absolute perfection, audit security, launch it, and celebrate. We don't just disappear once the site is live.",
-          "image" => "assets/images/process_phase4_tuning.webp",
-          "deliverables" => ["100/100 Speed Tuning", "Hosting Setup & DNS", "Rigorous Testing Log", "Priority Security Audits"]
+          "title" => "Tuning",
+          "subtitle" => "Whiplash Speed",
+          "phase_num" => "04",
+          "description" => "We tune speed, harden security, launch cleanly, and stay with you after go-live — not disappear once it ships.",
+          "image" => "assets/images/process_phase4_tuning.png",
+          "deliverables" => ["Speed Tuning", "Hosting & DNS", "Testing Log", "Security Audits"]
         ]
       ];
       ?>
 
-      <!-- Interactive Execution Process Section -->
-      <section id="process-showcase-container"
-        class="w-full relative pt-12 pb-16 border-t border-slate-200 overflow-hidden">
-        <div class="max-w-7xl mx-auto px-6 mb-8">
-          <span class="text-xs font-bold text-primary uppercase tracking-widest block mb-2">Our Actual Work
-            Process</span>
-          <h2 class="font-headings text-3xl sm:text-4xl font-extrabold text-text-primary">How We Actually Build Stuff</h2>
-        </div>
+      <!-- Work process -->
+      <section id="process-showcase-container" class="process-section relative w-full site-section border-t border-slate-200/80 overflow-hidden">
+        <div class="site-container relative z-10">
+          <div class="section-header-center flex flex-col items-center text-center max-w-3xl mx-auto mb-8 md:mb-10">
+            <span class="section-eyebrow inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/15">
+              Our Actual Work Process
+            </span>
+            <h2 class="section-title mt-5 mb-3">
+              How We Actually <span class="text-primary">Build Stuff</span>
+            </h2>
+            <p class="section-desc mx-auto">
+              Four clear milestones from discovery to launch — planned, designed, engineered, then tuned for real production.
+            </p>
+          </div>
 
-        <!-- Horizontal Scroll Track (Desktop flex, mobile grid/column) -->
-        <div class="relative w-full">
-          <div id="process-scroll-track"
-            class="flex flex-col lg:flex-row gap-8 lg:gap-12 px-6 lg:px-[8vw] w-full lg:w-fit">
-
+          <div id="process-scroll-track" class="process-grid">
             <?php foreach ($phases as $index => $phase): ?>
-              <div
-                class="process-card flex-shrink-0 w-full lg:w-[480px] rounded-[32px] border border-slate-200 bg-white/80 p-6 backdrop-blur-sm relative group hover:border-primary/30 hover:shadow-[0_20px_50px_rgba(37,99,235,0.12)] transition-all duration-500 cursor-pointer select-none">
-
-                <!-- Inner Content Stack -->
-                <div class="flex flex-col h-full justify-between">
-                  <div>
-                    <!-- Image Mockup -->
-                    <div
-                      class="w-full aspect-[16/10] rounded-[20px] border border-slate-200 overflow-hidden relative bg-slate-50 mb-4 group-hover:border-primary/20 transition-colors duration-500">
-                      <img src="<?php echo htmlspecialchars($phase['image']); ?>"
-                        alt="<?php echo htmlspecialchars($phase['title']); ?>"
-                        class="w-full h-full object-cover transition-transform duration-[800ms] group-hover:scale-[1.04]" />
-
-                      <!-- Phase Badge -->
-                      <span
-                        class="absolute top-4 right-4 px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider bg-primary/90 border border-primary/20 text-white shadow-md">
-                        <?php echo $phase['phase_num']; ?>
-                      </span>
-                    </div>
-
-                    <!-- Title & description -->
-                    <div class="flex items-center gap-2 mb-2">
-                      <span
-                        class="font-headings text-xs font-bold text-primary"><?php echo $phase['phase_num']; ?></span>
-                      <div class="h-px w-4 bg-primary/30"></div>
-                      <span class="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Milestone</span>
-                    </div>
-
-                    <h3
-                      class="font-headings text-xl sm:text-2xl font-bold text-text-primary mb-2 group-hover:text-primary transition-colors duration-300">
-                      <?php echo htmlspecialchars($phase['title']); ?>
-                    </h3>
-                    <p class="text-sm text-text-secondary leading-relaxed font-light mb-4">
-                      <?php echo htmlspecialchars($phase['description']); ?>
-                    </p>
-                  </div>
-
-                  <!-- Deliverables list -->
-                  <div class="pt-4 border-t border-slate-200">
-                    <div class="flex flex-wrap gap-1.5">
-                      <?php foreach ($phase['deliverables'] as $item): ?>
-                        <span
-                          class="px-2.5 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 border border-slate-200 text-text-secondary">
-                          <?php echo htmlspecialchars($item); ?>
-                        </span>
-                      <?php endforeach; ?>
-                    </div>
-                  </div>
+              <article class="process-card group">
+                <div class="process-card-media">
+                  <img
+                    src="<?php echo htmlspecialchars($phase['image']); ?>?v=<?php echo @filemtime(__DIR__ . '/' . $phase['image']) ?: time(); ?>"
+                    alt="<?php echo htmlspecialchars($phase['title']); ?>"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                  <span class="process-card-badge">Phase <?php echo htmlspecialchars($phase['phase_num']); ?></span>
                 </div>
 
-              </div>
-            <?php endforeach; ?>
+                <div class="process-card-body">
+                  <div class="process-card-meta">
+                    <span class="process-card-step"><?php echo htmlspecialchars($phase['phase_num']); ?></span>
+                    <span class="process-card-subtitle"><?php echo htmlspecialchars($phase['subtitle']); ?></span>
+                  </div>
+                  <h3 class="process-card-title"><?php echo htmlspecialchars($phase['title']); ?></h3>
+                  <p class="process-card-desc"><?php echo htmlspecialchars($phase['description']); ?></p>
 
+                  <div class="process-card-tags">
+                    <?php foreach ($phase['deliverables'] as $item): ?>
+                      <span><?php echo htmlspecialchars($item); ?></span>
+                    <?php endforeach; ?>
+                  </div>
+                </div>
+              </article>
+            <?php endforeach; ?>
           </div>
         </div>
       </section>
@@ -476,81 +450,26 @@
       });
     });
 
-    // --- Interactive Process Timeline (Horizontal Scroll on Desktop) ---
+    // Process cards — soft entrance (grid layout, no horizontal pin)
     document.addEventListener('DOMContentLoaded', () => {
-      const container = document.getElementById('process-showcase-container');
-      const track = document.getElementById('process-scroll-track');
       const cards = document.querySelectorAll('.process-card');
+      if (!cards.length || !window.gsap || !window.ScrollTrigger) return;
 
-      if (!container || !track) return;
-
-      let mm = gsap.matchMedia();
-
-      // Desktop: Horizontal scroll and slide pinning
-      mm.add("(min-width: 1024px)", () => {
-        const getScrollAmount = () => {
-          return track.scrollWidth - window.innerWidth + (window.innerWidth * 0.16);
-        };
-
-        const scrollTween = gsap.to(track, {
-          x: () => -getScrollAmount(),
-          ease: "none",
+      cards.forEach((card, i) => {
+        gsap.fromTo(card, {
+          opacity: 0,
+          y: 28
+        }, {
+          opacity: 1,
+          y: 0,
+          duration: 0.55,
+          delay: i * 0.06,
+          ease: 'power2.out',
           scrollTrigger: {
-            trigger: container,
-            start: "top 5%",
-            end: () => `+=${getScrollAmount()}`,
-            pin: true,
-            scrub: 1,
-            invalidateOnRefresh: true,
+            trigger: card,
+            start: 'top 88%',
+            toggleActions: 'play none none reverse'
           }
-        });
-
-        // Add horizontal parallax shifts to card images
-        cards.forEach((card) => {
-          const img = card.querySelector('img');
-          if (img) {
-            gsap.fromTo(img, {
-              xPercent: -4
-            }, {
-              xPercent: 4,
-              ease: "none",
-              scrollTrigger: {
-                trigger: card,
-                containerAnimation: scrollTween,
-                start: "left right",
-                end: "right left",
-                scrub: true
-              }
-            });
-          }
-        });
-
-        return () => {
-          gsap.set(track, { x: 0 });
-          cards.forEach(card => {
-            const img = card.querySelector('img');
-            if (img) gsap.set(img, { xPercent: 0 });
-          });
-        };
-      });
-
-      // Mobile/Tablet fallback: standard vertical entrance fade
-      mm.add("(max-width: 1023px)", () => {
-        cards.forEach((card) => {
-          gsap.fromTo(card, {
-            opacity: 0,
-            y: 30
-          }, {
-            opacity: 1,
-            y: 0,
-            duration: 0.6,
-            ease: "power2.out",
-            scrollTrigger: {
-              trigger: card,
-              start: "top 85%",
-              toggleActions: "play none none reverse"
-            }
-          });
         });
       });
     });
