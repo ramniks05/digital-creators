@@ -88,16 +88,15 @@
               <circle cx="4" cy="4" r="2"></circle>
             </svg>
           </a>
-          <a href="https://twitter.com/digitalcreatorss" target="_blank" rel="noopener noreferrer" class="social-link"
-            aria-label="Follow us on Twitter">
+          <a href="https://www.youtube.com/@DigitalCreators-neekita" target="_blank" rel="noopener noreferrer" class="social-link"
+            aria-label="Follow us on YouTube">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
               stroke-linejoin="round">
-              <path
-                d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z">
-              </path>
+              <path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17"></path>
+              <path d="m10 15 5-3-5-3z"></path>
             </svg>
           </a>
-          <a href="https://instagram.com/digitalcreatorss" target="_blank" rel="noopener noreferrer" class="social-link"
+          <a href="https://www.instagram.com/digitalcreatorss_software/" target="_blank" rel="noopener noreferrer" class="social-link"
             aria-label="Follow us on Instagram">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
               stroke-linejoin="round">

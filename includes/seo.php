@@ -168,8 +168,8 @@ if (!function_exists('seo_organization_graph')) {
             'telephone' => '+91-8851613806',
             'sameAs' => [
                 'https://linkedin.com/in/digitalcreatorss',
-                'https://twitter.com/digitalcreatorss',
-                'https://instagram.com/digitalcreatorss',
+                'https://www.youtube.com/@DigitalCreators-neekita',
+                'https://www.instagram.com/digitalcreatorss_software/',
             ],
             'description' => 'Web and app development, custom software, cloud hosting, and server management.',
         ];
