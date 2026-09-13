@@ -1,67 +1,61 @@
 ﻿<?php
 require_once __DIR__ . '/../includes/media_icons.php';
+require_once __DIR__ . '/../includes/demo_products.php';
 
-$heroSlides = [
-  [
-    'src' => 'assets/service/custom_software.png',
-    'fallback' => 'assets/service/custom_software.webp',
-    'label' => 'Custom Software',
-    'alt' => 'Custom Software — enterprise systems by Digital Creatorss',
-  ],
-  [
-    'src' => 'assets/service/webdevelopment.png',
-    'fallback' => 'assets/images/web_design_showcase.webp',
-    'label' => 'Website Development',
-    'alt' => 'Website Development — fast secure mobile-first sites',
-  ],
-  [
-    'src' => 'assets/service/AppDevelopment.png',
-    'fallback' => 'assets/service/app_development.png',
-    'label' => 'App Development',
-    'alt' => 'App Development — iOS and Android apps',
-  ],
-  [
-    'src' => 'assets/service/web_applications.png',
+$heroSlides = [];
+$root = dirname(__DIR__) . '/';
+foreach (get_demo_products() as $product) {
+  $src = trim((string) ($product['image'] ?? ''));
+  if ($src === '') {
+    continue;
+  }
+  // Prefer local product banner files when DB path is missing on disk
+  if (!is_file($root . $src)) {
+    $category = preg_replace('/[^a-z0-9\-]+/i', '', (string) ($product['category'] ?? ''));
+    $localCandidates = array_filter([
+      $category !== '' ? 'assets/images/products/' . $category . '.png' : '',
+      $category !== '' ? 'assets/images/products/' . $category . '.webp' : '',
+    ]);
+    $resolved = '';
+    foreach ($localCandidates as $candidate) {
+      if (is_file($root . $candidate)) {
+        $resolved = $candidate;
+        break;
+      }
+    }
+    if ($resolved === '') {
+      continue;
+    }
+    $src = $resolved;
+  }
+
+  $title = trim((string) ($product['title'] ?? 'Product'));
+  $heroSlides[] = [
+    'src' => $src,
     'fallback' => '',
-    'label' => 'Web Applications',
-    'alt' => 'Web Applications — cloud native SaaS platforms',
-  ],
-  [
-    'src' => 'assets/service/cloud_hosting.png',
-    'fallback' => '',
-    'label' => 'Cloud Hosting',
-    'alt' => 'Cloud Hosting — scalable infrastructure and uptime',
-  ],
-  [
-    'src' => 'assets/service/server_management.png',
-    'fallback' => '',
-    'label' => 'Server Management',
-    'alt' => 'Server Management — 24/7 operations and security',
-  ],
-  [
-    'src' => 'assets/service/devops_infrastructure.png',
-    'fallback' => '',
-    'label' => 'DevOps & Infrastructure',
-    'alt' => 'DevOps & Infrastructure — CI/CD and automation',
-  ],
-];
+    'label' => $title,
+    'alt' => $title . ' — demo software by Digital Creatorss',
+  ];
+}
 
 // Keep only slides whose image file exists
-$heroSlides = array_values(array_filter($heroSlides, static function (array $slide): bool {
-  $root = dirname(__DIR__) . '/';
-  if (is_file($root . $slide['src'])) {
-    return true;
+$heroSlides = array_values(array_filter($heroSlides, static function (array $slide) use ($root): bool {
+  return is_file($root . $slide['src']);
+}));
+
+// Dedupe identical banner paths (e.g. two products sharing one image)
+$seenSrc = [];
+$heroSlides = array_values(array_filter($heroSlides, static function (array $slide) use (&$seenSrc): bool {
+  if (isset($seenSrc[$slide['src']])) {
+    return false;
   }
-  return !empty($slide['fallback']) && is_file($root . $slide['fallback']);
+  $seenSrc[$slide['src']] = true;
+  return true;
 }));
 
 foreach ($heroSlides as &$slide) {
-  $abs = dirname(__DIR__) . '/' . $slide['src'];
-  if (!is_file($abs) && !empty($slide['fallback']) && is_file(dirname(__DIR__) . '/' . $slide['fallback'])) {
-    $slide['src'] = $slide['fallback'];
-  }
-  $slide['ver'] = is_file(dirname(__DIR__) . '/' . $slide['src'])
-    ? ('?v=' . filemtime(dirname(__DIR__) . '/' . $slide['src']))
+  $slide['ver'] = is_file($root . $slide['src'])
+    ? ('?v=' . filemtime($root . $slide['src']))
     : '';
 }
 unset($slide);
@@ -137,7 +131,7 @@ unset($slide);
                 </figure>
               <?php endforeach; ?>
             </div>
-            <div class="hero-slider-dots" role="tablist" aria-label="Hero service slides">
+            <div class="hero-slider-dots" role="tablist" aria-label="Hero product slides">
               <?php foreach ($heroSlides as $i => $slide): ?>
                 <button type="button"
                   class="hero-slider-dot<?php echo $i === 0 ? ' is-active' : ''; ?>"
@@ -181,7 +175,7 @@ unset($slide);
               </figure>
             <?php endforeach; ?>
           </div>
-          <div class="hero-slider-dots" role="tablist" aria-label="Hero service slides">
+          <div class="hero-slider-dots" role="tablist" aria-label="Hero product slides">
             <?php foreach ($heroSlides as $i => $slide): ?>
               <button type="button"
                 class="hero-slider-dot<?php echo $i === 0 ? ' is-active' : ''; ?>"

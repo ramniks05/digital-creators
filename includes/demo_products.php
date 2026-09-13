@@ -118,13 +118,16 @@ function normalize_demo_product(array $row): array
         $features = $row['features'];
     }
 
+    $image = (string) ($row['image'] ?? '');
+
     return [
         'id' => $row['id'] ?? ($row['category'] ?? 'product'),
         'title' => $row['title'] ?? '',
         'category' => $row['category'] ?? 'other',
         'category_label' => $row['category_label'] ?? '',
         'summary' => $row['summary'] ?? '',
-        'image' => $row['image'] ?? '',
+        'image' => $image,
+        'image_src' => demo_product_image_src($image),
         'demo_url' => $row['demo_url'] ?? '',
         'guide_url' => $row['guide_url'] ?? '',
         'status' => $row['status'] ?? 'coming_soon',
@@ -133,6 +136,18 @@ function normalize_demo_product(array $row): array
         'sort_order' => (int) ($row['sort_order'] ?? 0),
         'is_active' => isset($row['is_active']) ? (int) $row['is_active'] : 1,
     ];
+}
+
+/** Cache-bust product images so replaced files show after hard refresh / CDN. */
+function demo_product_image_src(string $relativePath): string
+{
+    $relativePath = trim($relativePath);
+    if ($relativePath === '') {
+        return '';
+    }
+    $abs = dirname(__DIR__) . '/' . ltrim(str_replace('\\', '/', $relativePath), '/');
+    $ver = is_file($abs) ? (string) filemtime($abs) : (string) time();
+    return $relativePath . (str_contains($relativePath, '?') ? '&' : '?') . 'v=' . $ver;
 }
 
 function get_demo_products(bool $activeOnly = true): array

@@ -45,7 +45,7 @@
           <article class="product-featured grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-stretch border border-slate-200 bg-white rounded-2xl sm:rounded-3xl overflow-hidden shadow-sm">
             <div class="lg:col-span-6 relative bg-white flex items-center justify-center p-3 sm:p-4 min-h-[200px]">
               <img
-                src="<?php echo htmlspecialchars($featured['image']); ?>"
+                src="<?php echo htmlspecialchars($featured['image_src'] ?? $featured['image']); ?>"
                 alt="<?php echo htmlspecialchars($featured['title']); ?>"
                 class="w-full h-auto max-h-[360px] object-contain"
                 loading="eager"
@@ -133,7 +133,7 @@
               data-id="<?php echo htmlspecialchars($product['id']); ?>">
               <div class="relative overflow-hidden bg-white border-b border-slate-100 p-2">
                 <img
-                  src="<?php echo htmlspecialchars($product['image']); ?>"
+                  src="<?php echo htmlspecialchars($product['image_src'] ?? $product['image']); ?>"
                   alt="<?php echo htmlspecialchars($product['title']); ?>"
                   class="w-full h-auto object-contain transition-transform duration-500 group-hover:scale-[1.015]"
                   loading="lazy"

@@ -26,6 +26,9 @@
       <!-- Hero Section -->
       <?php include 'components/hero.php'; ?>
 
+      <!-- Ready demo products -->
+      <?php include 'components/products_teaser.php'; ?>
+
       <!-- Services Section -->
       <?php include 'components/services.php'; ?>
 
@@ -34,9 +37,6 @@
 
       <!-- Why Choose Us Section -->
       <?php include 'components/why_choose_us.php'; ?>
-
-      <!-- Ready demo products teaser -->
-      <?php include 'components/products_teaser.php'; ?>
 
        <!-- Video Showcase Section -->
       

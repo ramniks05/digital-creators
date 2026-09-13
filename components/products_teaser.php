@@ -7,7 +7,7 @@ $teaserProducts = array_slice(get_demo_products(), 0, 3);
   <div class="site-container relative z-10">
     <div class="section-header-center flex flex-col items-center text-center max-w-3xl mx-auto mb-8">
       <span class="section-eyebrow inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/15">
-        Ready Products
+        Our Products
       </span>
       <h2 class="section-title mt-5 mb-3">
         Demo software you can <span class="text-primary">customize</span>
@@ -24,7 +24,7 @@ $teaserProducts = array_slice(get_demo_products(), 0, 3);
         <a href="products.php<?php echo !empty($product['featured']) ? '#featured-product' : ''; ?>"
           class="group flex flex-col border border-slate-200 bg-white rounded-2xl overflow-hidden hover:border-primary/30 hover:shadow-md transition-all duration-300">
           <div class="overflow-hidden bg-white border-b border-slate-100 p-2">
-            <img src="<?php echo htmlspecialchars($product['image']); ?>?v=<?php echo @filemtime(__DIR__ . '/../' . $product['image']) ?: time(); ?>" alt="<?php echo htmlspecialchars($product['title']); ?>"
+            <img src="<?php echo htmlspecialchars($product['image_src'] ?? $product['image']); ?>" alt="<?php echo htmlspecialchars($product['title']); ?>"
               class="w-full h-auto object-contain group-hover:scale-[1.015] transition-transform duration-500" loading="lazy" decoding="async" />
           </div>
           <div class="p-4">
