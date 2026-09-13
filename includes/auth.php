@@ -118,3 +118,38 @@ function handle_upload(string $field, ?string $existing = null): ?string
 
     return $config['app']['upload_url'] . '/' . $name;
 }
+
+/**
+ * Save demo product banners under assets/images/products/ (Git-tracked),
+ * so Hostinger Git deploys do not wipe Admin uploads from assets/uploads/.
+ */
+function handle_product_image_upload(string $field, string $category, ?string $existing = null): ?string
+{
+    if (empty($_FILES[$field]['name']) || $_FILES[$field]['error'] === UPLOAD_ERR_NO_FILE) {
+        return $existing;
+    }
+    if ($_FILES[$field]['error'] !== UPLOAD_ERR_OK) {
+        throw new RuntimeException('Upload failed.');
+    }
+
+    $allowed = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
+    $finfo = new finfo(FILEINFO_MIME_TYPE);
+    $mime = $finfo->file($_FILES[$field]['tmp_name']);
+    if (!isset($allowed[$mime])) {
+        throw new RuntimeException('Only JPG, PNG, and WebP images are allowed.');
+    }
+
+    $slug = strtolower(preg_replace('/[^a-z0-9\-]+/i', '', $category) ?: 'product');
+    $dir = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'assets' . DIRECTORY_SEPARATOR . 'images' . DIRECTORY_SEPARATOR . 'products';
+    if (!is_dir($dir)) {
+        mkdir($dir, 0755, true);
+    }
+
+    $name = $slug . '.' . $allowed[$mime];
+    $dest = $dir . DIRECTORY_SEPARATOR . $name;
+    if (!move_uploaded_file($_FILES[$field]['tmp_name'], $dest)) {
+        throw new RuntimeException('Could not save product image.');
+    }
+
+    return 'assets/images/products/' . $name;
+}

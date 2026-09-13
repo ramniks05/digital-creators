@@ -41,7 +41,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $category = 'other';
         }
 
-        $image = handle_upload('image', trim($_POST['existing_image'] ?? '') ?: null);
+        $imageSlug = $category;
+        if ($category === 'ecommerce') {
+            $imageSlug = (stripos($title, 'multi') !== false) ? 'multivendor' : 'ecommerce';
+        }
+        $image = handle_product_image_upload('image', $imageSlug, trim($_POST['existing_image'] ?? '') ?: null);
+        // If DB still points at ephemeral uploads/, remap to stable Git-tracked banner when present
+        if ($image && str_starts_with($image, 'assets/uploads/')) {
+            $stable = 'assets/images/products/' . $imageSlug . '.png';
+            if (is_file(dirname(__DIR__) . '/' . $stable)) {
+                $image = $stable;
+            }
+        }
 
         if ($featured) {
             db()->exec('UPDATE demo_products SET is_featured = 0');
