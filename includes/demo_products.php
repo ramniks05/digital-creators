@@ -137,8 +137,8 @@ function normalize_demo_product(array $row): array
 
 function get_demo_products(bool $activeOnly = true): array
 {
-    // Local catalog first (assets/images/products). Flip SERVICES-style later for Admin/DB.
-    $useDatabase = filter_var(getenv('PRODUCTS_FROM_DB') ?: '0', FILTER_VALIDATE_BOOLEAN);
+    // Prefer Admin/DB so live CMS edits show on the site. Set PRODUCTS_FROM_DB=0 for local hardcoded catalog.
+    $useDatabase = filter_var(getenv('PRODUCTS_FROM_DB') ?: '1', FILTER_VALIDATE_BOOLEAN);
 
     if ($useDatabase) {
         try {
