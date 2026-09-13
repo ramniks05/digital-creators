@@ -10,3 +10,7 @@ UPDATE demo_products SET image = 'assets/images/products/multivendor.png'
 WHERE category = 'ecommerce' AND (title LIKE '%Multi%' OR title LIKE '%Multivendor%');
 UPDATE demo_products SET image = 'assets/images/products/ecommerce.png'
 WHERE category = 'ecommerce' AND title NOT LIKE '%Multi%' AND title NOT LIKE '%Multivendor%';
+
+-- Drop old WebP thumbs if any remain
+UPDATE demo_products SET image = REPLACE(image, '.webp', '.png')
+WHERE image LIKE 'assets/images/products/%.webp';

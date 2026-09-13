@@ -87,16 +87,15 @@ $industries = [
         <?php echo media_icon_img('building-2', '', 'media-icon-inline'); ?>
         Industries &amp; Solutions
       </span>
-      <h2 class="section-title mt-5 mb-4">
-        Websites, Portals, CRM &amp; SaaS for Every Industry
+      <h2 class="section-title mt-2.5 mb-1.5">
+        Built for Every Industry
       </h2>
       <p class="section-desc mx-auto">
-        From corporate websites to full-scale business software — we build for HRM, education, healthcare,
-        logistics, finance, and more with secure hosting and long-term support.
+        Websites, portals, CRM &amp; SaaS for HRM, education, healthcare, logistics, finance, and more.
       </p>
     </div>
 
-    <div class="flex flex-nowrap justify-start sm:justify-center gap-2.5 sm:gap-3 mb-8 lg:mb-10 industry-types overflow-x-auto scrollbar-none pb-1 -mx-1 px-1">
+    <div class="flex flex-nowrap justify-start sm:justify-center gap-2.5 sm:gap-3 mb-5 lg:mb-6 industry-types overflow-x-auto scrollbar-none pb-1 -mx-1 px-1">
       <?php foreach ($product_types as $type): ?>
       <div class="icon-pill-advanced industry-type-<?php echo htmlspecialchars($type['tone'], ENT_QUOTES, 'UTF-8'); ?>">
         <?php echo media_icon_html($type['icon'], $type['label'], 'sm'); ?>

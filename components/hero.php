@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 require_once __DIR__ . '/../includes/media_icons.php';
 require_once __DIR__ . '/../includes/demo_products.php';
 
@@ -9,16 +9,25 @@ foreach (get_demo_products() as $product) {
   if ($src === '') {
     continue;
   }
-  // Prefer local product banner files when DB path is missing on disk
-  if (!is_file($root . $src)) {
-    $category = preg_replace('/[^a-z0-9\-]+/i', '', (string) ($product['category'] ?? ''));
+
+  // Prefer tracked PNG banners over old WebP / ephemeral uploads
+  $category = preg_replace('/[^a-z0-9\-]+/i', '', (string) ($product['category'] ?? ''));
+  $title = strtolower(trim((string) ($product['title'] ?? '')));
+  $pngSlug = $category;
+  if ($category === 'ecommerce') {
+    $pngSlug = (str_contains($title, 'multi')) ? 'multivendor' : 'ecommerce';
+  }
+  $preferredPng = $pngSlug !== '' ? 'assets/images/products/' . $pngSlug . '.png' : '';
+  if ($preferredPng !== '' && is_file($root . $preferredPng)) {
+    $src = $preferredPng;
+  } elseif (!is_file($root . $src)) {
     $localCandidates = array_filter([
-      $category !== '' ? 'assets/images/products/' . $category . '.png' : '',
+      $preferredPng,
       $category !== '' ? 'assets/images/products/' . $category . '.webp' : '',
     ]);
     $resolved = '';
     foreach ($localCandidates as $candidate) {
-      if (is_file($root . $candidate)) {
+      if ($candidate !== '' && is_file($root . $candidate)) {
         $resolved = $candidate;
         break;
       }
@@ -29,12 +38,20 @@ foreach (get_demo_products() as $product) {
     $src = $resolved;
   }
 
-  $title = trim((string) ($product['title'] ?? 'Product'));
+  // Skip leftover old WebP product thumbs when a PNG banner exists
+  if (preg_match('/\.webp$/i', $src)) {
+    $pngTwin = preg_replace('/\.webp$/i', '.png', $src);
+    if (is_file($root . $pngTwin)) {
+      continue;
+    }
+  }
+
+  $label = trim((string) ($product['title'] ?? 'Product'));
   $heroSlides[] = [
     'src' => $src,
     'fallback' => '',
-    'label' => $title,
-    'alt' => $title . ' — demo software by Digital Creatorss',
+    'label' => $label,
+    'alt' => $label . ' — demo software by Digital Creatorss',
   ];
 }
 
@@ -71,7 +88,7 @@ unset($slide);
   </div>
 
   <div class="w-full max-w-7xl mx-auto z-10 desktop-only">
-    <div class="hero-unified flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 lg:gap-3 xl:gap-5">
+    <div class="hero-unified flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 lg:gap-3 xl:gap-5">
       <div class="hero-content flex flex-col items-start lg:w-[44%] xl:w-[42%] lg:pl-6 xl:pl-10 lg:pr-2">
       <span class="section-eyebrow hero-badge opacity-0 mb-2.5 sm:mb-3 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/15">
         <?php echo media_icon_img('code-2', '', 'media-icon-inline'); ?>
@@ -127,17 +144,7 @@ unset($slide);
                     <?php echo $i === 0 ? 'loading="eager"' : 'loading="lazy"'; ?>
                     decoding="async"
                   />
-                  <figcaption class="hero-slide-caption"><?php echo htmlspecialchars($slide['label']); ?></figcaption>
                 </figure>
-              <?php endforeach; ?>
-            </div>
-            <div class="hero-slider-dots" role="tablist" aria-label="Hero product slides">
-              <?php foreach ($heroSlides as $i => $slide): ?>
-                <button type="button"
-                  class="hero-slider-dot<?php echo $i === 0 ? ' is-active' : ''; ?>"
-                  data-slide-to="<?php echo $i; ?>"
-                  aria-label="<?php echo htmlspecialchars($slide['label']); ?>"
-                  aria-selected="<?php echo $i === 0 ? 'true' : 'false'; ?>"></button>
               <?php endforeach; ?>
             </div>
           </div>
@@ -171,17 +178,7 @@ unset($slide);
                   <?php echo $i === 0 ? 'loading="eager"' : 'loading="lazy"'; ?>
                   decoding="async"
                 />
-                <figcaption class="hero-slide-caption"><?php echo htmlspecialchars($slide['label']); ?></figcaption>
               </figure>
-            <?php endforeach; ?>
-          </div>
-          <div class="hero-slider-dots" role="tablist" aria-label="Hero product slides">
-            <?php foreach ($heroSlides as $i => $slide): ?>
-              <button type="button"
-                class="hero-slider-dot<?php echo $i === 0 ? ' is-active' : ''; ?>"
-                data-slide-to="<?php echo $i; ?>"
-                aria-label="<?php echo htmlspecialchars($slide['label']); ?>"
-                aria-selected="<?php echo $i === 0 ? 'true' : 'false'; ?>"></button>
             <?php endforeach; ?>
           </div>
         </div>
@@ -215,7 +212,6 @@ unset($slide);
     // Hero core-service slideshow (one-by-one)
     document.querySelectorAll('[data-hero-slider]').forEach((slider) => {
       const slides = Array.from(slider.querySelectorAll('.hero-slide'));
-      const dots = Array.from(slider.querySelectorAll('.hero-slider-dot'));
       if (slides.length < 2) return;
 
       let index = 0;
@@ -225,11 +221,6 @@ unset($slide);
       const show = (next) => {
         index = (next + slides.length) % slides.length;
         slides.forEach((slide, i) => slide.classList.toggle('is-active', i === index));
-        dots.forEach((dot, i) => {
-          const active = i === index;
-          dot.classList.toggle('is-active', active);
-          dot.setAttribute('aria-selected', active ? 'true' : 'false');
-        });
       };
 
       const start = () => {
@@ -240,14 +231,6 @@ unset($slide);
         if (timer) window.clearInterval(timer);
         timer = null;
       };
-
-      dots.forEach((dot) => {
-        dot.addEventListener('click', () => {
-          const to = Number(dot.getAttribute('data-slide-to') || 0);
-          show(to);
-          start();
-        });
-      });
 
       slider.addEventListener('mouseenter', stop);
       slider.addEventListener('mouseleave', start);

@@ -409,7 +409,18 @@ body.home-page #main-nav:not(.scrolled) #mobile-menu-btn {
 }
 
 .industries-header {
-  margin-bottom: clamp(1.5rem, 2.5vw, 2rem);
+  margin-bottom: clamp(0.75rem, 1.5vw, 1.15rem);
+}
+
+.industries-header .section-title {
+  line-height: 1.2;
+  font-size: clamp(1.35rem, 2.5vw, 1.75rem);
+}
+
+.industries-header .section-desc {
+  max-width: 32rem;
+  font-size: 0.875rem;
+  line-height: 1.45;
 }
 
 .industry-bar-grid {
@@ -470,10 +481,6 @@ body.home-page #main-nav:not(.scrolled) #mobile-menu-btn {
   line-height: 1.4;
   font-weight: 300;
   color: var(--color-text-secondary);
-}
-
-.industries-header .section-desc {
-  max-width: 36rem;
 }
 
 .section-marquee {
@@ -1772,10 +1779,10 @@ a.footer-contact-card:hover {
   background: linear-gradient(to bottom, transparent, rgba(248, 249, 250, 0.85));
 }
 
-/* Top-level slider shell only — padding lives here, not on inner image divs */
+/* Top-level slider shell — old framed layout; image fills the frame */
 .hero-slider-shell {
   box-sizing: border-box;
-  padding: 0.7rem 2px 1.35rem;
+  padding: 0.35rem 2px 0.35rem;
   margin: 0;
   overflow: visible;
 }
@@ -1806,7 +1813,6 @@ a.footer-contact-card:hover {
 .hero-slider-track {
   position: relative;
   width: 100%;
-  aspect-ratio: 16 / 10;
   background: #ffffff;
   border-radius: 0.75rem;
   overflow: hidden;
@@ -1823,12 +1829,12 @@ a.footer-contact-card:hover {
   transform: translateX(12px);
   transition: opacity 0.3s ease, transform 0.3s ease;
   pointer-events: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: block;
 }
 
 .hero-slide.is-active {
+  position: relative;
+  inset: auto;
   opacity: 1;
   transform: translateX(0);
   pointer-events: auto;
@@ -1838,13 +1844,19 @@ a.footer-contact-card:hover {
 .hero-slide-img {
   display: block;
   width: 100%;
-  height: 100%;
-  object-fit: contain;
+  height: auto;
+  object-fit: scale-down;
   object-position: center;
   background: #ffffff;
   border-radius: 0;
   margin: 0;
   padding: 0;
+}
+
+.hero-slide-caption,
+.hero-slider-dots,
+.hero-slider-dot {
+  display: none !important;
 }
 
 .hero-slide-caption {
@@ -2010,7 +2022,7 @@ a.footer-contact-card:hover {
   }
 }
 
-/* Desktop: side-by-side, pull illustration into image whitespace */
+/* Desktop: side-by-side, image fills slider frame */
 @media (min-width: 1024px) {
   #hero {
     padding-top: 4.5rem;
@@ -2022,8 +2034,9 @@ a.footer-contact-card:hover {
   }
 
   .hero-unified .hero-visual {
-    margin-top: -1.55rem;
-    margin-bottom: -1.1rem;
+    margin-top: 0;
+    margin-bottom: 0;
+    align-self: center;
   }
 
   .hero-visual-frame {
@@ -2048,15 +2061,16 @@ a.footer-contact-card:hover {
   }
 
   .hero-unified .hero-visual {
-    margin-top: -2.05rem;
-    margin-bottom: -1.35rem;
+    margin-top: 0;
+    margin-bottom: 0;
+    align-self: center;
   }
 }
 
-/* Services ? expertise section (compact) */
+/* Services — compact homepage expertise grid */
 .services-section {
-  padding-top: clamp(1rem, 2vw, 1.75rem);
-  padding-bottom: clamp(1.75rem, 3.5vw, 2.75rem);
+  padding-top: clamp(0.75rem, 1.5vw, 1.25rem);
+  padding-bottom: clamp(1.25rem, 2.5vw, 2rem);
 }
 
 .services-section-tint {
@@ -2070,24 +2084,25 @@ a.footer-contact-card:hover {
 
 @media (max-width: 767px) {
   .services-section {
-    padding-top: 1rem;
-    padding-bottom: 1.5rem;
+    padding-top: 0.75rem;
+    padding-bottom: 1.25rem;
   }
 }
 
 .services-header {
-  margin-bottom: clamp(1rem, 2vw, 1.5rem);
+  margin-bottom: clamp(0.75rem, 1.5vw, 1.15rem);
 }
 
 .services-header .section-title {
   line-height: 1.2;
   color: #0f172a;
-  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-size: clamp(1.35rem, 2.5vw, 1.75rem);
 }
 
 .services-header .section-desc {
-  max-width: 34rem;
-  font-size: 0.9rem;
+  max-width: 32rem;
+  font-size: 0.875rem;
+  line-height: 1.45;
 }
 
 .services-stat-row {
@@ -2117,12 +2132,12 @@ a.footer-contact-card:hover {
 .service-expertise-card {
   position: relative;
   padding: 0;
-  border-radius: 1rem;
+  border-radius: 0.875rem;
   background: #ffffff;
   border: 1px solid #cbd5e1;
   box-shadow:
     0 1px 2px rgba(15, 23, 42, 0.04),
-    0 10px 28px -20px rgba(15, 23, 42, 0.28);
+    0 8px 20px -16px rgba(15, 23, 42, 0.22);
   overflow: hidden;
   transition:
     border-color 0.25s ease,
@@ -2131,7 +2146,7 @@ a.footer-contact-card:hover {
 }
 
 .service-expertise-card-inner {
-  padding: 0.9rem 1rem 0.85rem;
+  padding: 0.65rem 0.75rem 0.7rem;
 }
 
 .service-expertise-card::before {
@@ -2149,8 +2164,8 @@ a.footer-contact-card:hover {
 
 .service-expertise-card:hover {
   border-color: rgba(253, 126, 20, 0.4);
-  box-shadow: 0 12px 28px -16px rgba(15, 23, 42, 0.25);
-  transform: translateY(-2px);
+  box-shadow: 0 10px 22px -14px rgba(15, 23, 42, 0.22);
+  transform: translateY(-1px);
 }
 
 .service-expertise-card:hover::before {
@@ -2158,130 +2173,54 @@ a.footer-contact-card:hover {
   width: 4px;
 }
 
-.service-expertise-card-featured {
-  border-color: #94a3b8;
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 55%, #eff6ff 100%);
-}
-
-.service-expertise-card-featured::before {
-  opacity: 1;
-  width: 4px;
-}
-
-.service-expertise-featured-layout {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 0.55rem;
-  padding: 0.55rem;
-  align-items: stretch;
-}
-
-@media (min-width: 900px) {
-  .service-expertise-featured-layout {
-    grid-template-columns: 1.2fr 0.8fr;
-    gap: 0.65rem;
-    padding: 0.65rem;
-    min-height: 0;
-  }
-
-  .service-expertise-card-featured .service-expertise-card-inner {
-    padding: 0.55rem 0.5rem 0.45rem 0.65rem;
-  }
-}
-
-.service-expertise-featured-media {
-  position: relative;
-  width: 100%;
-  max-width: 18rem;
-  margin-inline: auto;
-  border-radius: 0.75rem;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  overflow: hidden;
-  box-shadow: 0 4px 14px -8px rgba(15, 23, 42, 0.2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.2rem;
-}
-
-@media (min-width: 900px) {
-  .service-expertise-featured-media {
-    max-width: 15.5rem;
-    height: auto;
-    min-height: 0;
-    aspect-ratio: auto;
-    align-self: center;
-  }
-}
-
-.service-expertise-featured-media img {
-  width: 100%;
-  height: auto;
-  max-height: 9.5rem;
-  object-fit: contain;
-  object-position: center;
-  display: block;
-  transition: transform 0.5s ease;
-}
-
-@media (min-width: 900px) {
-  .service-expertise-featured-media img {
-    position: static;
-    inset: auto;
-    max-height: 10.5rem;
-  }
-}
-
-.service-expertise-card-featured:hover .service-expertise-featured-media img {
-  transform: scale(1.015);
-}
-
 .service-expertise-thumb {
   width: 100%;
   aspect-ratio: auto;
-  border-radius: 0.65rem;
+  border-radius: 0.5rem;
   overflow: hidden;
   background: #ffffff;
   border: 1px solid #e2e8f0;
-  box-shadow: 0 2px 10px -6px rgba(15, 23, 42, 0.18);
+  box-shadow: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0.15rem;
+  padding: 0.1rem;
+  max-height: 4.75rem;
 }
 
 .service-expertise-thumb img {
   width: 100%;
-  height: auto;
-  max-height: 7.25rem;
-  object-fit: contain;
+  height: 100%;
+  max-height: 4.5rem;
+  object-fit: scale-down;
   object-position: center;
   display: block;
-  transition: transform 0.45s ease;
+  transition: transform 0.35s ease;
 }
 
 .service-expertise-card:hover .service-expertise-thumb img {
-  transform: scale(1.015);
+  transform: scale(1.02);
 }
 
 .service-expertise-metric {
   display: inline-flex;
   align-items: center;
-  font-size: 0.6875rem;
+  font-size: 0.625rem;
   font-weight: 600;
-  padding: 0.25rem 0.75rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-primary);
+  padding: 0.15rem 0.5rem;
   border-radius: 9999px;
-  background: #f1f5f9;
-  border: 1px solid #e2e8f0;
-  color: var(--color-text-secondary);
-  transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+  background: rgba(253, 126, 20, 0.08);
+  border: 1px solid rgba(253, 126, 20, 0.18);
 }
 
-.service-expertise-card:hover .service-expertise-metric {
-  border-color: rgba(253, 126, 20, 0.3);
-  background: rgba(253, 126, 20, 0.08);
-  color: var(--color-primary);
+.service-expertise-link {
+  border-top: 1px solid #e8eef5;
+  padding-top: 0.55rem;
+  width: 100%;
+  margin-top: 0.1rem;
 }
 
 .services-highlight-pill {
@@ -2296,17 +2235,6 @@ a.footer-contact-card:hover {
   border: 1px solid rgba(253, 126, 20, 0.22);
   color: var(--color-text-secondary);
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
-}
-
-.service-expertise-link {
-  border-top: 1px solid #e8eef5;
-  padding-top: 0.95rem;
-  width: 100%;
-  margin-top: 0.15rem;
-}
-
-.service-expertise-card-featured .service-expertise-link {
-  border-top-color: rgba(253, 126, 20, 0.12);
 }
 
 /* Why Partner With Us */

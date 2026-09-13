@@ -70,7 +70,6 @@ function fallback_projects(): array
         ['id' => 1, 'title' => 'DFOHO — Highway Food App', 'category' => 'webapp', 'category_label' => 'Web Development', 'description' => 'A highway food discovery and ordering platform with maps, pre-orders, table booking, and rewards.', 'link' => 'https://www.dfoho.com', 'image' => 'assets/images/Dfoho.webp', 'metric' => 'Highway-First UX', 'metric_desc' => 'Food ordering on the go', 'stack_json' => '["React Native","Node.js","MongoDB"]'],
         ['id' => 2, 'title' => 'Social Impact Hub', 'category' => 'nonprofit', 'category_label' => 'Non-Profit Initiative', 'description' => 'A platform connecting volunteers with community initiatives using accessible web standards.', 'link' => 'https://www.sdftrust.org', 'image' => 'assets/images/sdf.webp', 'metric' => '12K+ Volunteers', 'metric_desc' => 'Connected globally', 'stack_json' => '["React","TailwindCSS","Node.js"]'],
         ['id' => 3, 'title' => 'Tyre Marketplace', 'category' => 'ecommerce', 'category_label' => 'E-Commerce System', 'description' => 'A high-performance marketplace with administration, shopping, and inventory workflows.', 'link' => 'https://www.autodeal4u.in', 'image' => 'assets/images/tyre1.webp', 'metric' => 'Wholesale Ready', 'metric_desc' => 'Inventory and order management', 'stack_json' => '["Laravel","TailwindCSS","PostgreSQL"]'],
-        ['id' => 4, 'title' => 'Attendance Portal', 'category' => 'webapp', 'category_label' => 'Web Application', 'description' => 'A cloud portal for attendance tracking, dashboards, and operational shift logging.', 'link' => 'https://www.hrntechsolutions.com/attendance-system', 'image' => 'assets/images/attend.webp', 'metric' => '40K+ Daily Logins', 'metric_desc' => 'Active operations tracking', 'stack_json' => '["Vue.js","Express.js","MongoDB"]'],
         ['id' => 5, 'title' => 'AIRA BRCS Legal Advisors', 'category' => 'webapp', 'category_label' => 'Web Application', 'description' => 'A corporate law portal with practitioner profiles and consultation bookings.', 'link' => 'https://hrntechsolutions.com/AIRA/', 'image' => 'assets/images/aira.webp', 'metric' => '1500+ Matters', 'metric_desc' => 'Successfully litigated', 'stack_json' => '["PHP","TailwindCSS","JavaScript"]'],
     ];
 }
@@ -315,6 +314,17 @@ function get_projects(bool $activeOnly = true): array
     } catch (Throwable $e) {
         $rows = fallback_projects();
     }
+
+    $root = dirname(__DIR__) . '/';
+    $rows = array_values(array_filter($rows, static function (array $row) use ($root): bool {
+        $title = strtolower((string) ($row['title'] ?? ''));
+        $image = (string) ($row['image'] ?? '');
+        // Drop Smart Attendance / Attendance Portal entries
+        if (str_contains($title, 'attendance') || str_contains($image, 'attend.')) {
+            return false;
+        }
+        return true;
+    }));
 
     foreach ($rows as &$row) {
         $row['stack'] = !empty($row['stack_json']) ? json_decode($row['stack_json'], true) : [];
