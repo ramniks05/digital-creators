@@ -54,6 +54,22 @@ function admin_whatsapp_outbound_preview(array $row): string
     return 'Outbound message';
 }
 
+/** @return list<string> */
+function admin_whatsapp_template_body_params_from_post(): array
+{
+    $raw = $_POST['template_body_params'] ?? [];
+    if (!is_array($raw)) {
+        return [];
+    }
+
+    return array_map(static fn ($v) => trim((string) $v), array_values($raw));
+}
+
+function admin_whatsapp_send_template(string $to, string $tpl, string $lang): array
+{
+    return whatsapp_send_template_message($to, $tpl, $lang, [], admin_whatsapp_template_body_params_from_post());
+}
+
 function admin_whatsapp_chat_timeline(PDO $pdo, string $waId): array
 {
     $waId = whatsapp_resolve_chat_wa_id($pdo, $waId);
@@ -78,17 +94,21 @@ function admin_whatsapp_chat_timeline(PDO $pdo, string $waId): array
 
     [$outSql, $outParams] = whatsapp_wa_id_in_clause('recipient_wa_id', $variants);
     $out = $pdo->prepare(
-        "SELECT payload_json, template_name, message_type, delivery_status, created_at, updated_at
+        "SELECT payload_json, template_name, message_type, delivery_status, last_error_message, created_at, updated_at
          FROM whatsapp_outbound_messages WHERE {$outSql} ORDER BY id ASC"
     );
     $out->execute($outParams);
     foreach ($out->fetchAll() as $row) {
+        $meta = (string) ($row['delivery_status'] ?: 'sent');
+        if ($meta === 'failed' && !empty($row['last_error_message'])) {
+            $meta .= ' — ' . admin_whatsapp_excerpt((string) $row['last_error_message'], 100);
+        }
         $items[] = [
             'dir' => 'out',
             'time' => strtotime($row['updated_at'] ?: $row['created_at']),
             'label' => $row['updated_at'] ?: $row['created_at'],
             'body' => admin_whatsapp_outbound_preview($row),
-            'meta' => $row['delivery_status'] ?: 'sent',
+            'meta' => $meta,
         ];
     }
 
@@ -127,7 +147,7 @@ if ($tablesReady && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $lang = whatsapp_default_template_language();
         }
         $redirect = 'whatsapp.php?view=chat&wa_id=' . rawurlencode($to);
-        $result = whatsapp_send_template_message($to, $tpl, $lang);
+        $result = admin_whatsapp_send_template($to, $tpl, $lang);
         flash_set($result['ok'] ? 'success' : 'error', $result['ok'] ? 'Template sent.' : ($result['error'] ?? 'Send failed.'));
     } elseif ($action === 'compose_template') {
         $to = whatsapp_normalize_recipient((string) ($_POST['to'] ?? ''));
@@ -139,7 +159,7 @@ if ($tablesReady && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $tpl = preg_replace('/[^a-z0-9_]/i', '', (string) ($_POST['template_name'] ?? whatsapp_default_template_name()));
         $lang = preg_replace('/[^a-z0-9_]/i', '', (string) ($_POST['language_code'] ?? whatsapp_default_template_language()));
         $redirect = 'whatsapp.php?view=chat&wa_id=' . rawurlencode($to);
-        $result = whatsapp_send_template_message($to, $tpl, $lang);
+        $result = admin_whatsapp_send_template($to, $tpl, $lang);
         flash_set($result['ok'] ? 'success' : 'error', $result['ok'] ? 'Template sent.' : ($result['error'] ?? 'Send failed.'));
     } elseif ($action === 'send_image') {
         $to = whatsapp_normalize_recipient((string) ($_POST['to'] ?? ''));
@@ -255,18 +275,17 @@ if ($tablesReady && $view === 'chat' && $chatWaId !== '') {
           <form method="post" class="inline"><?= csrf_field() ?><input type="hidden" name="action" value="create_lead"><input type="hidden" name="to" value="<?= e($chatWaId) ?>"><button type="submit" class="btn btn-sm btn-secondary">Create lead</button></form>
         </div>
       </div>
-      <?php if (!$hasInbound): ?>
-      <div class="alert alert-error" style="margin:12px 20px 0">
-        You sent a <strong>template</strong> to start the chat. Meta only allows free-text replies for <strong>24 hours after the customer messages you</strong>.
-        Ask them to reply on WhatsApp, or send another template below. Use full numbers with country code (e.g. <code>918851613806</code>).
+      <?php if (!$hasInbound || !$windowOpen || !empty($tplFetchError)): ?>
+      <div class="wa-chat-notices" style="margin:12px 20px 0;padding:12px 14px;border-radius:8px;background:#fef2f2;border:1px solid #fecaca;font-size:0.85rem;color:#991b1b">
+        <?php if (!$hasInbound): ?>
+        <p style="margin:0 0 8px"><strong>Template-only mode.</strong> Free-text replies unlock for 24h after the customer messages your business number on WhatsApp.</p>
+        <?php elseif (!$windowOpen): ?>
+        <p style="margin:0 0 8px"><strong>24-hour window closed.</strong> Send an approved template or wait for the customer to message again.</p>
+        <?php endif; ?>
+        <?php if (!empty($tplFetchError)): ?>
+        <p style="margin:0"><?= e($tplFetchError) ?></p>
+        <?php endif; ?>
       </div>
-      <?php elseif (!$windowOpen): ?>
-      <div class="alert alert-error" style="margin:12px 20px 0">
-        The 24-hour window is closed. Send an approved template or wait for the customer to message again.
-      </div>
-      <?php endif; ?>
-      <?php if (!empty($tplFetchError)): ?>
-      <div class="alert alert-error" style="margin:12px 20px 0"><?= e($tplFetchError) ?></div>
       <?php endif; ?>
       <div class="wa-quick-replies actions" style="padding:0 20px 12px">
         <?php foreach ($quickReplies as $qr): ?>
@@ -300,17 +319,21 @@ if ($tablesReady && $view === 'chat' && $chatWaId !== '') {
           <label>Send template</label>
           <?php if ($tplList): ?>
           <label>Approved templates (from Meta API)</label>
-          <select name="template_name" class="wa-tpl-select">
+          <select name="template_name" class="wa-tpl-select" id="wa-chat-tpl-select">
             <?php foreach ($tplList as $t): ?>
               <?php
               $sel = $t['name'] === $defaultTpl && $t['language'] === $defaultLang;
+              $bodyCount = (int) ($t['body_param_count'] ?? 0);
+              $preview = (string) ($t['body_preview'] ?? '');
               ?>
-              <option value="<?= e($t['name']) ?>" data-lang="<?= e($t['language']) ?>" <?= $sel ? 'selected' : '' ?>>
-                <?= e($t['name']) ?> (<?= e($t['language']) ?>) — <?= e($t['category']) ?>
+              <option value="<?= e($t['name']) ?>" data-lang="<?= e($t['language']) ?>" data-body-params="<?= $bodyCount ?>" data-body-preview="<?= e(admin_whatsapp_excerpt($preview, 200)) ?>" <?= $sel ? 'selected' : '' ?>>
+                <?= e($t['name']) ?> (<?= e($t['language']) ?>) — <?= e($t['category']) ?><?= $bodyCount ? " · {$bodyCount} var(s)" : '' ?>
               </option>
             <?php endforeach; ?>
           </select>
           <input type="hidden" name="language_code" id="wa-lang-code" value="<?= e($defaultLang) ?>">
+          <div id="wa-chat-tpl-params" class="form-grid" style="margin-top:8px"></div>
+          <p class="muted" id="wa-chat-tpl-preview" style="margin:4px 0 0"></p>
           <?php else: ?>
           <div class="form-row">
             <div><input type="text" name="template_name" value="<?= e($defaultTpl) ?>" placeholder="hello_world"></div>
@@ -340,13 +363,8 @@ if ($tablesReady && $view === 'chat' && $chatWaId !== '') {
       </div>
     </div>
     <?php if ($tplList): ?>
-    <script>
-      document.querySelector('.wa-tpl-select')?.addEventListener('change', function () {
-        const opt = this.selectedOptions[0];
-        const lang = document.getElementById('wa-lang-code');
-        if (lang && opt) lang.value = opt.dataset.lang || '';
-      });
-    </script>
+    <script src="assets/whatsapp-admin.js"></script>
+    <script>window.dcWaInitTemplateForm('wa-chat-tpl-select', 'wa-lang-code', 'wa-chat-tpl-params', 'wa-chat-tpl-preview');</script>
     <?php endif; ?>
     <?php
     admin_footer();
@@ -426,13 +444,19 @@ if ($tablesReady) {
     <label>Approved template</label>
     <select name="template_name" class="wa-tpl-select" id="compose-tpl-select">
       <?php foreach ($composeTplList as $t): ?>
-        <?php $sel = $t['name'] === $composeDefaultTpl && $t['language'] === $composeDefaultLang; ?>
-        <option value="<?= e($t['name']) ?>" data-lang="<?= e($t['language']) ?>" <?= $sel ? 'selected' : '' ?>>
-          <?= e($t['name']) ?> (<?= e($t['language']) ?>) — <?= e($t['category']) ?>
+        <?php
+        $sel = $t['name'] === $composeDefaultTpl && $t['language'] === $composeDefaultLang;
+        $bodyCount = (int) ($t['body_param_count'] ?? 0);
+        $preview = (string) ($t['body_preview'] ?? '');
+        ?>
+        <option value="<?= e($t['name']) ?>" data-lang="<?= e($t['language']) ?>" data-body-params="<?= $bodyCount ?>" data-body-preview="<?= e(admin_whatsapp_excerpt($preview, 200)) ?>" <?= $sel ? 'selected' : '' ?>>
+          <?= e($t['name']) ?> (<?= e($t['language']) ?>) — <?= e($t['category']) ?><?= $bodyCount ? " · {$bodyCount} var(s)" : '' ?>
         </option>
       <?php endforeach; ?>
     </select>
     <input type="hidden" name="language_code" id="compose-lang-code" value="<?= e($composeDefaultLang) ?>">
+    <div id="compose-tpl-params" class="form-grid" style="margin-top:8px"></div>
+    <p class="muted" id="compose-tpl-preview" style="margin:4px 0 0"></p>
     <?php else: ?>
     <div class="form-row">
       <div>
@@ -448,13 +472,8 @@ if ($tablesReady) {
     <button class="btn" type="submit">Send template</button>
   </form>
   <?php if ($composeTplList): ?>
-  <script>
-    document.getElementById('compose-tpl-select')?.addEventListener('change', function () {
-      const lang = document.getElementById('compose-lang-code');
-      const opt = this.selectedOptions[0];
-      if (lang && opt) lang.value = opt.dataset.lang || '';
-    });
-  </script>
+  <script src="assets/whatsapp-admin.js"></script>
+  <script>window.dcWaInitTemplateForm('compose-tpl-select', 'compose-lang-code', 'compose-tpl-params', 'compose-tpl-preview');</script>
   <?php endif; ?>
 <?php elseif ($view === 'templates'):
     $tplResult = whatsapp_fetch_message_templates_result();

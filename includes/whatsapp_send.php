@@ -207,18 +207,119 @@ function whatsapp_send_text_message(string $to, string $text, bool $allowOutside
 }
 
 /**
+ * @param mixed $components Meta template definition components[] from message_templates API.
+ */
+function whatsapp_template_body_param_count($components): int
+{
+    if (!is_array($components)) {
+        return 0;
+    }
+    $max = 0;
+    foreach ($components as $comp) {
+        if (!is_array($comp) || strtoupper((string) ($comp['type'] ?? '')) !== 'BODY') {
+            continue;
+        }
+        $text = (string) ($comp['text'] ?? '');
+        if (preg_match_all('/\{\{(\d+)\}\}/', $text, $matches)) {
+            foreach ($matches[1] as $num) {
+                $max = max($max, (int) $num);
+            }
+        }
+    }
+
+    return $max;
+}
+
+function whatsapp_template_body_preview_text($components): string
+{
+    if (!is_array($components)) {
+        return '';
+    }
+    foreach ($components as $comp) {
+        if (is_array($comp) && strtoupper((string) ($comp['type'] ?? '')) === 'BODY') {
+            return (string) ($comp['text'] ?? '');
+        }
+    }
+
+    return '';
+}
+
+/**
+ * @param list<string> $bodyValues Indexed 0..n-1 for {{1}}..{{n}}
+ * @return list<array<string, mixed>>
+ */
+function whatsapp_build_template_send_components($components, array $bodyValues): array
+{
+    $needed = whatsapp_template_body_param_count($components);
+    if ($needed === 0) {
+        return [];
+    }
+    $parameters = [];
+    for ($i = 0; $i < $needed; $i++) {
+        $text = trim((string) ($bodyValues[$i] ?? ''));
+        if ($text === '') {
+            return [];
+        }
+        $parameters[] = ['type' => 'text', 'text' => $text];
+    }
+
+    return [['type' => 'body', 'parameters' => $parameters]];
+}
+
+/**
+ * @return array<string, mixed>|null
+ */
+function whatsapp_lookup_template_definition(string $templateName, string $languageCode): ?array
+{
+    $templateName = preg_replace('/[^a-z0-9_]/i', '', $templateName);
+    $languageCode = preg_replace('/[^a-z0-9_]/i', '', $languageCode);
+    if ($templateName === '') {
+        return null;
+    }
+    $result = whatsapp_fetch_message_templates_result();
+    $pool = $result['templates'] ?? [];
+    foreach ($pool as $tpl) {
+        if ($tpl['name'] === $templateName && $tpl['language'] === $languageCode) {
+            return $tpl;
+        }
+    }
+    foreach ($pool as $tpl) {
+        if ($tpl['name'] === $templateName) {
+            return $tpl;
+        }
+    }
+
+    return null;
+}
+
+/**
+ * @param list<string> $bodyParamValues
  * @return array{ok:bool, wa_message_id?:string, outbound_id?:int, error?:string}
  */
 function whatsapp_send_template_message(
     string $to,
     string $templateName,
     string $languageCode = 'en_US',
-    array $components = []
+    array $components = [],
+    array $bodyParamValues = []
 ): array {
     $to = whatsapp_normalize_recipient($to);
     $templateName = preg_replace('/[^a-z0-9_]/i', '', $templateName);
     if ($to === '' || $templateName === '') {
         return ['ok' => false, 'error' => 'Recipient and template name are required.'];
+    }
+
+    $def = whatsapp_lookup_template_definition($templateName, $languageCode);
+    $needed = $def !== null ? (int) ($def['body_param_count'] ?? whatsapp_template_body_param_count($def['components'] ?? [])) : 0;
+
+    if ($components === [] && $needed > 0) {
+        $components = whatsapp_build_template_send_components($def['components'] ?? [], $bodyParamValues);
+        if ($components === []) {
+            return [
+                'ok' => false,
+                'error' => "Template \"{$templateName}\" requires {$needed} variable(s) (e.g. customer name). Fill in the fields below the template dropdown.",
+            ];
+        }
     }
 
     $template = [
@@ -239,6 +340,7 @@ function whatsapp_send_template_message(
     $outId = whatsapp_record_outbound_message($to, 'template', null, null, $templateName, [
         'template' => $templateName,
         'language' => $languageCode,
+        'body_params' => $bodyParamValues,
     ]);
     $result = whatsapp_send_graph($payload);
     if (!$result['ok']) {
@@ -444,9 +546,14 @@ function whatsapp_preferred_template(array $approved): ?array
  */
 function whatsapp_fetch_message_templates_result(): array
 {
+    static $cached = null;
+    if (is_array($cached)) {
+        return $cached;
+    }
+
     $waba = whatsapp_resolve_waba_id();
     if ($waba === '') {
-        return [
+        return $cached = [
             'ok' => false,
             'templates' => [],
             'approved' => [],
@@ -476,11 +583,15 @@ function whatsapp_fetch_message_templates_result(): array
             if ($name === '') {
                 continue;
             }
+            $components = is_array($tpl['components'] ?? null) ? $tpl['components'] : [];
             $out[] = [
                 'name' => $name,
                 'language' => (string) ($tpl['language'] ?? 'en_US'),
                 'status' => (string) ($tpl['status'] ?? ''),
                 'category' => (string) ($tpl['category'] ?? ''),
+                'components' => $components,
+                'body_param_count' => whatsapp_template_body_param_count($components),
+                'body_preview' => whatsapp_template_body_preview_text($components),
             ];
         }
     };
@@ -492,7 +603,7 @@ function whatsapp_fetch_message_templates_result(): array
         } else {
             $res = whatsapp_graph_get($waba . '/message_templates', [
                 'limit' => 100,
-                'fields' => 'name,status,language,category',
+                'fields' => 'name,status,language,category,components',
             ]);
         }
         if (!$res['ok']) {
@@ -540,7 +651,9 @@ function whatsapp_fetch_message_templates_result(): array
         ];
     }
 
-    return ['ok' => true, 'templates' => $out, 'approved' => $approved, 'waba_id' => $waba];
+    $cached = ['ok' => true, 'templates' => $out, 'approved' => $approved, 'waba_id' => $waba];
+
+    return $cached;
 }
 
 /**
