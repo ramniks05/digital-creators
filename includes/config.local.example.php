@@ -18,4 +18,12 @@ return [
         'user' => 'u922228303_digitalcreator',
         'pass' => 'REPLACE_WITH_DATABASE_PASSWORD',
     ],
+    // Meta WhatsApp Cloud API (keep secrets out of Git — use private config or server env vars).
+    'whatsapp' => [
+        'access_token' => getenv('WHATSAPP_ACCESS_TOKEN') ?: '',
+        'phone_number_id' => getenv('WHATSAPP_PHONE_NUMBER_ID') ?: '',
+        'webhook_verify_token' => getenv('WHATSAPP_WEBHOOK_VERIFY_TOKEN') ?: '',
+        'app_secret' => getenv('META_APP_SECRET') ?: '',
+        'api_version' => getenv('WHATSAPP_API_VERSION') ?: 'v21.0',
+    ],
 ];

@@ -17,6 +17,13 @@ $config = [
         'upload_dir' => __DIR__ . '/../assets/uploads',
         'upload_url' => 'assets/uploads',
     ],
+    'whatsapp' => [
+        'access_token' => getenv('WHATSAPP_ACCESS_TOKEN') ?: '',
+        'phone_number_id' => getenv('WHATSAPP_PHONE_NUMBER_ID') ?: '',
+        'webhook_verify_token' => getenv('WHATSAPP_WEBHOOK_VERIFY_TOKEN') ?: '',
+        'app_secret' => getenv('META_APP_SECRET') ?: '',
+        'api_version' => getenv('WHATSAPP_API_VERSION') ?: 'v21.0',
+    ],
 ];
 
 /**
