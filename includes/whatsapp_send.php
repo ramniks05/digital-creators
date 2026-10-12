@@ -68,26 +68,100 @@ function whatsapp_send_graph(array $payload): array
 
 function whatsapp_normalize_recipient(string $to): string
 {
-    return preg_replace('/\D+/', '', $to) ?: $to;
+    $digits = preg_replace('/\D+/', '', $to) ?: $to;
+    // India mobiles are often entered as 10 digits; Meta expects country code (91…).
+    if (is_string($digits) && strlen($digits) === 10 && preg_match('/^[6-9]\d{9}$/', $digits)) {
+        return '91' . $digits;
+    }
+
+    return $digits;
+}
+
+/**
+ * Same person may appear as 8851613806 vs 918851613806 in DB — match both.
+ *
+ * @return list<string>
+ */
+function whatsapp_wa_id_variants(string $waId): array
+{
+    $digits = whatsapp_normalize_recipient($waId);
+    if ($digits === '') {
+        return [];
+    }
+    $variants = [$digits];
+    if (str_starts_with($digits, '91') && strlen($digits) === 12) {
+        $variants[] = substr($digits, 2);
+    }
+
+    return array_values(array_unique($variants));
+}
+
+function whatsapp_wa_id_in_clause(string $column, array $variants): array
+{
+    $variants = array_values(array_filter($variants, static fn ($v) => $v !== ''));
+    if ($variants === []) {
+        return ['0=1', []];
+    }
+    $placeholders = implode(',', array_fill(0, count($variants), '?'));
+
+    return ["{$column} IN ({$placeholders})", $variants];
+}
+
+/** Prefer Meta-style id when we have inbound history. */
+function whatsapp_resolve_chat_wa_id(PDO $pdo, string $waId): string
+{
+    $variants = whatsapp_wa_id_variants($waId);
+    if ($variants === []) {
+        return whatsapp_normalize_recipient($waId);
+    }
+    [$inSql, $inParams] = whatsapp_wa_id_in_clause('from_wa_id', $variants);
+    $stmt = $pdo->prepare(
+        "SELECT from_wa_id FROM whatsapp_inbound_messages WHERE {$inSql}
+         ORDER BY COALESCE(wa_timestamp, UNIX_TIMESTAMP(created_at)) DESC LIMIT 1"
+    );
+    $stmt->execute($inParams);
+    $found = $stmt->fetchColumn();
+    if ($found !== false && $found !== '') {
+        return (string) $found;
+    }
+
+    return whatsapp_normalize_recipient($waId);
 }
 
 /** Customer service window: free-form reply within 24h of last inbound from this user. */
 function whatsapp_service_window_open(PDO $pdo, string $recipientWaId): bool
 {
-    $recipientWaId = whatsapp_normalize_recipient($recipientWaId);
+    $variants = whatsapp_wa_id_variants($recipientWaId);
+    if ($variants === []) {
+        return false;
+    }
+    [$inSql, $inParams] = whatsapp_wa_id_in_clause('from_wa_id', $variants);
     $stmt = $pdo->prepare(
-        'SELECT COALESCE(wa_timestamp, UNIX_TIMESTAMP(created_at)) AS ts
+        "SELECT COALESCE(wa_timestamp, UNIX_TIMESTAMP(created_at)) AS ts
          FROM whatsapp_inbound_messages
-         WHERE from_wa_id = ?
-         ORDER BY id DESC LIMIT 1'
+         WHERE {$inSql}
+         ORDER BY id DESC LIMIT 1"
     );
-    $stmt->execute([$recipientWaId]);
+    $stmt->execute($inParams);
     $ts = $stmt->fetchColumn();
     if ($ts === false) {
         return false;
     }
 
     return (time() - (int) $ts) < 86400;
+}
+
+function whatsapp_chat_has_inbound(PDO $pdo, string $waId): bool
+{
+    $variants = whatsapp_wa_id_variants($waId);
+    if ($variants === []) {
+        return false;
+    }
+    [$inSql, $inParams] = whatsapp_wa_id_in_clause('from_wa_id', $variants);
+    $stmt = $pdo->prepare("SELECT 1 FROM whatsapp_inbound_messages WHERE {$inSql} LIMIT 1");
+    $stmt->execute($inParams);
+
+    return (bool) $stmt->fetchColumn();
 }
 
 /**

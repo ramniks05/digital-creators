@@ -56,14 +56,16 @@ function admin_whatsapp_outbound_preview(array $row): string
 
 function admin_whatsapp_chat_timeline(PDO $pdo, string $waId): array
 {
-    $waId = whatsapp_normalize_recipient($waId);
+    $waId = whatsapp_resolve_chat_wa_id($pdo, $waId);
+    $variants = whatsapp_wa_id_variants($waId);
     $items = [];
 
+    [$inSql, $inParams] = whatsapp_wa_id_in_clause('from_wa_id', $variants);
     $in = $pdo->prepare(
-        'SELECT id, body_text, message_type, media_json, wa_timestamp, created_at
-         FROM whatsapp_inbound_messages WHERE from_wa_id = ? ORDER BY id ASC'
+        "SELECT id, body_text, message_type, media_json, wa_timestamp, created_at
+         FROM whatsapp_inbound_messages WHERE {$inSql} ORDER BY id ASC"
     );
-    $in->execute([$waId]);
+    $in->execute($inParams);
     foreach ($in->fetchAll() as $row) {
         $items[] = [
             'dir' => 'in',
@@ -74,11 +76,12 @@ function admin_whatsapp_chat_timeline(PDO $pdo, string $waId): array
         ];
     }
 
+    [$outSql, $outParams] = whatsapp_wa_id_in_clause('recipient_wa_id', $variants);
     $out = $pdo->prepare(
-        'SELECT payload_json, template_name, message_type, delivery_status, created_at, updated_at
-         FROM whatsapp_outbound_messages WHERE recipient_wa_id = ? ORDER BY id ASC'
+        "SELECT payload_json, template_name, message_type, delivery_status, created_at, updated_at
+         FROM whatsapp_outbound_messages WHERE {$outSql} ORDER BY id ASC"
     );
-    $out->execute([$waId]);
+    $out->execute($outParams);
     foreach ($out->fetchAll() as $row) {
         $items[] = [
             'dir' => 'out',
@@ -185,17 +188,21 @@ $chatWaId = isset($_GET['wa_id']) ? whatsapp_normalize_recipient((string) $_GET[
 
 if ($tablesReady && $view === 'chat' && $chatWaId !== '') {
     try {
+        $chatWaId = whatsapp_resolve_chat_wa_id($pdo, $chatWaId);
+        $chatVariants = whatsapp_wa_id_variants($chatWaId);
+        [$nameInSql, $nameInParams] = whatsapp_wa_id_in_clause($pdo, 'from_wa_id', $chatVariants);
         $nameStmt = $pdo->prepare(
-            'SELECT contact_name FROM whatsapp_inbound_messages WHERE from_wa_id = ? AND contact_name IS NOT NULL AND contact_name != \'\' ORDER BY id DESC LIMIT 1'
+            "SELECT contact_name FROM whatsapp_inbound_messages WHERE {$nameInSql}
+             AND contact_name IS NOT NULL AND contact_name != '' ORDER BY id DESC LIMIT 1"
         );
-        $nameStmt->execute([$chatWaId]);
+        $nameStmt->execute($nameInParams);
         $contactName = (string) ($nameStmt->fetchColumn() ?: '');
         $windowOpen = whatsapp_service_window_open($pdo, $chatWaId);
         $timeline = admin_whatsapp_chat_timeline($pdo, $chatWaId);
         $lastInbound = $pdo->prepare(
-            'SELECT wa_message_id FROM whatsapp_inbound_messages WHERE from_wa_id = ? ORDER BY id DESC LIMIT 1'
+            "SELECT wa_message_id FROM whatsapp_inbound_messages WHERE {$nameInSql} ORDER BY id DESC LIMIT 1"
         );
-        $lastInbound->execute([$chatWaId]);
+        $lastInbound->execute($nameInParams);
         $lastWamid = (string) ($lastInbound->fetchColumn() ?: '');
     } catch (Throwable $e) {
         error_log('WhatsApp admin chat load failed: ' . $e->getMessage());
@@ -226,6 +233,7 @@ if ($tablesReady && $view === 'chat' && $chatWaId !== '') {
         error_log('WhatsApp template list skipped: ' . $e->getMessage());
         $tplList = [];
     }
+    $hasInbound = whatsapp_chat_has_inbound($pdo, $chatWaId);
 
     admin_header($contactName ?: $chatWaId, 'whatsapp.php');
     ?>
@@ -243,6 +251,16 @@ if ($tablesReady && $view === 'chat' && $chatWaId !== '') {
           <form method="post" class="inline"><?= csrf_field() ?><input type="hidden" name="action" value="create_lead"><input type="hidden" name="to" value="<?= e($chatWaId) ?>"><button type="submit" class="btn btn-sm btn-secondary">Create lead</button></form>
         </div>
       </div>
+      <?php if (!$hasInbound): ?>
+      <div class="alert alert-error" style="margin:12px 20px 0">
+        You sent a <strong>template</strong> to start the chat. Meta only allows free-text replies for <strong>24 hours after the customer messages you</strong>.
+        Ask them to reply on WhatsApp, or send another template below. Use full numbers with country code (e.g. <code>918851613806</code>).
+      </div>
+      <?php elseif (!$windowOpen): ?>
+      <div class="alert alert-error" style="margin:12px 20px 0">
+        The 24-hour window is closed. Send an approved template or wait for the customer to message again.
+      </div>
+      <?php endif; ?>
       <div class="wa-quick-replies actions" style="padding:0 20px 12px">
         <?php foreach ($quickReplies as $qr): ?>
         <form method="post" class="inline"><?= csrf_field() ?><input type="hidden" name="action" value="quick_reply"><input type="hidden" name="to" value="<?= e($chatWaId) ?>"><input type="hidden" name="text" value="<?= e($qr) ?>"><button type="submit" class="btn btn-sm btn-secondary" <?= $windowOpen ? '' : 'disabled' ?>><?= e(admin_whatsapp_excerpt($qr, 42)) ?></button></form>
@@ -385,7 +403,8 @@ if ($tablesReady) {
     <?= csrf_field() ?>
     <input type="hidden" name="action" value="compose_template">
     <label>Customer WhatsApp number (country code, digits only)</label>
-    <input type="text" name="to" placeholder="919876543210" required pattern="[0-9]{8,15}">
+    <input type="text" name="to" placeholder="918851613806" required pattern="[0-9]{11,15}" title="Country code + number, e.g. 91 then 10-digit mobile">
+    <p class="muted" style="margin:0">Include country code (India: <code>91</code> + 10 digits). Example: <code>918851613806</code>, not only <code>8851613806</code>.</p>
     <label class="checkbox-row">
       <input type="checkbox" name="consent" value="1" required>
       <span>I confirm this person consented to WhatsApp messages from Digital Creatorss.</span>
