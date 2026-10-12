@@ -1,5 +1,5 @@
 /**
- * Dynamic body-variable fields for WhatsApp template send forms.
+ * Dynamic variable fields for WhatsApp template send forms (Meta Cloud API).
  */
 window.dcWaInitTemplateForm = function (selectId, langInputId, paramsContainerId, previewId) {
   const select = document.getElementById(selectId);
@@ -10,6 +10,16 @@ window.dcWaInitTemplateForm = function (selectId, langInputId, paramsContainerId
     return;
   }
 
+  function parseSlots(opt) {
+    try {
+      const raw = opt.dataset.paramSlots || '[]';
+      const slots = JSON.parse(raw);
+      return Array.isArray(slots) ? slots : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
   function render() {
     const opt = select.selectedOptions[0];
     if (!opt) {
@@ -18,21 +28,21 @@ window.dcWaInitTemplateForm = function (selectId, langInputId, paramsContainerId
     if (langInput) {
       langInput.value = opt.dataset.lang || '';
     }
-    const count = parseInt(opt.dataset.bodyParams || '0', 10) || 0;
+    const slots = parseSlots(opt);
     paramsBox.innerHTML = '';
-    if (count > 0) {
+    if (slots.length > 0) {
       paramsBox.style.display = 'block';
-      for (let i = 0; i < count; i++) {
+      slots.forEach(function (slot, idx) {
         const label = document.createElement('label');
-        label.textContent = 'Variable {{' + (i + 1) + '}}';
+        label.textContent = slot.label || 'Variable ' + (idx + 1);
         const input = document.createElement('input');
         input.type = 'text';
         input.name = 'template_body_params[]';
         input.required = true;
-        input.placeholder = i === 0 ? 'Customer name' : 'Value for {{' + (i + 1) + '}}';
+        input.placeholder = idx === 0 ? 'e.g. customer name' : 'Required value';
         paramsBox.appendChild(label);
         paramsBox.appendChild(input);
-      }
+      });
     } else {
       paramsBox.style.display = 'none';
     }

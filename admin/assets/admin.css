@@ -187,3 +187,23 @@ th { color: #64748b; font-size: 0.75rem; text-transform: uppercase; letter-spaci
 .checkbox-row { display: flex; align-items: flex-start; gap: 8px; font-size: 0.85rem; line-height: 1.4; }
 .wa-quick-replies { display: flex; flex-wrap: wrap; gap: 8px; }
 .wa-tpl-select { width: 100%; max-width: 480px; padding: 8px 10px; border-radius: 8px; border: 1px solid #e2e8f0; }
+.wa-delivery-banner {
+  margin: 0 20px;
+  padding: 10px 12px;
+  font-size: 0.82rem;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  color: #1e3a5f;
+  line-height: 1.45;
+}
+.wa-status-sent { color: #1d4ed8; font-weight: 600; }
+.wa-status-delivered { color: #15803d; font-weight: 600; }
+.wa-status-read { color: #15803d; font-weight: 600; }
+.wa-status-failed { color: #b91c1c; font-weight: 600; }
+.wa-bubble-failed {
+  background: #fee2e2 !important;
+  border-color: #fecaca !important;
+}
+.wa-chat-compose .form-grid { margin-bottom: 0; }
+.wa-chat-compose label { font-size: 0.8rem; font-weight: 600; color: #475569; }

@@ -67,7 +67,32 @@ function admin_whatsapp_template_body_params_from_post(): array
 
 function admin_whatsapp_send_template(string $to, string $tpl, string $lang): array
 {
-    return whatsapp_send_template_message($to, $tpl, $lang, [], admin_whatsapp_template_body_params_from_post());
+    return whatsapp_send_template_message($to, $tpl, whatsapp_normalize_template_language($lang), [], admin_whatsapp_template_body_params_from_post());
+}
+
+function admin_whatsapp_last_outbound(PDO $pdo, string $waId): ?array
+{
+    $variants = whatsapp_wa_id_variants($waId);
+    [$sql, $params] = whatsapp_wa_id_in_clause('recipient_wa_id', $variants);
+    $stmt = $pdo->prepare(
+        "SELECT template_name, message_type, delivery_status, last_error_message, wa_message_id, updated_at
+         FROM whatsapp_outbound_messages WHERE {$sql} ORDER BY id DESC LIMIT 1"
+    );
+    $stmt->execute($params);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    return $row ?: null;
+}
+
+function admin_whatsapp_delivery_status_label(string $status): string
+{
+    return match (strtolower($status)) {
+        'delivered' => 'Delivered to phone',
+        'read' => 'Read by customer',
+        'sent' => 'Accepted by Meta (delivery pending)',
+        'failed' => 'Failed to deliver',
+        default => ucfirst($status ?: 'unknown'),
+    };
 }
 
 function admin_whatsapp_chat_timeline(PDO $pdo, string $waId): array
@@ -103,12 +128,14 @@ function admin_whatsapp_chat_timeline(PDO $pdo, string $waId): array
         if ($meta === 'failed' && !empty($row['last_error_message'])) {
             $meta .= ' — ' . admin_whatsapp_excerpt((string) $row['last_error_message'], 100);
         }
+        $status = strtolower((string) ($row['delivery_status'] ?? 'sent'));
         $items[] = [
             'dir' => 'out',
             'time' => strtotime($row['updated_at'] ?: $row['created_at']),
             'label' => $row['updated_at'] ?: $row['created_at'],
             'body' => admin_whatsapp_outbound_preview($row),
             'meta' => $meta,
+            'status' => $status,
         ];
     }
 
@@ -148,7 +175,12 @@ if ($tablesReady && $_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $redirect = 'whatsapp.php?view=chat&wa_id=' . rawurlencode($to);
         $result = admin_whatsapp_send_template($to, $tpl, $lang);
-        flash_set($result['ok'] ? 'success' : 'error', $result['ok'] ? 'Template sent.' : ($result['error'] ?? 'Send failed.'));
+        flash_set(
+            $result['ok'] ? 'success' : 'error',
+            $result['ok']
+                ? 'Meta accepted the template. Refresh in a few seconds to see delivered/failed (webhook). If the phone never gets it, check Meta test numbers & WhatsApp on 917903152429.'
+                : ($result['error'] ?? 'Send failed.')
+        );
     } elseif ($action === 'compose_template') {
         $to = whatsapp_normalize_recipient((string) ($_POST['to'] ?? ''));
         if (empty($_POST['consent'])) {
@@ -160,7 +192,12 @@ if ($tablesReady && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $lang = preg_replace('/[^a-z0-9_]/i', '', (string) ($_POST['language_code'] ?? whatsapp_default_template_language()));
         $redirect = 'whatsapp.php?view=chat&wa_id=' . rawurlencode($to);
         $result = admin_whatsapp_send_template($to, $tpl, $lang);
-        flash_set($result['ok'] ? 'success' : 'error', $result['ok'] ? 'Template sent.' : ($result['error'] ?? 'Send failed.'));
+        flash_set(
+            $result['ok'] ? 'success' : 'error',
+            $result['ok']
+                ? 'Meta accepted the template. Delivery status updates when Meta webhook fires.'
+                : ($result['error'] ?? 'Send failed.')
+        );
     } elseif ($action === 'send_image') {
         $to = whatsapp_normalize_recipient((string) ($_POST['to'] ?? ''));
         $redirect = 'whatsapp.php?view=chat&wa_id=' . rawurlencode($to);
@@ -258,6 +295,7 @@ if ($tablesReady && $view === 'chat' && $chatWaId !== '') {
     $defaultTpl = $preferredTpl['name'] ?? whatsapp_default_template_name();
     $defaultLang = $preferredTpl['language'] ?? whatsapp_default_template_language();
     $hasInbound = whatsapp_chat_has_inbound($pdo, $chatWaId);
+    $lastOutbound = admin_whatsapp_last_outbound($pdo, $chatWaId);
 
     admin_header($contactName ?: $chatWaId, 'whatsapp.php');
     ?>
@@ -275,29 +313,48 @@ if ($tablesReady && $view === 'chat' && $chatWaId !== '') {
           <form method="post" class="inline"><?= csrf_field() ?><input type="hidden" name="action" value="create_lead"><input type="hidden" name="to" value="<?= e($chatWaId) ?>"><button type="submit" class="btn btn-sm btn-secondary">Create lead</button></form>
         </div>
       </div>
-      <?php if (!$hasInbound || !$windowOpen || !empty($tplFetchError)): ?>
+      <?php if ($lastOutbound): ?>
+      <div class="wa-delivery-banner">
+        <strong>Latest send:</strong>
+        <?= e($lastOutbound['template_name'] ?: $lastOutbound['message_type']) ?>
+        · <span class="wa-status-<?= e(preg_replace('/[^a-z]/', '', strtolower((string) $lastOutbound['delivery_status']))) ?>"><?= e(admin_whatsapp_delivery_status_label((string) $lastOutbound['delivery_status'])) ?></span>
+        · <?= e($lastOutbound['updated_at']) ?>
+        <?php if (strtolower((string) $lastOutbound['delivery_status']) === 'failed' && !empty($lastOutbound['last_error_message'])): ?>
+          <br><span class="muted"><?= e($lastOutbound['last_error_message']) ?></span>
+        <?php elseif (in_array(strtolower((string) $lastOutbound['delivery_status']), ['sent', 'delivered'], true)): ?>
+          <br><span class="muted">“Sent” means Meta accepted the message. If the phone did not receive it, confirm the number uses WhatsApp, and in Dev mode add it under Meta → WhatsApp → API Setup → test recipients.</span>
+        <?php endif; ?>
+      </div>
+      <?php endif; ?>
+      <?php if (!$hasInbound || !empty($tplFetchError)): ?>
       <div class="wa-chat-notices" style="margin:12px 20px 0;padding:12px 14px;border-radius:8px;background:#fef2f2;border:1px solid #fecaca;font-size:0.85rem;color:#991b1b">
         <?php if (!$hasInbound): ?>
         <p style="margin:0 0 8px"><strong>Template-only mode.</strong> Free-text replies unlock for 24h after the customer messages your business number on WhatsApp.</p>
-        <?php elseif (!$windowOpen): ?>
-        <p style="margin:0 0 8px"><strong>24-hour window closed.</strong> Send an approved template or wait for the customer to message again.</p>
         <?php endif; ?>
         <?php if (!empty($tplFetchError)): ?>
         <p style="margin:0"><?= e($tplFetchError) ?></p>
         <?php endif; ?>
       </div>
       <?php endif; ?>
+      <?php if ($windowOpen): ?>
       <div class="wa-quick-replies actions" style="padding:0 20px 12px">
         <?php foreach ($quickReplies as $qr): ?>
-        <form method="post" class="inline"><?= csrf_field() ?><input type="hidden" name="action" value="quick_reply"><input type="hidden" name="to" value="<?= e($chatWaId) ?>"><input type="hidden" name="text" value="<?= e($qr) ?>"><button type="submit" class="btn btn-sm btn-secondary" <?= $windowOpen ? '' : 'disabled' ?>><?= e(admin_whatsapp_excerpt($qr, 42)) ?></button></form>
+        <form method="post" class="inline"><?= csrf_field() ?><input type="hidden" name="action" value="quick_reply"><input type="hidden" name="to" value="<?= e($chatWaId) ?>"><input type="hidden" name="text" value="<?= e($qr) ?>"><button type="submit" class="btn btn-sm btn-secondary"><?= e(admin_whatsapp_excerpt($qr, 42)) ?></button></form>
         <?php endforeach; ?>
       </div>
+      <?php endif; ?>
       <div class="wa-chat-thread">
         <?php if (!$timeline): ?>
           <p class="muted">No messages yet for this number. Send a template to start.</p>
         <?php endif; ?>
         <?php foreach ($timeline as $item): ?>
-          <div class="wa-bubble wa-bubble-<?= e($item['dir']) ?>">
+          <?php
+          $bubbleClass = 'wa-bubble-' . $item['dir'];
+          if (($item['status'] ?? '') === 'failed') {
+              $bubbleClass .= ' wa-bubble-failed';
+          }
+          ?>
+          <div class="wa-bubble <?= e($bubbleClass) ?>">
             <div class="wa-bubble-body"><?= nl2br(e($item['body'])) ?></div>
             <div class="wa-bubble-meta"><?= e($item['label']) ?> · <?= e($item['meta']) ?></div>
           </div>
@@ -323,11 +380,12 @@ if ($tablesReady && $view === 'chat' && $chatWaId !== '') {
             <?php foreach ($tplList as $t): ?>
               <?php
               $sel = $t['name'] === $defaultTpl && $t['language'] === $defaultLang;
-              $bodyCount = (int) ($t['body_param_count'] ?? 0);
+              $paramCount = (int) ($t['param_count'] ?? 0);
               $preview = (string) ($t['body_preview'] ?? '');
+              $slotJson = json_encode($t['param_slots'] ?? [], JSON_UNESCAPED_UNICODE);
               ?>
-              <option value="<?= e($t['name']) ?>" data-lang="<?= e($t['language']) ?>" data-body-params="<?= $bodyCount ?>" data-body-preview="<?= e(admin_whatsapp_excerpt($preview, 200)) ?>" <?= $sel ? 'selected' : '' ?>>
-                <?= e($t['name']) ?> (<?= e($t['language']) ?>) — <?= e($t['category']) ?><?= $bodyCount ? " · {$bodyCount} var(s)" : '' ?>
+              <option value="<?= e($t['name']) ?>" data-lang="<?= e($t['language']) ?>" data-param-slots="<?= e($slotJson ?: '[]') ?>" data-body-preview="<?= e(admin_whatsapp_excerpt($preview, 200)) ?>" <?= $sel ? 'selected' : '' ?>>
+                <?= e($t['name']) ?> (<?= e($t['language']) ?>) — <?= e($t['category']) ?><?= $paramCount ? " · {$paramCount} var(s)" : '' ?>
               </option>
             <?php endforeach; ?>
           </select>
@@ -446,11 +504,12 @@ if ($tablesReady) {
       <?php foreach ($composeTplList as $t): ?>
         <?php
         $sel = $t['name'] === $composeDefaultTpl && $t['language'] === $composeDefaultLang;
-        $bodyCount = (int) ($t['body_param_count'] ?? 0);
+        $paramCount = (int) ($t['param_count'] ?? 0);
         $preview = (string) ($t['body_preview'] ?? '');
+        $slotJson = json_encode($t['param_slots'] ?? [], JSON_UNESCAPED_UNICODE);
         ?>
-        <option value="<?= e($t['name']) ?>" data-lang="<?= e($t['language']) ?>" data-body-params="<?= $bodyCount ?>" data-body-preview="<?= e(admin_whatsapp_excerpt($preview, 200)) ?>" <?= $sel ? 'selected' : '' ?>>
-          <?= e($t['name']) ?> (<?= e($t['language']) ?>) — <?= e($t['category']) ?><?= $bodyCount ? " · {$bodyCount} var(s)" : '' ?>
+        <option value="<?= e($t['name']) ?>" data-lang="<?= e($t['language']) ?>" data-param-slots="<?= e($slotJson ?: '[]') ?>" data-body-preview="<?= e(admin_whatsapp_excerpt($preview, 200)) ?>" <?= $sel ? 'selected' : '' ?>>
+          <?= e($t['name']) ?> (<?= e($t['language']) ?>) — <?= e($t['category']) ?><?= $paramCount ? " · {$paramCount} var(s)" : '' ?>
         </option>
       <?php endforeach; ?>
     </select>
