@@ -34,7 +34,7 @@ echo json_encode([
     'verify_token_length' => $verify !== '' ? strlen($verify) : 0,
     'meta_app_secret_set' => $secret !== '',
     'callback_urls' => [
-        'api' => 'https://digitalcreatorss.com/api/whatsapp-webhook',
-        'webhook' => 'https://digitalcreatorss.com/webhook/whatsapp',
+        'recommended' => 'https://digitalcreatorss.com/api/hook-wa',
+        'health' => 'https://digitalcreatorss.com/api/wa-health',
     ],
 ], JSON_PRETTY_PRINT);

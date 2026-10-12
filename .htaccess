@@ -1,11 +1,8 @@
+# Extensionless API routes (Hostinger CDN redirects *.php → extensionless; rewrite serves PHP internally).
+<IfModule mod_rewrite.c>
 RewriteEngine On
+RewriteBase /
 
-# Pretty URLs: only redirect GET/HEAD away from .php (keep POST for forms/API)
-RewriteCond %{REQUEST_METHOD} ^(GET|HEAD)$ [NC]
-RewriteCond %{THE_REQUEST} \s/+(.+)\.php[\s?] [NC]
-RewriteRule ^ /%1 [R=302,L]
-
-# Map extensionless URLs internally back to PHP files
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteCond %{REQUEST_FILENAME}\.php -f
-RewriteRule ^(.*?)/?$ $1.php [L]
+RewriteRule ^api/hook-wa/?$ api/hook-wa.php [L,QSA]
+RewriteRule ^api/wa-health/?$ api/wa-health.php [L,QSA]
+</IfModule>
