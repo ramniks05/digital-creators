@@ -15,6 +15,8 @@ function admin_header(string $title, string $active = ''): void
         'testimonials.php' => 'Testimonials',
         'leads.php' => 'Leads',
         'whatsapp.php' => 'WhatsApp',
+        'whatsapp_contacts.php' => 'WA Contacts',
+        'whatsapp_campaigns.php' => 'WA Campaigns',
         'settings.php' => 'Settings',
     ];
     ?>

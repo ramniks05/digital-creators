@@ -343,6 +343,11 @@ function whatsapp_process_inbound_messages(PDO $pdo, ?string $wabaId, ?string $p
             $timestamp,
             json_encode($message, JSON_UNESCAPED_UNICODE),
         ]);
+
+        if (is_file(__DIR__ . '/whatsapp_contacts.php')) {
+            require_once __DIR__ . '/whatsapp_contacts.php';
+            whatsapp_contact_touch_inbound($pdo, $from, $contactName);
+        }
     }
 }
 
@@ -403,6 +408,24 @@ function whatsapp_process_status_updates(PDO $pdo, ?string $wabaId, ?string $pho
             $errorDetails,
             $timestamp ?: null,
         ]);
+
+        $rank = static function (string $s): int {
+            return match (strtolower($s)) {
+                'pending' => 0,
+                'sent' => 1,
+                'delivered' => 2,
+                'read' => 3,
+                'failed' => 99,
+                default => 1,
+            };
+        };
+        $newRank = $rank($status);
+        $cur = $pdo->prepare('SELECT delivery_status FROM whatsapp_outbound_messages WHERE wa_message_id = ? LIMIT 1');
+        $cur->execute([$wamid]);
+        $curStatus = (string) ($cur->fetchColumn() ?: '');
+        if ($curStatus !== '' && $newRank !== 99 && $rank($curStatus) > $newRank) {
+            continue;
+        }
 
         $outbound = $pdo->prepare(
             'UPDATE whatsapp_outbound_messages

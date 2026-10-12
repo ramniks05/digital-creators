@@ -7,6 +7,15 @@ require_once __DIR__ . '/whatsapp_cloud.php';
 /**
  * @return array{ok:bool, wa_message_id?:string, outbound_id?:int, error?:string, http_code?:int}
  */
+function whatsapp_graph_is_transient_error(int $httpCode, string $message): bool
+{
+    if ($httpCode === 429 || ($httpCode >= 500 && $httpCode < 600)) {
+        return true;
+    }
+
+    return stripos($message, 'rate limit') !== false || stripos($message, 'temporarily unavailable') !== false;
+}
+
 function whatsapp_send_graph(array $payload): array
 {
     $cfg = whatsapp_cloud_config();
@@ -31,39 +40,52 @@ function whatsapp_send_graph(array $payload): array
         return ['ok' => false, 'error' => 'Could not encode message payload.'];
     }
 
-    $ch = curl_init($url);
-    curl_setopt_array($ch, [
-        CURLOPT_POST => true,
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_HTTPHEADER => [
-            'Authorization: Bearer ' . $token,
-            'Content-Type: application/json',
-        ],
-        CURLOPT_POSTFIELDS => $json,
-        CURLOPT_TIMEOUT => 30,
-    ]);
-    $body = curl_exec($ch);
-    $httpCode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    $curlErr = curl_error($ch);
-    curl_close($ch);
+    $lastError = ['ok' => false, 'error' => 'Send failed.', 'http_code' => 0];
+    for ($attempt = 0; $attempt < 2; $attempt++) {
+        if ($attempt > 0) {
+            usleep(750000);
+        }
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_POST => true,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HTTPHEADER => [
+                'Authorization: Bearer ' . $token,
+                'Content-Type: application/json',
+            ],
+            CURLOPT_POSTFIELDS => $json,
+            CURLOPT_TIMEOUT => 30,
+        ]);
+        $body = curl_exec($ch);
+        $httpCode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlErr = curl_error($ch);
+        curl_close($ch);
 
-    if ($body === false) {
-        return ['ok' => false, 'error' => 'Network error: ' . $curlErr, 'http_code' => $httpCode];
+        if ($body === false) {
+            $lastError = ['ok' => false, 'error' => 'Network error: ' . $curlErr, 'http_code' => $httpCode];
+            continue;
+        }
+
+        $data = json_decode($body, true);
+        if ($httpCode < 200 || $httpCode >= 300) {
+            $msg = is_array($data) ? ($data['error']['message'] ?? $body) : $body;
+            $lastError = ['ok' => false, 'error' => (string) $msg, 'http_code' => $httpCode];
+            if ($attempt === 0 && whatsapp_graph_is_transient_error($httpCode, (string) $msg)) {
+                continue;
+            }
+
+            return $lastError;
+        }
+
+        $wamid = is_array($data) ? (string) ($data['messages'][0]['id'] ?? '') : '';
+        if ($wamid === '') {
+            return ['ok' => false, 'error' => 'Send accepted but no message id in response.', 'http_code' => $httpCode];
+        }
+
+        return ['ok' => true, 'wa_message_id' => $wamid, 'http_code' => $httpCode];
     }
 
-    $data = json_decode($body, true);
-    if ($httpCode < 200 || $httpCode >= 300) {
-        $msg = is_array($data) ? ($data['error']['message'] ?? $body) : $body;
-
-        return ['ok' => false, 'error' => (string) $msg, 'http_code' => $httpCode];
-    }
-
-    $wamid = is_array($data) ? (string) ($data['messages'][0]['id'] ?? '') : '';
-    if ($wamid === '') {
-        return ['ok' => false, 'error' => 'Send accepted but no message id in response.', 'http_code' => $httpCode];
-    }
-
-    return ['ok' => true, 'wa_message_id' => $wamid, 'http_code' => $httpCode];
+    return $lastError;
 }
 
 function whatsapp_normalize_recipient(string $to): string
@@ -167,8 +189,12 @@ function whatsapp_chat_has_inbound(PDO $pdo, string $waId): bool
 /**
  * @return array{ok:bool, wa_message_id?:string, outbound_id?:int, error?:string}
  */
-function whatsapp_send_text_message(string $to, string $text, bool $allowOutsideServiceWindow = false): array
-{
+function whatsapp_send_text_message(
+    string $to,
+    string $text,
+    bool $allowOutsideServiceWindow = false,
+    ?string $replyToWaMessageId = null
+): array {
     $to = whatsapp_normalize_recipient($to);
     $text = trim($text);
     if ($to === '' || $text === '') {
@@ -189,8 +215,14 @@ function whatsapp_send_text_message(string $to, string $text, bool $allowOutside
         'type' => 'text',
         'text' => ['preview_url' => false, 'body' => $text],
     ];
+    if ($replyToWaMessageId !== null && trim($replyToWaMessageId) !== '') {
+        $payload['context'] = ['message_id' => trim($replyToWaMessageId)];
+    }
 
-    $outId = whatsapp_record_outbound_message($to, 'text', null, null, null, ['text' => $text]);
+    $outId = whatsapp_record_outbound_message($to, 'text', null, null, null, [
+        'text' => $text,
+        'reply_to' => $replyToWaMessageId,
+    ]);
     $result = whatsapp_send_graph($payload);
     if (!$result['ok']) {
         db()->prepare(
@@ -578,13 +610,17 @@ function whatsapp_graph_get_absolute(string $absoluteUrl): array
  * @param list<array{name:string,language:string,status:string,category:string}> $templates
  * @return list<array{name:string,language:string,status:string,category:string}>
  */
-function whatsapp_filter_approved_templates(array $templates): array
+function whatsapp_filter_approved_templates(array $templates, ?string $category = null): array
 {
     $approved = [];
     foreach ($templates as $tpl) {
-        if (strtoupper((string) ($tpl['status'] ?? '')) === 'APPROVED') {
-            $approved[] = $tpl;
+        if (strtoupper((string) ($tpl['status'] ?? '')) !== 'APPROVED') {
+            continue;
         }
+        if ($category !== null && strtoupper((string) ($tpl['category'] ?? '')) !== strtoupper($category)) {
+            continue;
+        }
+        $approved[] = $tpl;
     }
     usort($approved, static function ($a, $b) {
         $cmp = strcmp($a['name'], $b['name']);

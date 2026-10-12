@@ -103,17 +103,23 @@ function admin_whatsapp_chat_timeline(PDO $pdo, string $waId): array
 
     [$inSql, $inParams] = whatsapp_wa_id_in_clause('from_wa_id', $variants);
     $in = $pdo->prepare(
-        "SELECT id, body_text, message_type, media_json, wa_timestamp, created_at
+        "SELECT id, body_text, message_type, media_json, wa_timestamp, created_at, wa_message_id
          FROM whatsapp_inbound_messages WHERE {$inSql} ORDER BY id ASC"
     );
     $in->execute($inParams);
     foreach ($in->fetchAll() as $row) {
+        $body = $row['body_text'] ?: ('[' . $row['message_type'] . ' message]');
+        $media = json_decode((string) ($row['media_json'] ?? ''), true);
+        if (is_array($media) && !empty($media['id'])) {
+            $body .= ' [media: whatsapp_media.php?inbound_id=' . (int) $row['id'] . ']';
+        }
         $items[] = [
             'dir' => 'in',
             'time' => $row['wa_timestamp'] ? (int) $row['wa_timestamp'] : strtotime($row['created_at']),
             'label' => $row['created_at'],
-            'body' => $row['body_text'] ?: ('[' . $row['message_type'] . ' message]'),
+            'body' => $body,
             'meta' => $row['message_type'],
+            'inbound_wamid' => (string) ($row['wa_message_id'] ?? ''),
         ];
     }
 
@@ -161,7 +167,8 @@ if ($tablesReady && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $to = whatsapp_normalize_recipient((string) ($_POST['to'] ?? ''));
         $text = trim((string) ($_POST['text'] ?? ''));
         $redirect = 'whatsapp.php?view=chat&wa_id=' . rawurlencode($to);
-        $result = whatsapp_send_text_message($to, $text);
+        $replyTo = trim((string) ($_POST['reply_to_wamid'] ?? ''));
+        $result = whatsapp_send_text_message($to, $text, false, $replyTo !== '' ? $replyTo : null);
         flash_set($result['ok'] ? 'success' : 'error', $result['ok'] ? 'Message sent.' : ($result['error'] ?? 'Send failed.'));
     } elseif ($action === 'send_template') {
         $to = whatsapp_normalize_recipient((string) ($_POST['to'] ?? ''));
@@ -365,6 +372,9 @@ if ($tablesReady && $view === 'chat' && $chatWaId !== '') {
           <?= csrf_field() ?>
           <input type="hidden" name="action" value="send_text">
           <input type="hidden" name="to" value="<?= e($chatWaId) ?>">
+          <?php if (!empty($lastWamid)): ?>
+          <input type="hidden" name="reply_to_wamid" value="<?= e($lastWamid) ?>">
+          <?php endif; ?>
           <label>Reply (text)</label>
           <textarea name="text" rows="3" placeholder="<?= $windowOpen ? 'Type your reply…' : 'Service window closed — use template below' ?>" <?= $windowOpen ? '' : 'disabled' ?> required></textarea>
           <button class="btn" type="submit" <?= $windowOpen ? '' : 'disabled' ?>>Send reply</button>
@@ -456,25 +466,32 @@ if ($tablesReady) {
     <a class="btn btn-sm <?= $view === 'status' ? '' : 'btn-secondary' ?>" href="whatsapp.php?view=status">Delivery log</a>
     <a class="btn btn-sm <?= $view === 'outbound' ? '' : 'btn-secondary' ?>" href="whatsapp.php?view=outbound">Outbound</a>
     <a class="btn btn-sm <?= $view === 'setup' ? '' : 'btn-secondary' ?>" href="whatsapp.php?view=setup">Setup</a>
+    <a class="btn btn-sm btn-secondary" href="whatsapp_campaigns.php">Campaigns</a>
+    <a class="btn btn-sm btn-secondary" href="whatsapp_contacts.php">Contacts</a>
   </div>
 
 <?php if (!$tablesReady): ?>
   <div class="alert alert-error">
     WhatsApp tables are missing. Run: <code>php sql/migrate_whatsapp_webhook.php</code>
   </div>
-<?php elseif ($view === 'setup'): ?>
-  <p class="muted" style="margin-top:0">Secrets live in private <code>digital_creators_config.php</code> (not shown here).</p>
+<?php elseif ($view === 'setup'):
+    require_once dirname(__DIR__) . '/includes/whatsapp_config_status.php';
+    $conn = whatsapp_connection_status();
+    ?>
+  <p class="muted" style="margin-top:0">Secrets live in private <code>digital_creators_config.php</code> (masked below).</p>
   <table>
     <tbody>
-      <tr><th style="width:220px">Access token</th><td><?= $tokenOk ? 'Configured' : 'Missing' ?></td></tr>
-      <tr><th>Phone number ID</th><td><?= e($config['phone_number_id'] ?: '—') ?></td></tr>
-      <tr><th>Webhook verify token</th><td><?= $verifyOk ? 'Configured' : 'Missing' ?></td></tr>
-      <tr><th>App secret</th><td><?= $secretOk ? 'Configured' : 'Missing' ?></td></tr>
+      <tr><th style="width:220px">Graph API version</th><td><?= e($conn['api_version']) ?></td></tr>
+      <tr><th>Access token</th><td><?= $conn['access_token_set'] ? e($conn['access_token_masked']) : 'Missing' ?></td></tr>
+      <tr><th>Phone number ID</th><td><?= e($conn['phone_number_id']) ?></td></tr>
+      <tr><th>WABA ID (resolved)</th><td><?= e($conn['waba_id_resolved']) ?></td></tr>
+      <tr><th>Webhook verify token</th><td><?= $conn['webhook_verify_token_set'] ? e($conn['webhook_verify_token_masked']) : 'Missing' ?></td></tr>
+      <tr><th>App secret</th><td><?= $conn['app_secret_set'] ? e($conn['app_secret_masked']) : 'Missing' ?></td></tr>
+      <tr><th>Graph API ping</th><td><?= $conn['graph_api_ping_ok'] ? 'OK' : e($conn['graph_api_ping_error'] ?: 'Failed') ?></td></tr>
       <tr><th>Default template</th><td><?= e(whatsapp_default_template_name()) ?> (<?= e(whatsapp_default_template_language()) ?>)</td></tr>
-      <tr><th>WABA ID (resolved)</th><td><?= e(whatsapp_resolve_waba_id() ?: '—') ?> <span class="muted">from phone_number_id or config</span></td></tr>
-      <tr><th>Legal</th><td><a href="../privacy.php" target="_blank" rel="noopener">Privacy</a> · <a href="../terms.php" target="_blank" rel="noopener">Terms</a></td></tr>
-      <tr><th>Webhook URL</th><td><code>https://digitalcreatorss.com/api/hook-wa</code></td></tr>
-      <tr><th>Health</th><td><a href="/api/wa-health" target="_blank" rel="noopener">/api/wa-health</a></td></tr>
+      <tr><th>Webhook URL</th><td><code><?= e($conn['webhook_url']) ?></code></td></tr>
+      <tr><th>Health</th><td><a href="<?= e($conn['health_url']) ?>" target="_blank" rel="noopener"><?= e($conn['health_url']) ?></a></td></tr>
+      <tr><th>Docs</th><td><a href="../docs/WHATSAPP_INTEGRATION.md" target="_blank" rel="noopener">WHATSAPP_INTEGRATION.md</a></td></tr>
     </tbody>
   </table>
 <?php elseif ($view === 'compose'):
