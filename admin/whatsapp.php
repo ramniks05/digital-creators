@@ -190,7 +190,7 @@ if ($tablesReady && $view === 'chat' && $chatWaId !== '') {
     try {
         $chatWaId = whatsapp_resolve_chat_wa_id($pdo, $chatWaId);
         $chatVariants = whatsapp_wa_id_variants($chatWaId);
-        [$nameInSql, $nameInParams] = whatsapp_wa_id_in_clause($pdo, 'from_wa_id', $chatVariants);
+        [$nameInSql, $nameInParams] = whatsapp_wa_id_in_clause('from_wa_id', $chatVariants);
         $nameStmt = $pdo->prepare(
             "SELECT contact_name FROM whatsapp_inbound_messages WHERE {$nameInSql}
              AND contact_name IS NOT NULL AND contact_name != '' ORDER BY id DESC LIMIT 1"
@@ -213,8 +213,6 @@ if ($tablesReady && $view === 'chat' && $chatWaId !== '') {
         admin_footer();
         exit;
     }
-    $defaultTpl = whatsapp_default_template_name();
-    $defaultLang = whatsapp_default_template_language();
     if (!empty($lastWamid)) {
         try {
             whatsapp_mark_message_read($lastWamid);
@@ -228,11 +226,17 @@ if ($tablesReady && $view === 'chat' && $chatWaId !== '') {
         'We received your message and will get back to you within one business day.',
     ];
     try {
-        $tplList = whatsapp_fetch_message_templates();
+        $tplResult = whatsapp_fetch_message_templates_result();
+        $tplList = $tplResult['approved'];
+        $tplFetchError = (string) ($tplResult['error'] ?? '');
     } catch (Throwable $e) {
         error_log('WhatsApp template list skipped: ' . $e->getMessage());
         $tplList = [];
+        $tplFetchError = $e->getMessage();
     }
+    $preferredTpl = whatsapp_preferred_template($tplList);
+    $defaultTpl = $preferredTpl['name'] ?? whatsapp_default_template_name();
+    $defaultLang = $preferredTpl['language'] ?? whatsapp_default_template_language();
     $hasInbound = whatsapp_chat_has_inbound($pdo, $chatWaId);
 
     admin_header($contactName ?: $chatWaId, 'whatsapp.php');
@@ -260,6 +264,9 @@ if ($tablesReady && $view === 'chat' && $chatWaId !== '') {
       <div class="alert alert-error" style="margin:12px 20px 0">
         The 24-hour window is closed. Send an approved template or wait for the customer to message again.
       </div>
+      <?php endif; ?>
+      <?php if (!empty($tplFetchError)): ?>
+      <div class="alert alert-error" style="margin:12px 20px 0"><?= e($tplFetchError) ?></div>
       <?php endif; ?>
       <div class="wa-quick-replies actions" style="padding:0 20px 12px">
         <?php foreach ($quickReplies as $qr): ?>
@@ -292,14 +299,15 @@ if ($tablesReady && $view === 'chat' && $chatWaId !== '') {
           <input type="hidden" name="to" value="<?= e($chatWaId) ?>">
           <label>Send template</label>
           <?php if ($tplList): ?>
-          <label>Approved templates (from Meta)</label>
+          <label>Approved templates (from Meta API)</label>
           <select name="template_name" class="wa-tpl-select">
             <?php foreach ($tplList as $t): ?>
-              <?php if (($t['status'] ?? '') === 'APPROVED' || $t['status'] === ''): ?>
-              <option value="<?= e($t['name']) ?>" data-lang="<?= e($t['language']) ?>" <?= $t['name'] === $defaultTpl ? 'selected' : '' ?>>
+              <?php
+              $sel = $t['name'] === $defaultTpl && $t['language'] === $defaultLang;
+              ?>
+              <option value="<?= e($t['name']) ?>" data-lang="<?= e($t['language']) ?>" <?= $sel ? 'selected' : '' ?>>
                 <?= e($t['name']) ?> (<?= e($t['language']) ?>) — <?= e($t['category']) ?>
               </option>
-              <?php endif; ?>
             <?php endforeach; ?>
           </select>
           <input type="hidden" name="language_code" id="wa-lang-code" value="<?= e($defaultLang) ?>">
@@ -387,17 +395,22 @@ if ($tablesReady) {
       <tr><th>Webhook verify token</th><td><?= $verifyOk ? 'Configured' : 'Missing' ?></td></tr>
       <tr><th>App secret</th><td><?= $secretOk ? 'Configured' : 'Missing' ?></td></tr>
       <tr><th>Default template</th><td><?= e(whatsapp_default_template_name()) ?> (<?= e(whatsapp_default_template_language()) ?>)</td></tr>
-      <tr><th>WABA ID</th><td><?= e(whatsapp_waba_id() ?: '— (optional — set whatsapp.waba_id in private config for template dropdown)') ?></td></tr>
+      <tr><th>WABA ID (resolved)</th><td><?= e(whatsapp_resolve_waba_id() ?: '—') ?> <span class="muted">from phone_number_id or config</span></td></tr>
       <tr><th>Legal</th><td><a href="../privacy.php" target="_blank" rel="noopener">Privacy</a> · <a href="../terms.php" target="_blank" rel="noopener">Terms</a></td></tr>
       <tr><th>Webhook URL</th><td><code>https://digitalcreatorss.com/api/hook-wa</code></td></tr>
       <tr><th>Health</th><td><a href="/api/wa-health" target="_blank" rel="noopener">/api/wa-health</a></td></tr>
     </tbody>
   </table>
 <?php elseif ($view === 'compose'):
-    $composeTplList = whatsapp_fetch_message_templates();
-    $composeDefaultTpl = whatsapp_default_template_name();
-    $composeDefaultLang = whatsapp_default_template_language();
+    $composeTplResult = whatsapp_fetch_message_templates_result();
+    $composeTplList = $composeTplResult['approved'];
+    $composePreferred = whatsapp_preferred_template($composeTplList);
+    $composeDefaultTpl = $composePreferred['name'] ?? whatsapp_default_template_name();
+    $composeDefaultLang = $composePreferred['language'] ?? whatsapp_default_template_language();
     ?>
+  <?php if (!empty($composeTplResult['error'])): ?>
+    <div class="alert alert-error"><?= e($composeTplResult['error']) ?></div>
+  <?php endif; ?>
   <p class="muted">Start a conversation with an approved <strong>template</strong>. Only message users who expect contact from you. See <a href="../terms.php" target="_blank" rel="noopener">Terms</a> and <a href="../privacy.php" target="_blank" rel="noopener">Privacy</a>.</p>
   <form method="post" class="form-grid" style="max-width:480px">
     <?= csrf_field() ?>
@@ -413,11 +426,10 @@ if ($tablesReady) {
     <label>Approved template</label>
     <select name="template_name" class="wa-tpl-select" id="compose-tpl-select">
       <?php foreach ($composeTplList as $t): ?>
-        <?php if (($t['status'] ?? '') === 'APPROVED' || ($t['status'] ?? '') === ''): ?>
-        <option value="<?= e($t['name']) ?>" data-lang="<?= e($t['language']) ?>" <?= $t['name'] === $composeDefaultTpl ? 'selected' : '' ?>>
-          <?= e($t['name']) ?> (<?= e($t['language']) ?>)
+        <?php $sel = $t['name'] === $composeDefaultTpl && $t['language'] === $composeDefaultLang; ?>
+        <option value="<?= e($t['name']) ?>" data-lang="<?= e($t['language']) ?>" <?= $sel ? 'selected' : '' ?>>
+          <?= e($t['name']) ?> (<?= e($t['language']) ?>) — <?= e($t['category']) ?>
         </option>
-        <?php endif; ?>
       <?php endforeach; ?>
     </select>
     <input type="hidden" name="language_code" id="compose-lang-code" value="<?= e($composeDefaultLang) ?>">
@@ -447,9 +459,10 @@ if ($tablesReady) {
 <?php elseif ($view === 'templates'):
     $tplResult = whatsapp_fetch_message_templates_result();
     $tplList = $tplResult['templates'];
+    $tplApproved = $tplResult['approved'];
     $tplWaba = (string) ($tplResult['waba_id'] ?? whatsapp_waba_id());
     ?>
-  <p class="muted">Loaded from Meta Graph API using WABA ID <code><?= e($tplWaba ?: '—') ?></code> and your access token.</p>
+  <p class="muted">Meta Graph API · WABA <code><?= e($tplWaba ?: '—') ?></code> · <?= count($tplApproved) ?> approved / <?= count($tplList) ?> total</p>
   <?php if (!empty($tplResult['error'])): ?>
     <div class="alert alert-error"><?= e($tplResult['error']) ?></div>
   <?php endif; ?>

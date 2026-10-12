@@ -271,13 +271,45 @@ function whatsapp_default_template_language(): string
     return preg_replace('/[^a-z0-9_]/i', '', $lang) ?: 'en_US';
 }
 
-function whatsapp_waba_id(): string
+/**
+ * WABA linked to your configured phone number (best source for template list).
+ */
+function whatsapp_waba_id_from_phone_number(): string
+{
+    $phoneId = trim(whatsapp_cloud_config()['phone_number_id']);
+    if ($phoneId === '') {
+        return '';
+    }
+    $res = whatsapp_graph_get($phoneId, ['fields' => 'whatsapp_business_account']);
+    if (!$res['ok'] || !is_array($res['data']['whatsapp_business_account'] ?? null)) {
+        return '';
+    }
+    $id = trim((string) ($res['data']['whatsapp_business_account']['id'] ?? ''));
+
+    return preg_replace('/\D+/', '', $id) ?: $id;
+}
+
+/**
+ * Resolve WhatsApp Business Account ID for Graph API (templates, etc.).
+ */
+function whatsapp_resolve_waba_id(): string
 {
     $cfg = require __DIR__ . '/config.php';
-    $id = trim((string) ($cfg['whatsapp']['waba_id'] ?? ''));
-    if ($id !== '') {
-        return $id;
+    $configured = trim((string) ($cfg['whatsapp']['waba_id'] ?? ''));
+    $fromPhone = whatsapp_waba_id_from_phone_number();
+
+    if ($fromPhone !== '') {
+        if ($configured !== '' && $configured !== $fromPhone) {
+            error_log('WhatsApp waba_id config (' . $configured . ') differs from phone-linked WABA (' . $fromPhone . '); using phone-linked WABA for API.');
+        }
+
+        return $fromPhone;
     }
+
+    if ($configured !== '') {
+        return $configured;
+    }
+
     try {
         $row = db()->query(
             'SELECT waba_id FROM whatsapp_inbound_messages WHERE waba_id IS NOT NULL AND waba_id != \'\' ORDER BY id DESC LIMIT 1'
@@ -287,6 +319,11 @@ function whatsapp_waba_id(): string
     } catch (Throwable $e) {
         return '';
     }
+}
+
+function whatsapp_waba_id(): string
+{
+    return whatsapp_resolve_waba_id();
 }
 
 /**
@@ -322,21 +359,98 @@ function whatsapp_graph_get(string $path, array $query = []): array
 }
 
 /**
+ * @return array{ok:bool, data?:mixed, error?:string}
+ */
+function whatsapp_graph_get_absolute(string $absoluteUrl): array
+{
+    $token = trim(whatsapp_cloud_config()['access_token']);
+    if ($token === '' || !function_exists('curl_init')) {
+        return ['ok' => false, 'error' => 'Access token or cURL not available.'];
+    }
+    $ch = curl_init($absoluteUrl);
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_HTTPHEADER => ['Authorization: Bearer ' . $token],
+        CURLOPT_TIMEOUT => 30,
+    ]);
+    $body = curl_exec($ch);
+    $code = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+    $data = is_string($body) ? json_decode($body, true) : null;
+    if ($code < 200 || $code >= 300) {
+        return ['ok' => false, 'error' => is_array($data) ? (string) ($data['error']['message'] ?? $body) : (string) $body];
+    }
+
+    return ['ok' => true, 'data' => $data];
+}
+
+/**
+ * @param list<array{name:string,language:string,status:string,category:string}> $templates
+ * @return list<array{name:string,language:string,status:string,category:string}>
+ */
+function whatsapp_filter_approved_templates(array $templates): array
+{
+    $approved = [];
+    foreach ($templates as $tpl) {
+        if (strtoupper((string) ($tpl['status'] ?? '')) === 'APPROVED') {
+            $approved[] = $tpl;
+        }
+    }
+    usort($approved, static function ($a, $b) {
+        $cmp = strcmp($a['name'], $b['name']);
+        if ($cmp !== 0) {
+            return $cmp;
+        }
+
+        return strcmp($a['language'], $b['language']);
+    });
+
+    return $approved;
+}
+
+/**
+ * @param list<array{name:string,language:string,status:string,category:string}> $approved
+ * @return array{name:string,language:string}|null
+ */
+function whatsapp_preferred_template(array $approved): ?array
+{
+    if ($approved === []) {
+        return null;
+    }
+    $wantName = whatsapp_default_template_name();
+    $wantLang = whatsapp_default_template_language();
+    foreach ($approved as $t) {
+        if ($t['name'] === $wantName && $t['language'] === $wantLang) {
+            return ['name' => $t['name'], 'language' => $t['language']];
+        }
+    }
+    foreach ($approved as $t) {
+        if ($t['name'] === $wantName) {
+            return ['name' => $t['name'], 'language' => $t['language']];
+        }
+    }
+
+    return ['name' => $approved[0]['name'], 'language' => $approved[0]['language']];
+}
+
+/**
  * @return array{
  *   ok:bool,
  *   templates:list<array{name:string,language:string,status:string,category:string}>,
+ *   approved:list<array{name:string,language:string,status:string,category:string}>,
  *   error?:string,
  *   waba_id?:string
  * }
  */
 function whatsapp_fetch_message_templates_result(): array
 {
-    $waba = whatsapp_waba_id();
+    $waba = whatsapp_resolve_waba_id();
     if ($waba === '') {
         return [
             'ok' => false,
             'templates' => [],
-            'error' => 'WhatsApp Business Account ID (waba_id) is not set. Add whatsapp.waba_id in private digital_creators_config.php (Meta → WhatsApp → API Setup → WhatsApp Business Account ID).',
+            'approved' => [],
+            'error' => 'Could not resolve WhatsApp Business Account ID. Set whatsapp.waba_id or a valid phone_number_id in private config (Meta → WhatsApp → API Setup).',
             'waba_id' => '',
         ];
     }
@@ -346,71 +460,99 @@ function whatsapp_fetch_message_templates_result(): array
         return [
             'ok' => false,
             'templates' => [],
+            'approved' => [],
             'error' => 'Access token is missing in config.',
             'waba_id' => $waba,
         ];
     }
 
-    $res = whatsapp_graph_get($waba . '/message_templates', ['limit' => 100]);
-    if (!$res['ok']) {
-        $msg = (string) ($res['error'] ?? 'Graph API request failed.');
-        if (stripos($msg, 'permission') !== false || stripos($msg, '(#200)') !== false) {
-            $msg .= ' Generate a System User token with whatsapp_business_management (and whatsapp_business_messaging).';
-        }
-        if (stripos($msg, 'does not exist') !== false || stripos($msg, '(#100)') !== false) {
-            $msg .= ' Check that waba_id matches the WABA linked to this app and phone number.';
-        }
-
-        return ['ok' => false, 'templates' => [], 'error' => $msg, 'waba_id' => $waba];
-    }
-
-    if (!is_array($res['data']['data'] ?? null)) {
-        return [
-            'ok' => false,
-            'templates' => [],
-            'error' => 'Meta returned no template list (empty data). Create templates in WhatsApp Manager → Message templates.',
-            'waba_id' => $waba,
-        ];
-    }
-
     $out = [];
-    foreach ($res['data']['data'] as $tpl) {
-        if (!is_array($tpl)) {
-            continue;
+    $appendBatch = static function (array $batch) use (&$out): void {
+        foreach ($batch as $tpl) {
+            if (!is_array($tpl)) {
+                continue;
+            }
+            $name = (string) ($tpl['name'] ?? '');
+            if ($name === '') {
+                continue;
+            }
+            $out[] = [
+                'name' => $name,
+                'language' => (string) ($tpl['language'] ?? 'en_US'),
+                'status' => (string) ($tpl['status'] ?? ''),
+                'category' => (string) ($tpl['category'] ?? ''),
+            ];
         }
-        $name = (string) ($tpl['name'] ?? '');
-        if ($name === '') {
-            continue;
+    };
+
+    $nextUrl = '';
+    for ($page = 0; $page < 20; $page++) {
+        if ($nextUrl !== '') {
+            $res = whatsapp_graph_get_absolute($nextUrl);
+        } else {
+            $res = whatsapp_graph_get($waba . '/message_templates', [
+                'limit' => 100,
+                'fields' => 'name,status,language,category',
+            ]);
         }
-        $lang = (string) ($tpl['language'] ?? 'en_US');
-        $out[] = [
-            'name' => $name,
-            'language' => $lang,
-            'status' => (string) ($tpl['status'] ?? ''),
-            'category' => (string) ($tpl['category'] ?? ''),
-        ];
+        if (!$res['ok']) {
+            $msg = (string) ($res['error'] ?? 'Graph API request failed.');
+            if (stripos($msg, 'permission') !== false || stripos($msg, '(#200)') !== false) {
+                $msg .= ' Use a System User token with whatsapp_business_management.';
+            }
+            if (stripos($msg, 'does not exist') !== false || stripos($msg, '(#100)') !== false) {
+                $msg .= ' waba_id must match the account tied to your phone_number_id.';
+            }
+
+            return ['ok' => false, 'templates' => [], 'approved' => [], 'error' => $msg, 'waba_id' => $waba];
+        }
+
+        $batch = $res['data']['data'] ?? null;
+        if (!is_array($batch)) {
+            break;
+        }
+        $appendBatch($batch);
+        $nextUrl = (string) ($res['data']['paging']['next'] ?? '');
+        if ($nextUrl === '') {
+            break;
+        }
     }
+
+    $approved = whatsapp_filter_approved_templates($out);
 
     if ($out === []) {
         return [
             'ok' => true,
             'templates' => [],
-            'error' => 'API OK but no templates found for this WABA. Add templates in Meta Business Suite / WhatsApp Manager.',
+            'approved' => [],
+            'error' => 'API OK but no templates on this WABA. Create them in WhatsApp Manager → Message templates.',
             'waba_id' => $waba,
         ];
     }
 
-    return ['ok' => true, 'templates' => $out, 'waba_id' => $waba];
+    if ($approved === []) {
+        return [
+            'ok' => true,
+            'templates' => $out,
+            'approved' => [],
+            'error' => count($out) . ' template(s) found but none are APPROVED yet. Wait for Meta approval or check WhatsApp Manager.',
+            'waba_id' => $waba,
+        ];
+    }
+
+    return ['ok' => true, 'templates' => $out, 'approved' => $approved, 'waba_id' => $waba];
 }
 
 /**
+ * Approved templates only (for send dropdowns).
+ *
  * @return list<array{name:string,language:string,status:string,category:string}>
  */
 function whatsapp_fetch_message_templates(): array
 {
     $result = whatsapp_fetch_message_templates_result();
 
-    return $result['templates'];
+    return $result['approved'];
 }
 
 /**
