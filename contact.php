@@ -226,6 +226,18 @@ CSS;
                   </span>
                 </div>
 
+                <!-- Privacy & WhatsApp consent -->
+                <div class="flex flex-col gap-2 mt-2">
+                  <label class="flex items-start gap-3 cursor-pointer text-sm text-text-secondary leading-snug">
+                    <input type="checkbox" id="form-consent" name="consent" value="1" required
+                      class="mt-1 w-4 h-4 rounded border-slate-300 text-primary focus:ring-primary/30">
+                    <span>I agree to the <a href="privacy.php" class="text-primary hover:underline" target="_blank" rel="noopener">Privacy Policy</a> and <a href="terms.php" class="text-primary hover:underline" target="_blank" rel="noopener">Terms &amp; Conditions</a>. I consent to being contacted by email, phone, or WhatsApp about my enquiry.</span>
+                  </label>
+                  <span id="error-consent" class="text-xs text-red-400 mt-1 font-semibold hidden items-center gap-1">
+                    <i data-lucide="alert-circle" class="w-3 h-3"></i> <span>Please accept the privacy terms to continue</span>
+                  </span>
+                </div>
+
                 <!-- Submit Button -->
                 <button type="submit" id="form-submit-btn"
                   class="w-full mt-4 py-3.5 font-headings text-sm md:text-base font-bold text-white rounded-xl bg-gradient-to-r from-primary to-secondary hover:from-secondary hover:to-primary transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer shadow-[0_4px_20px_rgba(37,99,235,0.25)] hover:shadow-[0_4px_25px_rgba(37,99,235,0.45)] hover:scale-[1.01] transform active:scale-[0.99]">
@@ -417,7 +429,7 @@ CSS;
       const submitBtn = document.getElementById('form-submit-btn');
       const resetBtn = document.getElementById('success-reset-btn');
 
-      const fields = ['name', 'email', 'phone', 'service', 'message'];
+      const fields = ['name', 'email', 'phone', 'service', 'message', 'consent'];
 
       function validate() {
         let isValid = true;
@@ -467,6 +479,12 @@ CSS;
           isValid = false;
         }
 
+        const consentEl = document.getElementById('form-consent');
+        if (!consentEl || !consentEl.checked) {
+          showError('consent', 'Please accept the privacy terms to continue');
+          isValid = false;
+        }
+
         return isValid;
       }
 
@@ -505,7 +523,8 @@ CSS;
             phone: phone,
             service: service,
             message: message + ` [Budget Request: ${budgetText}]`,
-            budget: budget
+            budget: budget,
+            consent: document.getElementById('form-consent')?.checked ? '1' : ''
           };
 
           fetch('/api/contact', {

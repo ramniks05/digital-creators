@@ -145,6 +145,45 @@ th { color: #64748b; font-size: 0.75rem; text-transform: uppercase; letter-spaci
   white-space: pre-wrap;
   word-break: break-word;
 }
+.wa-chat-panel { padding: 0; overflow: hidden; }
+.wa-chat-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e2e8f0;
+  flex-wrap: wrap;
+}
+.wa-chat-thread {
+  max-height: 420px;
+  overflow-y: auto;
+  padding: 16px 20px;
+  background: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.wa-bubble {
+  max-width: 85%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-size: 0.9rem;
+}
+.wa-bubble-in {
+  align-self: flex-start;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+}
+.wa-bubble-out {
+  align-self: flex-end;
+  background: #dbeafe;
+  border: 1px solid #bfdbfe;
+}
+.wa-bubble-meta { font-size: 0.7rem; color: #64748b; margin-top: 6px; }
+.wa-chat-compose { padding: 16px 20px 20px; border-top: 1px solid #e2e8f0; }
 .thumb { width: 48px; height: 48px; object-fit: cover; border-radius: 8px; border: 1px solid #e2e8f0; }
 .muted { color: #64748b; font-size: 0.85rem; }
-.checkbox-row { display: flex; align-items: center; gap: 8px; }
+.checkbox-row { display: flex; align-items: flex-start; gap: 8px; font-size: 0.85rem; line-height: 1.4; }
+.wa-quick-replies { display: flex; flex-wrap: wrap; gap: 8px; }
+.wa-tpl-select { width: 100%; max-width: 480px; padding: 8px 10px; border-radius: 8px; border: 1px solid #e2e8f0; }

@@ -20,6 +20,8 @@
 | `sql/migrate_whatsapp_webhook.php` | One-time migration runner |
 | `sql/patch_whatsapp_contact_name.sql` | Adds `contact_name` on existing DBs |
 | `tests/whatsapp_webhook_test.php` | Synthetic tests |
+| `includes/whatsapp_send.php` | Cloud API send (text + template) |
+| `admin/whatsapp.php` | Chats, replies, templates |
 
 ## Meta webhook spec alignment
 

@@ -25,5 +25,7 @@ return [
         'webhook_verify_token' => getenv('WHATSAPP_WEBHOOK_VERIFY_TOKEN') ?: '',
         'app_secret' => getenv('META_APP_SECRET') ?: '',
         'api_version' => getenv('WHATSAPP_API_VERSION') ?: 'v21.0',
+        'default_template' => 'hello_world',
+        'default_template_language' => 'en_US',
     ],
 ];

@@ -19,6 +19,7 @@ $phone = isset($input['phone']) ? trim($input['phone']) : '';
 $service = isset($input['service']) ? trim($input['service']) : '';
 $message = isset($input['message']) ? trim($input['message']) : '';
 $budget = isset($input['budget']) ? trim($input['budget']) : '';
+$consent = isset($input['consent']) ? trim((string) $input['consent']) : '';
 
 $errors = [];
 
@@ -40,6 +41,9 @@ if ($service === '') {
 }
 if ($message === '') {
     $errors['message'] = 'Message details are required';
+}
+if ($consent === '' || $consent === '0' || $consent === 'false') {
+    $errors['consent'] = 'Please accept the Privacy Policy and Terms to submit';
 }
 
 if (!empty($errors)) {

@@ -3,6 +3,7 @@ require_once dirname(__DIR__) . '/includes/auth.php';
 require_admin();
 require_once __DIR__ . '/layout.php';
 require_once dirname(__DIR__) . '/includes/whatsapp_cloud.php';
+require_once dirname(__DIR__) . '/includes/whatsapp_send.php';
 
 function admin_whatsapp_tables_ready(PDO $pdo): bool
 {
@@ -12,15 +13,6 @@ function admin_whatsapp_tables_ready(PDO $pdo): bool
     } catch (Throwable $e) {
         return false;
     }
-}
-
-function admin_whatsapp_format_ts(?int $unix): string
-{
-    if (!$unix) {
-        return '—';
-    }
-
-    return gmdate('Y-m-d H:i:s', $unix) . ' UTC';
 }
 
 function admin_whatsapp_excerpt(?string $text, int $max = 80): string
@@ -36,53 +28,281 @@ function admin_whatsapp_excerpt(?string $text, int $max = 80): string
     return substr($text, 0, $max - 1) . '…';
 }
 
+function admin_whatsapp_outbound_preview(array $row): string
+{
+    if (!empty($row['payload_json'])) {
+        $p = json_decode((string) $row['payload_json'], true);
+        if (is_array($p)) {
+            if (!empty($p['text'])) {
+                return (string) $p['text'];
+            }
+            if (!empty($p['template'])) {
+                return 'Template: ' . $p['template'];
+            }
+            if (!empty($p['image_url'])) {
+                return 'Image: ' . $p['image_url'];
+            }
+            if (!empty($p['document_url'])) {
+                return 'Document: ' . $p['document_url'];
+            }
+        }
+    }
+    if (!empty($row['template_name'])) {
+        return 'Template: ' . $row['template_name'];
+    }
+
+    return 'Outbound message';
+}
+
+function admin_whatsapp_chat_timeline(PDO $pdo, string $waId): array
+{
+    $waId = whatsapp_normalize_recipient($waId);
+    $items = [];
+
+    $in = $pdo->prepare(
+        'SELECT id, body_text, message_type, media_json, wa_timestamp, created_at
+         FROM whatsapp_inbound_messages WHERE from_wa_id = ? ORDER BY id ASC'
+    );
+    $in->execute([$waId]);
+    foreach ($in->fetchAll() as $row) {
+        $items[] = [
+            'dir' => 'in',
+            'time' => $row['wa_timestamp'] ? (int) $row['wa_timestamp'] : strtotime($row['created_at']),
+            'label' => $row['created_at'],
+            'body' => $row['body_text'] ?: ('[' . $row['message_type'] . ' message]'),
+            'meta' => $row['message_type'],
+        ];
+    }
+
+    $out = $pdo->prepare(
+        'SELECT payload_json, template_name, message_type, delivery_status, wa_timestamp, created_at, updated_at
+         FROM whatsapp_outbound_messages WHERE recipient_wa_id = ? ORDER BY id ASC'
+    );
+    $out->execute([$waId]);
+    foreach ($out->fetchAll() as $row) {
+        $items[] = [
+            'dir' => 'out',
+            'time' => strtotime($row['updated_at'] ?: $row['created_at']),
+            'label' => $row['updated_at'] ?: $row['created_at'],
+            'body' => admin_whatsapp_outbound_preview($row),
+            'meta' => $row['delivery_status'] ?: 'sent',
+        ];
+    }
+
+    usort($items, static fn ($a, $b) => $a['time'] <=> $b['time']);
+
+    return $items;
+}
+
 $pdo = db();
 $tablesReady = admin_whatsapp_tables_ready($pdo);
+
+if ($tablesReady && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!verify_csrf($_POST['csrf_token'] ?? null)) {
+        flash_set('error', 'Invalid CSRF token.');
+        header('Location: whatsapp.php');
+        exit;
+    }
+
+    $action = $_POST['action'] ?? '';
+    $redirect = 'whatsapp.php';
+
+    if ($action === 'send_text') {
+        $to = whatsapp_normalize_recipient((string) ($_POST['to'] ?? ''));
+        $text = trim((string) ($_POST['text'] ?? ''));
+        $redirect = 'whatsapp.php?view=chat&wa_id=' . rawurlencode($to);
+        $result = whatsapp_send_text_message($to, $text);
+        flash_set($result['ok'] ? 'success' : 'error', $result['ok'] ? 'Message sent.' : ($result['error'] ?? 'Send failed.'));
+    } elseif ($action === 'send_template') {
+        $to = whatsapp_normalize_recipient((string) ($_POST['to'] ?? ''));
+        $tpl = preg_replace('/[^a-z0-9_]/i', '', (string) ($_POST['template_name'] ?? ''));
+        $lang = preg_replace('/[^a-z0-9_]/i', '', (string) ($_POST['language_code'] ?? ''));
+        if ($tpl === '') {
+            $tpl = whatsapp_default_template_name();
+        }
+        if ($lang === '') {
+            $lang = whatsapp_default_template_language();
+        }
+        $redirect = 'whatsapp.php?view=chat&wa_id=' . rawurlencode($to);
+        $result = whatsapp_send_template_message($to, $tpl, $lang);
+        flash_set($result['ok'] ? 'success' : 'error', $result['ok'] ? 'Template sent.' : ($result['error'] ?? 'Send failed.'));
+    } elseif ($action === 'compose_template') {
+        $to = whatsapp_normalize_recipient((string) ($_POST['to'] ?? ''));
+        if (empty($_POST['consent'])) {
+            flash_set('error', 'Confirm WhatsApp messaging consent before sending.');
+            header('Location: whatsapp.php?view=compose');
+            exit;
+        }
+        $tpl = preg_replace('/[^a-z0-9_]/i', '', (string) ($_POST['template_name'] ?? whatsapp_default_template_name()));
+        $lang = preg_replace('/[^a-z0-9_]/i', '', (string) ($_POST['language_code'] ?? whatsapp_default_template_language()));
+        $redirect = 'whatsapp.php?view=chat&wa_id=' . rawurlencode($to);
+        $result = whatsapp_send_template_message($to, $tpl, $lang);
+        flash_set($result['ok'] ? 'success' : 'error', $result['ok'] ? 'Template sent.' : ($result['error'] ?? 'Send failed.'));
+    } elseif ($action === 'send_image') {
+        $to = whatsapp_normalize_recipient((string) ($_POST['to'] ?? ''));
+        $redirect = 'whatsapp.php?view=chat&wa_id=' . rawurlencode($to);
+        $result = whatsapp_send_image_link($to, (string) ($_POST['image_url'] ?? ''), (string) ($_POST['caption'] ?? ''));
+        flash_set($result['ok'] ? 'success' : 'error', $result['ok'] ? 'Image sent.' : ($result['error'] ?? 'Send failed.'));
+    } elseif ($action === 'send_document') {
+        $to = whatsapp_normalize_recipient((string) ($_POST['to'] ?? ''));
+        $redirect = 'whatsapp.php?view=chat&wa_id=' . rawurlencode($to);
+        $result = whatsapp_send_document_link(
+            $to,
+            (string) ($_POST['document_url'] ?? ''),
+            (string) ($_POST['filename'] ?? ''),
+            (string) ($_POST['caption'] ?? '')
+        );
+        flash_set($result['ok'] ? 'success' : 'error', $result['ok'] ? 'Document sent.' : ($result['error'] ?? 'Send failed.'));
+    } elseif ($action === 'create_lead') {
+        $to = whatsapp_normalize_recipient((string) ($_POST['to'] ?? ''));
+        $redirect = 'whatsapp.php?view=chat&wa_id=' . rawurlencode($to);
+        $result = whatsapp_create_lead_from_chat($to);
+        flash_set($result['ok'] ? 'success' : 'error', $result['ok'] ? 'Lead created.' : ($result['error'] ?? 'Failed.'));
+    } elseif ($action === 'quick_reply') {
+        $to = whatsapp_normalize_recipient((string) ($_POST['to'] ?? ''));
+        $redirect = 'whatsapp.php?view=chat&wa_id=' . rawurlencode($to);
+        $result = whatsapp_send_text_message($to, trim((string) ($_POST['text'] ?? '')));
+        flash_set($result['ok'] ? 'success' : 'error', $result['ok'] ? 'Quick reply sent.' : ($result['error'] ?? 'Send failed.'));
+    }
+
+    header('Location: ' . $redirect);
+    exit;
+}
+
 $config = whatsapp_cloud_config();
 $verifyOk = trim($config['webhook_verify_token']) !== '';
 $secretOk = trim($config['app_secret']) !== '';
+$tokenOk = trim($config['access_token']) !== '';
+$phoneOk = trim($config['phone_number_id']) !== '';
 
-$view = $_GET['view'] ?? 'inbound';
-if (!in_array($view, ['inbound', 'status', 'outbound', 'setup'], true)) {
-    $view = 'inbound';
+$view = $_GET['view'] ?? 'chats';
+$allowedViews = ['chats', 'chat', 'compose', 'templates', 'status', 'outbound', 'setup'];
+if (!in_array($view, $allowedViews, true)) {
+    $view = 'chats';
 }
 
-$detailId = isset($_GET['id']) ? (int) $_GET['id'] : 0;
+$chatWaId = isset($_GET['wa_id']) ? whatsapp_normalize_recipient((string) $_GET['wa_id']) : '';
 
-if ($tablesReady && $view === 'inbound' && $detailId > 0) {
-    $stmt = $pdo->prepare('SELECT * FROM whatsapp_inbound_messages WHERE id = ?');
-    $stmt->execute([$detailId]);
-    $msg = $stmt->fetch();
-    admin_header('WhatsApp message', 'whatsapp.php');
-    if (!$msg) {
-        echo '<div class="alert alert-error">Message not found.</div>';
-        echo '<p><a class="btn btn-secondary" href="whatsapp.php">Back</a></p>';
-        admin_footer();
-        exit;
+if ($tablesReady && $view === 'chat' && $chatWaId !== '') {
+    $nameStmt = $pdo->prepare(
+        'SELECT contact_name FROM whatsapp_inbound_messages WHERE from_wa_id = ? AND contact_name IS NOT NULL AND contact_name != \'\' ORDER BY id DESC LIMIT 1'
+    );
+    $nameStmt->execute([$chatWaId]);
+    $contactName = (string) ($nameStmt->fetchColumn() ?: '');
+    $windowOpen = whatsapp_service_window_open($pdo, $chatWaId);
+    $timeline = admin_whatsapp_chat_timeline($pdo, $chatWaId);
+    $defaultTpl = whatsapp_default_template_name();
+    $defaultLang = whatsapp_default_template_language();
+    $lastInbound = $pdo->prepare(
+        'SELECT wa_message_id FROM whatsapp_inbound_messages WHERE from_wa_id = ? ORDER BY id DESC LIMIT 1'
+    );
+    $lastInbound->execute([$chatWaId]);
+    $lastWamid = (string) ($lastInbound->fetchColumn() ?: '');
+    if ($lastWamid !== '') {
+        whatsapp_mark_message_read($lastWamid);
     }
-    $media = !empty($msg['media_json']) ? json_decode((string) $msg['media_json'], true) : null;
+    $quickReplies = [
+        'Thanks for contacting Digital Creatorss. Our team will reply shortly.',
+        'Please share your project requirements or preferred time for a call.',
+        'We received your message and will get back to you within one business day.',
+    ];
+    $tplList = whatsapp_fetch_message_templates();
+
+    admin_header($contactName ?: $chatWaId, 'whatsapp.php');
     ?>
-    <div class="panel form-grid">
-      <p><strong>From:</strong> <?= e($msg['contact_name'] ?: $msg['from_wa_id']) ?>
-        <?php if ($msg['contact_name']): ?><span class="muted">(<?= e($msg['from_wa_id']) ?>)</span><?php endif; ?>
-      </p>
-      <p><strong>Type:</strong> <?= e($msg['message_type']) ?></p>
-      <p><strong>WhatsApp message ID:</strong> <code><?= e($msg['wa_message_id']) ?></code></p>
-      <p><strong>Phone number ID:</strong> <?= e($msg['phone_number_id'] ?: '—') ?></p>
-      <p><strong>WABA ID:</strong> <?= e($msg['waba_id'] ?: '—') ?></p>
-      <p><strong>WhatsApp time:</strong> <?= e(admin_whatsapp_format_ts($msg['wa_timestamp'] ? (int) $msg['wa_timestamp'] : null)) ?></p>
-      <p><strong>Stored at:</strong> <?= e($msg['created_at']) ?></p>
-      <?php if ($msg['body_text']): ?>
-      <p><strong>Text:</strong><br><?= nl2br(e($msg['body_text'])) ?></p>
-      <?php endif; ?>
-      <?php if (is_array($media) && $media): ?>
-      <p><strong>Media metadata:</strong><br><pre class="wa-pre"><?= e(json_encode($media, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)) ?></pre></p>
-      <?php endif; ?>
-      <div class="actions">
-        <a class="btn btn-secondary" href="whatsapp.php?view=inbound">Back to inbox</a>
-        <a class="btn btn-secondary" href="https://wa.me/<?= e(preg_replace('/\D+/', '', $msg['from_wa_id'])) ?>" target="_blank" rel="noopener">Open in WhatsApp</a>
+    <div class="panel wa-chat-panel">
+      <div class="wa-chat-head">
+        <div>
+          <strong><?= e($contactName ?: 'Customer') ?></strong>
+          <span class="muted"> · <?= e($chatWaId) ?></span>
+        </div>
+        <div class="actions">
+          <span class="badge <?= $windowOpen ? 'wa-badge-delivered' : 'wa-badge-pending' ?>">
+            <?= $windowOpen ? '24h window open' : '24h window closed — use template' ?>
+          </span>
+          <a class="btn btn-sm btn-secondary" href="whatsapp.php?view=chats">All chats</a>
+          <form method="post" class="inline"><?= csrf_field() ?><input type="hidden" name="action" value="create_lead"><input type="hidden" name="to" value="<?= e($chatWaId) ?>"><button type="submit" class="btn btn-sm btn-secondary">Create lead</button></form>
+        </div>
+      </div>
+      <div class="wa-quick-replies actions" style="padding:0 20px 12px">
+        <?php foreach ($quickReplies as $qr): ?>
+        <form method="post" class="inline"><?= csrf_field() ?><input type="hidden" name="action" value="quick_reply"><input type="hidden" name="to" value="<?= e($chatWaId) ?>"><input type="hidden" name="text" value="<?= e($qr) ?>"><button type="submit" class="btn btn-sm btn-secondary" <?= $windowOpen ? '' : 'disabled' ?>><?= e(admin_whatsapp_excerpt($qr, 42)) ?></button></form>
+        <?php endforeach; ?>
+      </div>
+      <div class="wa-chat-thread">
+        <?php if (!$timeline): ?>
+          <p class="muted">No messages yet for this number. Send a template to start.</p>
+        <?php endif; ?>
+        <?php foreach ($timeline as $item): ?>
+          <div class="wa-bubble wa-bubble-<?= e($item['dir']) ?>">
+            <div class="wa-bubble-body"><?= nl2br(e($item['body'])) ?></div>
+            <div class="wa-bubble-meta"><?= e($item['label']) ?> · <?= e($item['meta']) ?></div>
+          </div>
+        <?php endforeach; ?>
+      </div>
+      <div class="wa-chat-compose">
+        <form method="post" class="form-grid">
+          <?= csrf_field() ?>
+          <input type="hidden" name="action" value="send_text">
+          <input type="hidden" name="to" value="<?= e($chatWaId) ?>">
+          <label>Reply (text)</label>
+          <textarea name="text" rows="3" placeholder="<?= $windowOpen ? 'Type your reply…' : 'Service window closed — use template below' ?>" <?= $windowOpen ? '' : 'disabled' ?> required></textarea>
+          <button class="btn" type="submit" <?= $windowOpen ? '' : 'disabled' ?>>Send reply</button>
+        </form>
+        <form method="post" class="form-grid" style="margin-top:16px">
+          <?= csrf_field() ?>
+          <input type="hidden" name="action" value="send_template">
+          <input type="hidden" name="to" value="<?= e($chatWaId) ?>">
+          <label>Send template</label>
+          <?php if ($tplList): ?>
+          <label>Approved templates (from Meta)</label>
+          <select name="template_name" class="wa-tpl-select">
+            <?php foreach ($tplList as $t): ?>
+              <?php if (($t['status'] ?? '') === 'APPROVED' || $t['status'] === ''): ?>
+              <option value="<?= e($t['name']) ?>" data-lang="<?= e($t['language']) ?>" <?= $t['name'] === $defaultTpl ? 'selected' : '' ?>>
+                <?= e($t['name']) ?> (<?= e($t['language']) ?>) — <?= e($t['category']) ?>
+              </option>
+              <?php endif; ?>
+            <?php endforeach; ?>
+          </select>
+          <input type="hidden" name="language_code" id="wa-lang-code" value="<?= e($defaultLang) ?>">
+          <?php else: ?>
+          <div class="form-row">
+            <div><input type="text" name="template_name" value="<?= e($defaultTpl) ?>" placeholder="hello_world"></div>
+            <div><input type="text" name="language_code" value="<?= e($defaultLang) ?>" placeholder="en_US"></div>
+          </div>
+          <?php endif; ?>
+          <button class="btn btn-secondary" type="submit">Send template</button>
+        </form>
+        <form method="post" class="form-grid" style="margin-top:16px">
+          <?= csrf_field() ?>
+          <input type="hidden" name="action" value="send_image">
+          <input type="hidden" name="to" value="<?= e($chatWaId) ?>">
+          <label>Send image (HTTPS URL, 24h window)</label>
+          <input type="url" name="image_url" placeholder="https://digitalcreatorss.com/..." <?= $windowOpen ? '' : 'disabled' ?>>
+          <input type="text" name="caption" placeholder="Optional caption" <?= $windowOpen ? '' : 'disabled' ?>>
+          <button class="btn btn-secondary" type="submit" <?= $windowOpen ? '' : 'disabled' ?>>Send image</button>
+        </form>
+        <form method="post" class="form-grid" style="margin-top:16px">
+          <?= csrf_field() ?>
+          <input type="hidden" name="action" value="send_document">
+          <input type="hidden" name="to" value="<?= e($chatWaId) ?>">
+          <label>Send document (HTTPS URL, 24h window)</label>
+          <input type="url" name="document_url" placeholder="https://..." <?= $windowOpen ? '' : 'disabled' ?>>
+          <input type="text" name="filename" placeholder="proposal.pdf" <?= $windowOpen ? '' : 'disabled' ?>>
+          <button class="btn btn-secondary" type="submit" <?= $windowOpen ? '' : 'disabled' ?>>Send document</button>
+        </form>
       </div>
     </div>
+    <?php if ($tplList): ?>
+    <script>
+      document.querySelector('.wa-tpl-select')?.addEventListener('change', function () {
+        const opt = this.selectedOptions[0];
+        const lang = document.getElementById('wa-lang-code');
+        if (lang && opt) lang.value = opt.dataset.lang || '';
+      });
+    </script>
+    <?php endif; ?>
     <?php
     admin_footer();
     exit;
@@ -103,81 +323,151 @@ if ($tablesReady) {
 ?>
 <div class="cards">
   <div class="card"><div class="label">Inbound</div><div class="value"><?= $tablesReady ? $counts['inbound'] : '—' ?></div></div>
-  <div class="card"><div class="label">Status events</div><div class="value"><?= $tablesReady ? $counts['status'] : '—' ?></div></div>
-  <div class="card"><div class="label">Outbound tracked</div><div class="value"><?= $tablesReady ? $counts['outbound'] : '—' ?></div></div>
+  <div class="card"><div class="label">Sent from portal</div><div class="value"><?= $tablesReady ? $counts['outbound'] : '—' ?></div></div>
+  <div class="card"><div class="label">API ready</div><div class="value" style="font-size:1rem"><?= ($tokenOk && $phoneOk) ? 'Yes' : 'No' ?></div></div>
 </div>
 
 <div class="panel" style="margin-bottom:16px">
   <div class="actions" style="margin-bottom:12px">
-    <a class="btn btn-sm <?= $view === 'inbound' ? '' : 'btn-secondary' ?>" href="whatsapp.php?view=inbound">Inbox</a>
-    <a class="btn btn-sm <?= $view === 'status' ? '' : 'btn-secondary' ?>" href="whatsapp.php?view=status">Delivery status</a>
+    <a class="btn btn-sm <?= $view === 'chats' ? '' : 'btn-secondary' ?>" href="whatsapp.php?view=chats">Chats</a>
+    <a class="btn btn-sm <?= $view === 'compose' ? '' : 'btn-secondary' ?>" href="whatsapp.php?view=compose">New message</a>
+    <a class="btn btn-sm <?= $view === 'templates' ? '' : 'btn-secondary' ?>" href="whatsapp.php?view=templates">Templates</a>
+    <a class="btn btn-sm <?= $view === 'status' ? '' : 'btn-secondary' ?>" href="whatsapp.php?view=status">Delivery log</a>
     <a class="btn btn-sm <?= $view === 'outbound' ? '' : 'btn-secondary' ?>" href="whatsapp.php?view=outbound">Outbound</a>
     <a class="btn btn-sm <?= $view === 'setup' ? '' : 'btn-secondary' ?>" href="whatsapp.php?view=setup">Setup</a>
   </div>
 
 <?php if (!$tablesReady): ?>
   <div class="alert alert-error">
-    WhatsApp tables are missing. On the server run: <code>php sql/migrate_whatsapp_webhook.php</code>
+    WhatsApp tables are missing. Run: <code>php sql/migrate_whatsapp_webhook.php</code>
   </div>
 <?php elseif ($view === 'setup'): ?>
-  <p class="muted" style="margin-top:0">Webhook secrets are not shown here. Configure them in private <code>digital_creators_config.php</code>.</p>
+  <p class="muted" style="margin-top:0">Secrets live in private <code>digital_creators_config.php</code> (not shown here).</p>
   <table>
     <tbody>
-      <tr><th style="width:220px">Verify token configured</th><td><?= $verifyOk ? 'Yes' : 'No' ?></td></tr>
-      <tr><th>App secret configured</th><td><?= $secretOk ? 'Yes' : 'No' ?></td></tr>
+      <tr><th style="width:220px">Access token</th><td><?= $tokenOk ? 'Configured' : 'Missing' ?></td></tr>
       <tr><th>Phone number ID</th><td><?= e($config['phone_number_id'] ?: '—') ?></td></tr>
-      <tr><th>Meta callback URL</th><td><code>https://digitalcreatorss.com/api/hook-wa</code></td></tr>
-      <tr><th>Health check (public)</th><td><a href="/api/wa-health" target="_blank" rel="noopener">/api/wa-health</a></td></tr>
+      <tr><th>Webhook verify token</th><td><?= $verifyOk ? 'Configured' : 'Missing' ?></td></tr>
+      <tr><th>App secret</th><td><?= $secretOk ? 'Configured' : 'Missing' ?></td></tr>
+      <tr><th>Default template</th><td><?= e(whatsapp_default_template_name()) ?> (<?= e(whatsapp_default_template_language()) ?>)</td></tr>
+      <tr><th>WABA ID</th><td><?= e(whatsapp_waba_id() ?: '—') ?></td></tr>
+      <tr><th>Legal</th><td><a href="../privacy.php" target="_blank" rel="noopener">Privacy</a> · <a href="../terms.php" target="_blank" rel="noopener">Terms</a></td></tr>
+      <tr><th>Webhook URL</th><td><code>https://digitalcreatorss.com/api/hook-wa</code></td></tr>
+      <tr><th>Health</th><td><a href="/api/wa-health" target="_blank" rel="noopener">/api/wa-health</a></td></tr>
     </tbody>
   </table>
-<?php elseif ($view === 'inbound'):
+<?php elseif ($view === 'compose'):
+    $composeTplList = whatsapp_fetch_message_templates();
+    $composeDefaultTpl = whatsapp_default_template_name();
+    $composeDefaultLang = whatsapp_default_template_language();
+    ?>
+  <p class="muted">Start a conversation with an approved <strong>template</strong>. Only message users who expect contact from you. See <a href="../terms.php" target="_blank" rel="noopener">Terms</a> and <a href="../privacy.php" target="_blank" rel="noopener">Privacy</a>.</p>
+  <form method="post" class="form-grid" style="max-width:480px">
+    <?= csrf_field() ?>
+    <input type="hidden" name="action" value="compose_template">
+    <label>Customer WhatsApp number (country code, digits only)</label>
+    <input type="text" name="to" placeholder="919876543210" required pattern="[0-9]{8,15}">
+    <label class="checkbox-row">
+      <input type="checkbox" name="consent" value="1" required>
+      <span>I confirm this person consented to WhatsApp messages from Digital Creatorss.</span>
+    </label>
+    <?php if ($composeTplList): ?>
+    <label>Approved template</label>
+    <select name="template_name" class="wa-tpl-select" id="compose-tpl-select">
+      <?php foreach ($composeTplList as $t): ?>
+        <?php if (($t['status'] ?? '') === 'APPROVED' || ($t['status'] ?? '') === ''): ?>
+        <option value="<?= e($t['name']) ?>" data-lang="<?= e($t['language']) ?>" <?= $t['name'] === $composeDefaultTpl ? 'selected' : '' ?>>
+          <?= e($t['name']) ?> (<?= e($t['language']) ?>)
+        </option>
+        <?php endif; ?>
+      <?php endforeach; ?>
+    </select>
+    <input type="hidden" name="language_code" id="compose-lang-code" value="<?= e($composeDefaultLang) ?>">
+    <?php else: ?>
+    <div class="form-row">
+      <div>
+        <label>Template name</label>
+        <input type="text" name="template_name" value="<?= e($composeDefaultTpl) ?>">
+      </div>
+      <div>
+        <label>Language code</label>
+        <input type="text" name="language_code" value="<?= e($composeDefaultLang) ?>">
+      </div>
+    </div>
+    <?php endif; ?>
+    <button class="btn" type="submit">Send template</button>
+  </form>
+  <?php if ($composeTplList): ?>
+  <script>
+    document.getElementById('compose-tpl-select')?.addEventListener('change', function () {
+      const lang = document.getElementById('compose-lang-code');
+      const opt = this.selectedOptions[0];
+      if (lang && opt) lang.value = opt.dataset.lang || '';
+    });
+  </script>
+  <?php endif; ?>
+<?php elseif ($view === 'templates'):
+    $tplList = whatsapp_fetch_message_templates();
+    ?>
+  <p class="muted">Templates synced from Meta (requires <code>WHATSAPP_WABA_ID</code> in config or at least one inbound webhook).</p>
+  <table>
+    <thead><tr><th>Name</th><th>Language</th><th>Category</th><th>Status</th></tr></thead>
+    <tbody>
+    <?php if (!$tplList): ?>
+      <tr><td colspan="4" class="muted">No templates loaded. Add WABA ID to private config or check token permissions.</td></tr>
+    <?php endif; ?>
+    <?php foreach ($tplList as $t): ?>
+      <tr>
+        <td><code><?= e($t['name']) ?></code></td>
+        <td><?= e($t['language']) ?></td>
+        <td><?= e($t['category']) ?></td>
+        <td><?= e($t['status']) ?></td>
+      </tr>
+    <?php endforeach; ?>
+    </tbody>
+  </table>
+<?php elseif ($view === 'chats'):
     $rows = $pdo->query(
-        'SELECT id, from_wa_id, contact_name, message_type, body_text, wa_timestamp, created_at
-         FROM whatsapp_inbound_messages ORDER BY id DESC LIMIT 100'
+        'SELECT m.from_wa_id, m.contact_name, m.body_text, m.created_at
+         FROM whatsapp_inbound_messages m
+         INNER JOIN (
+           SELECT from_wa_id, MAX(id) AS max_id FROM whatsapp_inbound_messages GROUP BY from_wa_id
+         ) t ON m.id = t.max_id
+         ORDER BY m.id DESC
+         LIMIT 100'
     )->fetchAll();
     ?>
   <table>
-    <thead>
-      <tr><th>Received</th><th>From</th><th>Type</th><th>Preview</th><th></th></tr>
-    </thead>
+    <thead><tr><th>Last activity</th><th>Contact</th><th>Last message</th><th></th></tr></thead>
     <tbody>
     <?php if (!$rows): ?>
-      <tr><td colspan="5" class="muted">No inbound messages yet. Verify webhook in Meta and send a test message to your business number.</td></tr>
+      <tr><td colspan="4" class="muted">No chats yet. Use <strong>New message</strong> or wait for customers to write on WhatsApp.</td></tr>
     <?php endif; ?>
     <?php foreach ($rows as $row): ?>
       <tr>
         <td><?= e($row['created_at']) ?></td>
-        <td>
-          <strong><?= e($row['contact_name'] ?: $row['from_wa_id']) ?></strong>
-          <?php if ($row['contact_name']): ?><br><span class="muted"><?= e($row['from_wa_id']) ?></span><?php endif; ?>
-        </td>
-        <td><?= e($row['message_type']) ?></td>
+        <td><strong><?= e($row['contact_name'] ?: $row['from_wa_id']) ?></strong><br><span class="muted"><?= e($row['from_wa_id']) ?></span></td>
         <td><?= e(admin_whatsapp_excerpt($row['body_text'])) ?></td>
-        <td><a class="btn btn-sm btn-secondary" href="whatsapp.php?view=inbound&amp;id=<?= (int) $row['id'] ?>">View</a></td>
+        <td><a class="btn btn-sm" href="whatsapp.php?view=chat&amp;wa_id=<?= e($row['from_wa_id']) ?>">Open</a></td>
       </tr>
     <?php endforeach; ?>
     </tbody>
   </table>
 <?php elseif ($view === 'status'):
     $rows = $pdo->query(
-        'SELECT id, wa_message_id, recipient_wa_id, status, error_message, wa_timestamp, created_at
+        'SELECT id, wa_message_id, recipient_wa_id, status, error_message, created_at
          FROM whatsapp_message_status_log ORDER BY id DESC LIMIT 100'
     )->fetchAll();
     ?>
   <table>
-    <thead>
-      <tr><th>Logged</th><th>Status</th><th>Recipient</th><th>Message ID</th><th>Error</th></tr>
-    </thead>
+    <thead><tr><th>Logged</th><th>Status</th><th>Recipient</th><th>Error</th></tr></thead>
     <tbody>
-    <?php if (!$rows): ?>
-      <tr><td colspan="5" class="muted">No delivery status events yet.</td></tr>
-    <?php endif; ?>
+    <?php if (!$rows): ?><tr><td colspan="4" class="muted">No status events yet.</td></tr><?php endif; ?>
     <?php foreach ($rows as $row): ?>
       <tr>
         <td><?= e($row['created_at']) ?></td>
         <td><span class="badge wa-badge-<?= e(preg_replace('/[^a-z]/', '', strtolower($row['status']))) ?>"><?= e($row['status']) ?></span></td>
         <td><?= e($row['recipient_wa_id'] ?: '—') ?></td>
-        <td><code style="font-size:0.75rem"><?= e(admin_whatsapp_excerpt($row['wa_message_id'], 28)) ?></code></td>
         <td class="muted"><?= e(admin_whatsapp_excerpt($row['error_message'], 60)) ?></td>
       </tr>
     <?php endforeach; ?>
@@ -190,21 +480,16 @@ if ($tablesReady) {
     )->fetchAll();
     ?>
   <table>
-    <thead>
-      <tr><th>Updated</th><th>Status</th><th>Recipient</th><th>Type</th><th>Template</th><th>Message ID</th></tr>
-    </thead>
+    <thead><tr><th>Updated</th><th>Status</th><th>To</th><th>Preview</th><th></th></tr></thead>
     <tbody>
-    <?php if (!$rows): ?>
-      <tr><td colspan="6" class="muted">No outbound rows yet (created when you send via Cloud API helpers).</td></tr>
-    <?php endif; ?>
+    <?php if (!$rows): ?><tr><td colspan="5" class="muted">Nothing sent from the portal yet.</td></tr><?php endif; ?>
     <?php foreach ($rows as $row): ?>
       <tr>
         <td><?= e($row['updated_at']) ?></td>
         <td><span class="badge wa-badge-<?= e(preg_replace('/[^a-z]/', '', strtolower($row['delivery_status']))) ?>"><?= e($row['delivery_status']) ?></span></td>
-        <td><?= e($row['recipient_wa_id']) ?></td>
-        <td><?= e($row['message_type']) ?></td>
-        <td><?= e($row['template_name'] ?: '—') ?></td>
-        <td><code style="font-size:0.75rem"><?= e($row['wa_message_id'] ? admin_whatsapp_excerpt($row['wa_message_id'], 28) : '—') ?></code></td>
+        <td><a href="whatsapp.php?view=chat&amp;wa_id=<?= e($row['recipient_wa_id']) ?>"><?= e($row['recipient_wa_id']) ?></a></td>
+        <td><?= e(admin_whatsapp_excerpt(admin_whatsapp_outbound_preview($row), 50)) ?></td>
+        <td class="muted"><?= e(admin_whatsapp_excerpt($row['last_error_message'], 40)) ?></td>
       </tr>
     <?php endforeach; ?>
     </tbody>

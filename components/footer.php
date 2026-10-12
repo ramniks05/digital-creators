@@ -250,8 +250,8 @@ $capabilityPills = [
         </span>
       </div>
       <ul class="footer-legal-row">
-        <li><a href="#" class="footer-legal-pill">Privacy Policy</a></li>
-        <li><a href="#" class="footer-legal-pill">Terms of Service</a></li>
+        <li><a href="privacy.php" class="footer-legal-pill">Privacy Policy</a></li>
+        <li><a href="terms.php" class="footer-legal-pill">Terms &amp; Conditions</a></li>
         <li><a href="contact.php" class="footer-legal-pill">Support</a></li>
       </ul>
       <button type="button" class="footer-back-top" aria-label="Back to top"

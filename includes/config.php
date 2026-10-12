@@ -23,6 +23,9 @@ $config = [
         'webhook_verify_token' => getenv('WHATSAPP_WEBHOOK_VERIFY_TOKEN') ?: '',
         'app_secret' => getenv('META_APP_SECRET') ?: '',
         'api_version' => getenv('WHATSAPP_API_VERSION') ?: 'v21.0',
+        'default_template' => getenv('WHATSAPP_DEFAULT_TEMPLATE') ?: 'hello_world',
+        'default_template_language' => getenv('WHATSAPP_DEFAULT_TEMPLATE_LANG') ?: 'en_US',
+        'waba_id' => getenv('WHATSAPP_WABA_ID') ?: '',
     ],
 ];
 
