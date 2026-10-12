@@ -78,7 +78,7 @@ Tables:
 1. Open [Meta for Developers](https://developers.facebook.com/) → your app.
 2. **WhatsApp** → **Configuration** (or **Webhooks**).
 3. **Callback URL** (pick one that returns HTTP 200 on GET verify, no 301/302 HTML):
-   - `https://digitalcreatorss.com/api/whatsapp-webhook.php` (recommended on Hostinger)
+   - `https://digitalcreatorss.com/api/whatsapp-webhook` (recommended on Hostinger; do not use `.php` — CDN 302s to extensionless)
    - `https://digitalcreatorss.com/webhook/whatsapp` (extensionless; avoid `.php` under `/webhook/` — Hostinger may redirect)
    - If you get **301**, try the same path on **`www.digitalcreatorss.com`** or check `Location:` with `curl -sSI … | grep -i location`
 4. **Verify token**: same value as `WHATSAPP_WEBHOOK_VERIFY_TOKEN` on the server.
