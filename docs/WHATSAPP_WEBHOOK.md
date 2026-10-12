@@ -47,6 +47,7 @@ Secrets must **not** be committed. Use either:
 | App secret | `META_APP_SECRET` | `X-Hub-Signature-256` validation |
 | Access token | `WHATSAPP_ACCESS_TOKEN` | Outbound Graph API (existing/future send code) |
 | Phone Number ID | `WHATSAPP_PHONE_NUMBER_ID` | Outbound + metadata matching |
+| WABA ID | `WHATSAPP_WABA_ID` | Optional; lists approved templates in admin (not required for webhooks/chats) |
 | API version | `WHATSAPP_API_VERSION` | Optional, default `v21.0` |
 
 Example private PHP override:

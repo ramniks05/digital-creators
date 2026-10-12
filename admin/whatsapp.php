@@ -75,7 +75,7 @@ function admin_whatsapp_chat_timeline(PDO $pdo, string $waId): array
     }
 
     $out = $pdo->prepare(
-        'SELECT payload_json, template_name, message_type, delivery_status, wa_timestamp, created_at, updated_at
+        'SELECT payload_json, template_name, message_type, delivery_status, created_at, updated_at
          FROM whatsapp_outbound_messages WHERE recipient_wa_id = ? ORDER BY id ASC'
     );
     $out->execute([$waId]);
@@ -184,29 +184,48 @@ if (!in_array($view, $allowedViews, true)) {
 $chatWaId = isset($_GET['wa_id']) ? whatsapp_normalize_recipient((string) $_GET['wa_id']) : '';
 
 if ($tablesReady && $view === 'chat' && $chatWaId !== '') {
-    $nameStmt = $pdo->prepare(
-        'SELECT contact_name FROM whatsapp_inbound_messages WHERE from_wa_id = ? AND contact_name IS NOT NULL AND contact_name != \'\' ORDER BY id DESC LIMIT 1'
-    );
-    $nameStmt->execute([$chatWaId]);
-    $contactName = (string) ($nameStmt->fetchColumn() ?: '');
-    $windowOpen = whatsapp_service_window_open($pdo, $chatWaId);
-    $timeline = admin_whatsapp_chat_timeline($pdo, $chatWaId);
+    try {
+        $nameStmt = $pdo->prepare(
+            'SELECT contact_name FROM whatsapp_inbound_messages WHERE from_wa_id = ? AND contact_name IS NOT NULL AND contact_name != \'\' ORDER BY id DESC LIMIT 1'
+        );
+        $nameStmt->execute([$chatWaId]);
+        $contactName = (string) ($nameStmt->fetchColumn() ?: '');
+        $windowOpen = whatsapp_service_window_open($pdo, $chatWaId);
+        $timeline = admin_whatsapp_chat_timeline($pdo, $chatWaId);
+        $lastInbound = $pdo->prepare(
+            'SELECT wa_message_id FROM whatsapp_inbound_messages WHERE from_wa_id = ? ORDER BY id DESC LIMIT 1'
+        );
+        $lastInbound->execute([$chatWaId]);
+        $lastWamid = (string) ($lastInbound->fetchColumn() ?: '');
+    } catch (Throwable $e) {
+        error_log('WhatsApp admin chat load failed: ' . $e->getMessage());
+        admin_header('WhatsApp', 'whatsapp.php');
+        echo '<div class="alert alert-error">Could not load this chat. Run <code>php sql/migrate_whatsapp_webhook.php</code> on the server (adds missing columns/tables). If the problem continues, check the PHP error log.</div>';
+        echo '<p class="muted">' . e($e->getMessage()) . '</p>';
+        echo '<p><a class="btn btn-secondary" href="whatsapp.php?view=chats">Back to chats</a></p>';
+        admin_footer();
+        exit;
+    }
     $defaultTpl = whatsapp_default_template_name();
     $defaultLang = whatsapp_default_template_language();
-    $lastInbound = $pdo->prepare(
-        'SELECT wa_message_id FROM whatsapp_inbound_messages WHERE from_wa_id = ? ORDER BY id DESC LIMIT 1'
-    );
-    $lastInbound->execute([$chatWaId]);
-    $lastWamid = (string) ($lastInbound->fetchColumn() ?: '');
-    if ($lastWamid !== '') {
-        whatsapp_mark_message_read($lastWamid);
+    if (!empty($lastWamid)) {
+        try {
+            whatsapp_mark_message_read($lastWamid);
+        } catch (Throwable $e) {
+            error_log('WhatsApp mark read skipped: ' . $e->getMessage());
+        }
     }
     $quickReplies = [
         'Thanks for contacting Digital Creatorss. Our team will reply shortly.',
         'Please share your project requirements or preferred time for a call.',
         'We received your message and will get back to you within one business day.',
     ];
-    $tplList = whatsapp_fetch_message_templates();
+    try {
+        $tplList = whatsapp_fetch_message_templates();
+    } catch (Throwable $e) {
+        error_log('WhatsApp template list skipped: ' . $e->getMessage());
+        $tplList = [];
+    }
 
     admin_header($contactName ?: $chatWaId, 'whatsapp.php');
     ?>
@@ -350,7 +369,7 @@ if ($tablesReady) {
       <tr><th>Webhook verify token</th><td><?= $verifyOk ? 'Configured' : 'Missing' ?></td></tr>
       <tr><th>App secret</th><td><?= $secretOk ? 'Configured' : 'Missing' ?></td></tr>
       <tr><th>Default template</th><td><?= e(whatsapp_default_template_name()) ?> (<?= e(whatsapp_default_template_language()) ?>)</td></tr>
-      <tr><th>WABA ID</th><td><?= e(whatsapp_waba_id() ?: '—') ?></td></tr>
+      <tr><th>WABA ID</th><td><?= e(whatsapp_waba_id() ?: '— (optional — set whatsapp.waba_id in private config for template dropdown)') ?></td></tr>
       <tr><th>Legal</th><td><a href="../privacy.php" target="_blank" rel="noopener">Privacy</a> · <a href="../terms.php" target="_blank" rel="noopener">Terms</a></td></tr>
       <tr><th>Webhook URL</th><td><code>https://digitalcreatorss.com/api/hook-wa</code></td></tr>
       <tr><th>Health</th><td><a href="/api/wa-health" target="_blank" rel="noopener">/api/wa-health</a></td></tr>
@@ -407,14 +426,19 @@ if ($tablesReady) {
   </script>
   <?php endif; ?>
 <?php elseif ($view === 'templates'):
-    $tplList = whatsapp_fetch_message_templates();
+    $tplResult = whatsapp_fetch_message_templates_result();
+    $tplList = $tplResult['templates'];
+    $tplWaba = (string) ($tplResult['waba_id'] ?? whatsapp_waba_id());
     ?>
-  <p class="muted">Templates synced from Meta (requires <code>WHATSAPP_WABA_ID</code> in config or at least one inbound webhook).</p>
+  <p class="muted">Loaded from Meta Graph API using WABA ID <code><?= e($tplWaba ?: '—') ?></code> and your access token.</p>
+  <?php if (!empty($tplResult['error'])): ?>
+    <div class="alert alert-error"><?= e($tplResult['error']) ?></div>
+  <?php endif; ?>
   <table>
     <thead><tr><th>Name</th><th>Language</th><th>Category</th><th>Status</th></tr></thead>
     <tbody>
     <?php if (!$tplList): ?>
-      <tr><td colspan="4" class="muted">No templates loaded. Add WABA ID to private config or check token permissions.</td></tr>
+      <tr><td colspan="4" class="muted">No templates to show. Fix the issue above, then refresh.</td></tr>
     <?php endif; ?>
     <?php foreach ($tplList as $t): ?>
       <tr>

@@ -25,6 +25,8 @@ $full = require __DIR__ . '/config.php';
 $wa = $full['whatsapp'] ?? [];
 $verify = trim((string) ($wa['webhook_verify_token'] ?? ''));
 $secret = trim((string) ($wa['app_secret'] ?? ''));
+$waba = trim((string) ($wa['waba_id'] ?? ''));
+$token = trim((string) ($wa['access_token'] ?? ''));
 
 echo json_encode([
     'ok' => $verify !== '',
@@ -33,6 +35,9 @@ echo json_encode([
     'webhook_verify_token_set' => $verify !== '',
     'verify_token_length' => $verify !== '' ? strlen($verify) : 0,
     'meta_app_secret_set' => $secret !== '',
+    'whatsapp_access_token_set' => $token !== '',
+    'whatsapp_waba_id_set' => $waba !== '',
+    'whatsapp_waba_id_length' => $waba !== '' ? strlen($waba) : 0,
     'callback_urls' => [
         'recommended' => 'https://digitalcreatorss.com/api/hook-wa',
         'health' => 'https://digitalcreatorss.com/api/wa-health',

@@ -16,6 +16,10 @@ function whatsapp_send_graph(array $payload): array
         return ['ok' => false, 'error' => 'WhatsApp access token or phone number ID is not configured.'];
     }
 
+    if (!function_exists('curl_init')) {
+        return ['ok' => false, 'error' => 'PHP cURL extension is not enabled on the server.'];
+    }
+
     $url = sprintf(
         'https://graph.facebook.com/%s/%s/messages',
         rawurlencode($cfg['api_version']),
@@ -221,6 +225,9 @@ function whatsapp_graph_get(string $path, array $query = []): array
     if ($token === '') {
         return ['ok' => false, 'error' => 'Access token not configured.'];
     }
+    if (!function_exists('curl_init')) {
+        return ['ok' => false, 'error' => 'PHP cURL extension is not enabled on the server.'];
+    }
     $qs = $query !== [] ? ('?' . http_build_query($query)) : '';
     $url = 'https://graph.facebook.com/' . rawurlencode($cfg['api_version']) . '/' . ltrim($path, '/') . $qs;
     $ch = curl_init($url);
@@ -241,18 +248,57 @@ function whatsapp_graph_get(string $path, array $query = []): array
 }
 
 /**
- * @return list<array{name:string,language:string,status:string,category:string}>
+ * @return array{
+ *   ok:bool,
+ *   templates:list<array{name:string,language:string,status:string,category:string}>,
+ *   error?:string,
+ *   waba_id?:string
+ * }
  */
-function whatsapp_fetch_message_templates(): array
+function whatsapp_fetch_message_templates_result(): array
 {
     $waba = whatsapp_waba_id();
     if ($waba === '') {
-        return [];
+        return [
+            'ok' => false,
+            'templates' => [],
+            'error' => 'WhatsApp Business Account ID (waba_id) is not set. Add whatsapp.waba_id in private digital_creators_config.php (Meta → WhatsApp → API Setup → WhatsApp Business Account ID).',
+            'waba_id' => '',
+        ];
     }
+
+    $token = trim(whatsapp_cloud_config()['access_token']);
+    if ($token === '') {
+        return [
+            'ok' => false,
+            'templates' => [],
+            'error' => 'Access token is missing in config.',
+            'waba_id' => $waba,
+        ];
+    }
+
     $res = whatsapp_graph_get($waba . '/message_templates', ['limit' => 100]);
-    if (!$res['ok'] || !is_array($res['data']['data'] ?? null)) {
-        return [];
+    if (!$res['ok']) {
+        $msg = (string) ($res['error'] ?? 'Graph API request failed.');
+        if (stripos($msg, 'permission') !== false || stripos($msg, '(#200)') !== false) {
+            $msg .= ' Generate a System User token with whatsapp_business_management (and whatsapp_business_messaging).';
+        }
+        if (stripos($msg, 'does not exist') !== false || stripos($msg, '(#100)') !== false) {
+            $msg .= ' Check that waba_id matches the WABA linked to this app and phone number.';
+        }
+
+        return ['ok' => false, 'templates' => [], 'error' => $msg, 'waba_id' => $waba];
     }
+
+    if (!is_array($res['data']['data'] ?? null)) {
+        return [
+            'ok' => false,
+            'templates' => [],
+            'error' => 'Meta returned no template list (empty data). Create templates in WhatsApp Manager → Message templates.',
+            'waba_id' => $waba,
+        ];
+    }
+
     $out = [];
     foreach ($res['data']['data'] as $tpl) {
         if (!is_array($tpl)) {
@@ -271,7 +317,26 @@ function whatsapp_fetch_message_templates(): array
         ];
     }
 
-    return $out;
+    if ($out === []) {
+        return [
+            'ok' => true,
+            'templates' => [],
+            'error' => 'API OK but no templates found for this WABA. Add templates in Meta Business Suite / WhatsApp Manager.',
+            'waba_id' => $waba,
+        ];
+    }
+
+    return ['ok' => true, 'templates' => $out, 'waba_id' => $waba];
+}
+
+/**
+ * @return list<array{name:string,language:string,status:string,category:string}>
+ */
+function whatsapp_fetch_message_templates(): array
+{
+    $result = whatsapp_fetch_message_templates_result();
+
+    return $result['templates'];
 }
 
 /**

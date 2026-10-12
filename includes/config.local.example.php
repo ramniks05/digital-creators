@@ -27,5 +27,7 @@ return [
         'api_version' => getenv('WHATSAPP_API_VERSION') ?: 'v21.0',
         'default_template' => 'hello_world',
         'default_template_language' => 'en_US',
+        // WhatsApp Business Account ID — Meta → WhatsApp → API Setup (for template list in admin).
+        'waba_id' => getenv('WHATSAPP_WABA_ID') ?: '',
     ],
 ];
