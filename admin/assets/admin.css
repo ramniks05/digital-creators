@@ -129,6 +129,22 @@ th { color: #64748b; font-size: 0.75rem; text-transform: uppercase; letter-spaci
 .badge-new { background: #dbeafe; color: #1e40af; }
 .badge-read { background: #e2e8f0; color: #475569; }
 .badge-archived { background: #f1f5f9; color: #94a3b8; }
+.wa-badge-sent { background: #dbeafe; color: #1e40af; }
+.wa-badge-delivered { background: #dcfce7; color: #166534; }
+.wa-badge-read { background: #d1fae5; color: #047857; }
+.wa-badge-failed { background: #fee2e2; color: #991b1b; }
+.wa-badge-pending { background: #fef3c7; color: #92400e; }
+.wa-pre {
+  margin: 0;
+  padding: 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
 .thumb { width: 48px; height: 48px; object-fit: cover; border-radius: 8px; border: 1px solid #e2e8f0; }
 .muted { color: #64748b; font-size: 0.85rem; }
 .checkbox-row { display: flex; align-items: center; gap: 8px; }

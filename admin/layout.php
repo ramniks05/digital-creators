@@ -14,6 +14,7 @@ function admin_header(string $title, string $active = ''): void
         'blog.php' => 'Blog',
         'testimonials.php' => 'Testimonials',
         'leads.php' => 'Leads',
+        'whatsapp.php' => 'WhatsApp',
         'settings.php' => 'Settings',
     ];
     ?>
