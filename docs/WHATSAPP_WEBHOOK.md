@@ -77,7 +77,7 @@ Tables:
 
 1. Open [Meta for Developers](https://developers.facebook.com/) → your app.
 2. **WhatsApp** → **Configuration** (or **Webhooks**).
-3. **Callback URL**: `https://digitalcreatorss.com/webhook/whatsapp.php`
+3. **Callback URL**: `https://digitalcreatorss.com/webhook/whatsapp` (use extensionless URL on Hostinger; `.php` may 302)
 4. **Verify token**: same value as `WHATSAPP_WEBHOOK_VERIFY_TOKEN` on the server.
 5. Click **Verify and save**.
 6. Subscribe to the **`messages`** field (incoming messages + status updates).

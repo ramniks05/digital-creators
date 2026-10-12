@@ -2,7 +2,8 @@
 /**
  * Meta WhatsApp Cloud API webhook endpoint.
  *
- * Public URL: https://yourdomain.com/webhook/whatsapp.php
+ * Public URL: https://yourdomain.com/webhook/whatsapp
+ * (Hostinger may 302 from whatsapp.php to the extensionless path.)
  */
 declare(strict_types=1);
 
