@@ -44,18 +44,30 @@ function whatsapp_app_secret_configured(): bool
 /**
  * Meta GET webhook verification (hub.mode, hub.verify_token, hub.challenge).
  */
+function whatsapp_webhook_query(string $underscoreKey, string $dottedKey): string
+{
+    if (isset($_GET[$underscoreKey])) {
+        return trim((string) $_GET[$underscoreKey]);
+    }
+    if (isset($_GET[$dottedKey])) {
+        return trim((string) $_GET[$dottedKey]);
+    }
+
+    return '';
+}
+
 function whatsapp_handle_verification_request(): void
 {
-    $mode = isset($_GET['hub_mode']) ? (string) $_GET['hub_mode'] : '';
-    $token = isset($_GET['hub_verify_token']) ? (string) $_GET['hub_verify_token'] : '';
-    $challenge = isset($_GET['hub_challenge']) ? (string) $_GET['hub_challenge'] : '';
+    $mode = whatsapp_webhook_query('hub_mode', 'hub.mode');
+    $token = whatsapp_webhook_query('hub_verify_token', 'hub.verify_token');
+    $challenge = whatsapp_webhook_query('hub_challenge', 'hub.challenge');
 
     if ($mode !== 'subscribe' || $challenge === '') {
         http_response_code(403);
         exit;
     }
 
-    $expected = whatsapp_cloud_config()['webhook_verify_token'];
+    $expected = trim(whatsapp_cloud_config()['webhook_verify_token']);
     if ($expected === '' || !hash_equals($expected, $token)) {
         http_response_code(403);
         exit;
