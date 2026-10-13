@@ -51,8 +51,8 @@ Example private config:
 'business_enquiry' => [
     'enabled' => true,
     'form_welcome_enabled' => true,
-    'form_welcome_template' => 'digital_creatorss_intro', // must be APPROVED on WABA
-    'form_welcome_language' => 'en_US',
+    'form_welcome_template' => 'enquiry_thank_you', // APPROVED on WABA (English)
+    'form_welcome_language' => 'en',
     'inbound_welcome_enabled' => true,
     'whatsapp_ack' => true,
 ],

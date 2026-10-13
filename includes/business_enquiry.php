@@ -154,8 +154,9 @@ function business_enquiry_config(): array
 
     $config = require __DIR__ . '/config.php';
     $waRoot = $config['whatsapp'] ?? [];
-    $defaultTpl = trim((string) ($waRoot['default_template'] ?? 'hello_world'));
-    $defaultLang = trim((string) ($waRoot['default_template_language'] ?? 'en_US'));
+    $beRoot = is_array($waRoot['business_enquiry'] ?? null) ? $waRoot['business_enquiry'] : [];
+    $defaultTpl = trim((string) ($waRoot['form_welcome_template'] ?? $beRoot['form_welcome_template'] ?? 'enquiry_thank_you'));
+    $defaultLang = trim((string) ($waRoot['form_welcome_language'] ?? $beRoot['form_welcome_language'] ?? 'en'));
 
     $inboundWelcome = trim((string) ($be['inbound_welcome_message'] ?? getenv('DC_ENQUIRY_WELCOME_MESSAGE') ?: ''));
     if ($inboundWelcome === '') {
