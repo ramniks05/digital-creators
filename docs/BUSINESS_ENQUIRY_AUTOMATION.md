@@ -57,6 +57,15 @@ Customer can reply **services** / **menu** to receive the list (when automation 
 - **STOP** still opts out via `whatsapp_automation.php`.
 - Staff notifications use `allowOutsideServiceWindow` for your internal numbers only — configure staff IDs you control.
 
+## Public WhatsApp number (+91 83681 42191 / Cloud API)
+
+Website `wa.me` buttons use **`whatsapp_public_chat_digits()`** — by default the **Meta Cloud API display phone** (same as webhook inbox).
+
+1. In private config, set `phone_number_id` and token for the **8368142191** business line.
+2. Admin → **Settings** shows resolved Graph number and test `wa.me` link.
+3. Optional override: `WHATSAPP_PUBLIC_NUMBER=918368142191` or `'public_number' => '918368142191'` in private config.
+4. Clear stale cache if needed: delete `private/wa_display_phone.cache.json` on the server.
+
 ## Deploy
 
 ```bash

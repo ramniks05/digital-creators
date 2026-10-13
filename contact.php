@@ -557,7 +557,7 @@ CSS;
                 const serviceName = serviceLabels[service] || service;
 
                 const waMessage = `Hello Digital Creatorss,\n\nI have submitted a query through the website. Here are my details:\n• Name: ${name}\n• Email: ${email}\n• Phone: ${phone}\n• Service: ${serviceName}\n• Message: ${message}\n• Estimated Budget: ${budgetText}\n\nPlease get back to me.`;
-                const whatsappUrl = `https://wa.me/${window.DC_WHATSAPP || '918851613806'}?text=${encodeURIComponent(waMessage)}`;
+                const whatsappUrl = `https://wa.me/${window.DC_WHATSAPP || '918368142191'}?text=${encodeURIComponent(waMessage)}`;
 
                 // Redirect the pre-opened tab to WhatsApp
                 if (newTab) {

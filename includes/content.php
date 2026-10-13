@@ -380,5 +380,7 @@ function phone_tel(): string
 
 function whatsapp_number(): string
 {
-    return preg_replace('/\D+/', '', setting('whatsapp', '918851613806')) ?: '918851613806';
+    require_once __DIR__ . '/whatsapp_public_number.php';
+
+    return whatsapp_public_chat_digits();
 }

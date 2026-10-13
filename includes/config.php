@@ -26,6 +26,9 @@ $config = [
         'default_template' => getenv('WHATSAPP_DEFAULT_TEMPLATE') ?: 'hello_world',
         'default_template_language' => getenv('WHATSAPP_DEFAULT_TEMPLATE_LANG') ?: 'en_US',
         'waba_id' => getenv('WHATSAPP_WABA_ID') ?: '',
+        // wa.me links: use Meta Cloud display number when set (see whatsapp_public_number.php)
+        'public_number' => getenv('WHATSAPP_PUBLIC_NUMBER') ?: '',
+        'prefer_cloud_public_number' => filter_var(getenv('WHATSAPP_PREFER_CLOUD_NUMBER') ?: '1', FILTER_VALIDATE_BOOLEAN),
         // Automatic replies are disabled by default (enable only when ready for production).
         'automation' => [
             'enabled' => filter_var(getenv('WHATSAPP_AUTO_REPLY') ?: '0', FILTER_VALIDATE_BOOLEAN),
