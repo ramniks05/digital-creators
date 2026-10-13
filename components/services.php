@@ -59,6 +59,8 @@ $default_icons = ['code-2', 'layout-dashboard', 'cloud-cog', 'server', 'shield-c
       <?php endforeach; ?>
     </div>
 
+    <?php include __DIR__ . '/whatsapp_service_spotlight.php'; ?>
+
     <div class="flex justify-center mt-5 sm:mt-6">
       <a href="services.php" class="btn-secondary text-sm py-2.5 px-5">
         View all services <i data-lucide="arrow-right" class="w-4 h-4"></i>

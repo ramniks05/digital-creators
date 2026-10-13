@@ -275,6 +275,22 @@
         );
       }
 
+      if (document.querySelector('.wa-service-spotlight')) {
+        gsap.fromTo('.wa-service-spotlight',
+          { y: 26, opacity: 0 },
+          {
+            scrollTrigger: {
+              trigger: '.wa-service-spotlight',
+              start: 'top 88%',
+            },
+            y: 0,
+            opacity: 1,
+            duration: 0.65,
+            ease: 'power2.out'
+          }
+        );
+      }
+
       // Why Choose Us: header
       if (document.querySelector('.why-header')) {
         gsap.fromTo('.why-header > *',

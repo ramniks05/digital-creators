@@ -2237,6 +2237,195 @@ a.footer-contact-card:hover {
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 
+/* Homepage — WhatsApp Business API spotlight (inside Services) */
+.wa-service-spotlight-inner {
+  position: relative;
+  border-radius: 1rem;
+  padding: 1.15rem 1.15rem 1.25rem;
+  background: linear-gradient(
+    135deg,
+    rgba(37, 211, 102, 0.07) 0%,
+    rgba(255, 255, 255, 0.95) 38%,
+    rgba(253, 126, 20, 0.05) 100%
+  );
+  border: 1px solid rgba(18, 140, 126, 0.22);
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.04),
+    0 14px 32px -22px rgba(18, 140, 126, 0.35);
+  overflow: hidden;
+}
+
+.wa-service-spotlight-inner::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: linear-gradient(180deg, #25d366 0%, #128c7e 55%, rgba(253, 126, 20, 0.85) 100%);
+  pointer-events: none;
+}
+
+.wa-service-spotlight-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+  align-items: center;
+}
+
+@media (min-width: 1024px) {
+  .wa-service-spotlight-grid {
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+    gap: 1.75rem;
+    padding-left: 0.35rem;
+  }
+
+  .wa-service-spotlight-inner {
+    padding: 1.35rem 1.5rem 1.4rem 1.25rem;
+  }
+}
+
+.wa-spotlight-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.65rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  border-radius: 9999px;
+  color: #0f5132;
+  background: rgba(37, 211, 102, 0.14);
+  border: 1px solid rgba(18, 140, 126, 0.28);
+}
+
+.wa-spotlight-dot {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 9999px;
+  background: #25d366;
+  box-shadow: 0 0 0 3px rgba(37, 211, 102, 0.25);
+  flex-shrink: 0;
+}
+
+.wa-spotlight-features {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.wa-spotlight-features li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--color-text-secondary);
+}
+
+.wa-spotlight-features li i {
+  margin-top: 0.1rem;
+  color: #128c7e;
+}
+
+.wa-chat-preview {
+  border-radius: 0.875rem;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 8px 24px -16px rgba(15, 23, 42, 0.28);
+  overflow: hidden;
+  max-width: 22rem;
+  margin-inline: auto;
+}
+
+@media (min-width: 1024px) {
+  .wa-chat-preview {
+    margin-inline: 0 0.25rem;
+    margin-left: auto;
+  }
+}
+
+.wa-chat-preview-header {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.65rem 0.85rem;
+  background: linear-gradient(90deg, rgba(37, 211, 102, 0.12), rgba(248, 249, 250, 0.9));
+  border-bottom: 1px solid #e8eef5;
+}
+
+.wa-chat-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 9999px;
+  background: #dcf8c6;
+  color: #128c7e;
+  flex-shrink: 0;
+}
+
+.wa-chat-preview-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.85rem;
+  background: #ece5dd;
+  min-height: 7.5rem;
+}
+
+.wa-bubble {
+  max-width: 92%;
+  padding: 0.45rem 0.65rem;
+  border-radius: 0.55rem;
+  font-size: 0.6875rem;
+  line-height: 1.35;
+  box-shadow: 0 1px 1px rgba(15, 23, 42, 0.06);
+}
+
+.wa-bubble-in {
+  align-self: flex-start;
+  background: #ffffff;
+  color: var(--color-text-primary);
+  border-top-left-radius: 0.15rem;
+}
+
+.wa-bubble-out {
+  align-self: flex-end;
+  background: #dcf8c6;
+  color: #1e3a2f;
+  border-top-right-radius: 0.15rem;
+}
+
+.wa-bubble-muted {
+  font-size: 0.625rem;
+  color: var(--color-text-muted);
+  border: 1px dashed rgba(18, 140, 126, 0.35);
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.wa-chat-footnote {
+  margin: 0;
+  padding: 0.45rem 0.75rem 0.55rem;
+  font-size: 0.625rem;
+  color: var(--color-text-muted);
+  text-align: center;
+  background: #f8f9fa;
+  border-top: 1px solid #eef2f6;
+}
+
+.wa-service-spotlight-inner:hover {
+  border-color: rgba(18, 140, 126, 0.35);
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.05),
+    0 18px 36px -20px rgba(18, 140, 126, 0.4);
+}
+
 /* Why Partner With Us */
 .why-section .why-header {
   margin-bottom: clamp(1.75rem, 3vw, 2.5rem);
