@@ -11,7 +11,7 @@ echo "PHP default timezone: " . date_default_timezone_get() . PHP_EOL;
 echo "PHP now:              " . date('Y-m-d H:i:s T') . PHP_EOL;
 
 try {
-    $pdo = db();
+    $pdo = db(); // config + timezone loaded via includes/db.php
     $row = $pdo->query("SELECT NOW() AS db_now, @@session.time_zone AS session_tz")->fetch(PDO::FETCH_ASSOC);
     if (is_array($row)) {
         echo "MySQL NOW():          " . ($row['db_now'] ?? '?') . PHP_EOL;

@@ -2,6 +2,8 @@
 /**
  * PDO singleton for MySQL.
  */
+require_once __DIR__ . '/app_config.php';
+
 function db(): PDO
 {
     static $pdo = null;
@@ -9,7 +11,7 @@ function db(): PDO
         return $pdo;
     }
 
-    $config = require __DIR__ . '/config.php';
+    $config = app_config();
     $c = $config['db'];
     $dsn = sprintf(
         'mysql:host=%s;port=%s;dbname=%s;charset=%s',
