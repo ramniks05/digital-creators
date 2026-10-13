@@ -49,6 +49,15 @@ Secrets must **not** be committed. Use either:
 | Phone Number ID | `WHATSAPP_PHONE_NUMBER_ID` | Outbound + metadata matching |
 | WABA ID | `WHATSAPP_WABA_ID` | Optional; lists approved templates in admin (not required for webhooks/chats) |
 | API version | `WHATSAPP_API_VERSION` | Optional, default `v21.0` |
+| Auto-reply master switch | `WHATSAPP_AUTO_REPLY` | Default **off** (`0` / false) |
+| Welcome on Hi/Hello | `WHATSAPP_WELCOME_HI` | Default **off**; requires auto-reply enabled |
+| Welcome message text | `WHATSAPP_WELCOME_MESSAGE` | Optional override |
+| Opt-out confirmation | `WHATSAPP_OPT_OUT_CONFIRM` | Default **off**; optional text after STOP |
+| Opt-out confirmation text | `WHATSAPP_OPT_OUT_MESSAGE` | Optional override |
+
+Private config can nest under `'whatsapp' => ['automation' => [...]]` — see `includes/whatsapp_automation.php`.
+
+Production security checklist: `docs/WHATSAPP_PRODUCTION_SECURITY.md`.
 
 Example private PHP override:
 

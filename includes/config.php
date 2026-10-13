@@ -26,6 +26,14 @@ $config = [
         'default_template' => getenv('WHATSAPP_DEFAULT_TEMPLATE') ?: 'hello_world',
         'default_template_language' => getenv('WHATSAPP_DEFAULT_TEMPLATE_LANG') ?: 'en_US',
         'waba_id' => getenv('WHATSAPP_WABA_ID') ?: '',
+        // Automatic replies are disabled by default (enable only when ready for production).
+        'automation' => [
+            'enabled' => filter_var(getenv('WHATSAPP_AUTO_REPLY') ?: '0', FILTER_VALIDATE_BOOLEAN),
+            'welcome_hi_enabled' => filter_var(getenv('WHATSAPP_WELCOME_HI') ?: '0', FILTER_VALIDATE_BOOLEAN),
+            'welcome_hi_message' => getenv('WHATSAPP_WELCOME_MESSAGE') ?: '',
+            'opt_out_confirm_enabled' => filter_var(getenv('WHATSAPP_OPT_OUT_CONFIRM') ?: '0', FILTER_VALIDATE_BOOLEAN),
+            'opt_out_confirm_message' => getenv('WHATSAPP_OPT_OUT_MESSAGE') ?: '',
+        ],
     ],
 ];
 

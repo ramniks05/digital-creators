@@ -213,14 +213,18 @@ function whatsapp_extract_media_meta(array $message): ?array
     return $meta;
 }
 
-function whatsapp_process_webhook_payload(array $payload, PDO $pdo): void
+/**
+ * @return list<array{from:string,wamid:string,body:?string,type:string}>
+ */
+function whatsapp_process_webhook_payload(array $payload, PDO $pdo): array
 {
+    $newInbound = [];
     if (($payload['object'] ?? '') !== 'whatsapp_business_account') {
-        return;
+        return $newInbound;
     }
     $entries = $payload['entry'] ?? [];
     if (!is_array($entries)) {
-        return;
+        return $newInbound;
     }
 
     foreach ($entries as $entry) {
@@ -251,10 +255,15 @@ function whatsapp_process_webhook_payload(array $payload, PDO $pdo): void
                 : null;
 
             $contactNames = whatsapp_contact_name_map($value['contacts'] ?? []);
-            whatsapp_process_inbound_messages($pdo, $wabaId, $phoneNumberId, $value['messages'] ?? [], $contactNames);
+            $newInbound = array_merge(
+                $newInbound,
+                whatsapp_process_inbound_messages($pdo, $wabaId, $phoneNumberId, $value['messages'] ?? [], $contactNames)
+            );
             whatsapp_process_status_updates($pdo, $wabaId, $phoneNumberId, $value['statuses'] ?? []);
         }
     }
+
+    return $newInbound;
 }
 
 /**
@@ -288,10 +297,14 @@ function whatsapp_contact_name_map($contacts): array
  * @param mixed $messages
  * @param array<string, string> $contactNames
  */
-function whatsapp_process_inbound_messages(PDO $pdo, ?string $wabaId, ?string $phoneNumberId, $messages, array $contactNames = []): void
+/**
+ * @return list<array{from:string,wamid:string,body:?string,type:string}>
+ */
+function whatsapp_process_inbound_messages(PDO $pdo, ?string $wabaId, ?string $phoneNumberId, $messages, array $contactNames = []): array
 {
+    $newInbound = [];
     if (!is_array($messages)) {
-        return;
+        return $newInbound;
     }
 
     foreach ($messages as $message) {
@@ -348,7 +361,16 @@ function whatsapp_process_inbound_messages(PDO $pdo, ?string $wabaId, ?string $p
             require_once __DIR__ . '/whatsapp_contacts.php';
             whatsapp_contact_touch_inbound($pdo, $from, $contactName);
         }
+
+        $newInbound[] = [
+            'from' => $from,
+            'wamid' => $wamid,
+            'body' => $body,
+            'type' => $type,
+        ];
     }
+
+    return $newInbound;
 }
 
 /**
@@ -446,8 +468,11 @@ function whatsapp_process_status_updates(PDO $pdo, ?string $wabaId, ?string $pho
 
 function whatsapp_handle_webhook_post(string $rawBody): void
 {
+    require_once __DIR__ . '/whatsapp_webhook_diagnostics.php';
+
     if (!whatsapp_app_secret_configured()) {
         error_log('WhatsApp webhook: META_APP_SECRET is not configured.');
+        whatsapp_webhook_trace(['event' => 'post', 'result' => '500', 'reason' => 'app_secret_missing']);
         http_response_code(500);
         exit;
     }
@@ -458,33 +483,75 @@ function whatsapp_handle_webhook_post(string $rawBody): void
     }
 
     if (!whatsapp_verify_signature($rawBody, $sig)) {
+        error_log('WhatsApp webhook POST: signature verification failed (check META_APP_SECRET matches Meta App → Basic).');
+        whatsapp_webhook_trace([
+            'event' => 'post',
+            'result' => '403',
+            'reason' => 'signature_failed',
+            'signature_header_present' => $sig !== null && $sig !== '',
+        ]);
         http_response_code(403);
         exit;
     }
 
     if ($rawBody === '') {
+        whatsapp_webhook_trace(['event' => 'post', 'result' => '400', 'reason' => 'empty_body']);
         http_response_code(400);
         exit;
     }
 
     $payload = json_decode($rawBody, true);
     if (!is_array($payload)) {
+        whatsapp_webhook_trace(['event' => 'post', 'result' => '400', 'reason' => 'invalid_json']);
         http_response_code(400);
         exit;
     }
 
+    $stats = whatsapp_webhook_payload_stats($payload);
+
+    $newInbound = [];
     try {
         $pdo = db();
         $pdo->beginTransaction();
-        whatsapp_process_webhook_payload($payload, $pdo);
+        $newInbound = whatsapp_process_webhook_payload($payload, $pdo);
         $pdo->commit();
     } catch (Throwable $e) {
         if (isset($pdo) && $pdo instanceof PDO && $pdo->inTransaction()) {
             $pdo->rollBack();
         }
         error_log('WhatsApp webhook processing failed: ' . $e->getMessage());
+        whatsapp_webhook_trace([
+            'event' => 'post',
+            'result' => '500',
+            'reason' => 'db_or_exception',
+            'exception' => substr($e->getMessage(), 0, 120),
+            'messages' => $stats['messages'],
+            'statuses' => $stats['statuses'],
+            'fields' => implode(',', $stats['fields']),
+        ]);
         http_response_code(500);
         exit;
+    }
+
+    whatsapp_log_event('webhook_post_ok', [
+        'result' => '200',
+        'messages' => $stats['messages'],
+        'statuses' => $stats['statuses'],
+        'fields' => implode(',', $stats['fields']),
+        'object' => $stats['object'],
+        'phone_number_id' => $stats['phone_number_id'] ?? '',
+        'new_inbound' => count($newInbound),
+    ]);
+
+    if ($newInbound !== [] && is_file(__DIR__ . '/whatsapp_automation.php')) {
+        require_once __DIR__ . '/whatsapp_automation.php';
+        try {
+            whatsapp_automation_after_inbound($pdo, $newInbound);
+        } catch (Throwable $e) {
+            whatsapp_log_event('automation_error', [
+                'error' => substr($e->getMessage(), 0, 120),
+            ]);
+        }
     }
 
     http_response_code(200);
