@@ -37,6 +37,29 @@ Or environment variables:
 - `DC_ENQUIRY_STAFF_WA_IDS=917903152429`
 - `DC_ENQUIRY_STAFF_NOTIFY=1`
 
+### Welcome / auto-reply
+
+| Trigger | How | Template? |
+|---------|-----|-----------|
+| **WhatsApp message** (Hi or short text) | Text welcome (`inbound_welcome_message`) | No — 24h window |
+| **WhatsApp message** (long enquiry) | Text ack with detected service | No |
+| **Website form submit** | Approved **Meta template** to customer phone | **Yes** — configure `form_welcome_template` |
+
+Example private config:
+
+```php
+'business_enquiry' => [
+    'enabled' => true,
+    'form_welcome_enabled' => true,
+    'form_welcome_template' => 'digital_creatorss_intro', // must be APPROVED on WABA
+    'form_welcome_language' => 'en_US',
+    'inbound_welcome_enabled' => true,
+    'whatsapp_ack' => true,
+],
+```
+
+Template variables are filled automatically: **{{1}}** = first name, **{{2}}** = service name (if the template has 2 body params). Use Admin → WhatsApp → Templates to confirm param count. For zero-param templates use `hello_world`.
+
 ## Database
 
 ```bash

@@ -110,7 +110,12 @@ function business_enquiry_detect_service(?string $text, ?string $hintSlug = null
  *   whatsapp_ack:bool,
  *   staff_notify:bool,
  *   staff_wa_ids:list<string>,
- *   services_menu_enabled:bool
+ *   services_menu_enabled:bool,
+ *   form_welcome_enabled:bool,
+ *   form_welcome_template:string,
+ *   form_welcome_language:string,
+ *   inbound_welcome_enabled:bool,
+ *   inbound_welcome_message:string
  * }
  */
 function business_enquiry_config(): array
@@ -147,6 +152,16 @@ function business_enquiry_config(): array
         $staff = array_values(array_unique($staff));
     }
 
+    $config = require __DIR__ . '/config.php';
+    $waRoot = $config['whatsapp'] ?? [];
+    $defaultTpl = trim((string) ($waRoot['default_template'] ?? 'hello_world'));
+    $defaultLang = trim((string) ($waRoot['default_template_language'] ?? 'en_US'));
+
+    $inboundWelcome = trim((string) ($be['inbound_welcome_message'] ?? getenv('DC_ENQUIRY_WELCOME_MESSAGE') ?: ''));
+    if ($inboundWelcome === '') {
+        $inboundWelcome = 'Hi! Thanks for messaging Digital Creatorss. We received your message and our team will reply within 24 hours. Reply STOP to opt out of marketing.';
+    }
+
     $cached = [
         'enabled' => $bool($be['enabled'] ?? getenv('DC_ENQUIRY_AUTOMATION') ?: false, false),
         'whatsapp_leads' => $bool($be['whatsapp_leads'] ?? getenv('DC_ENQUIRY_WHATSAPP_LEADS') ?: true, true),
@@ -154,6 +169,11 @@ function business_enquiry_config(): array
         'staff_notify' => $bool($be['staff_notify'] ?? getenv('DC_ENQUIRY_STAFF_NOTIFY') ?: false, false),
         'staff_wa_ids' => $staff,
         'services_menu_enabled' => $bool($be['services_menu_enabled'] ?? getenv('DC_ENQUIRY_SERVICES_MENU') ?: true, true),
+        'form_welcome_enabled' => $bool($be['form_welcome_enabled'] ?? getenv('DC_ENQUIRY_FORM_WELCOME') ?: true, true),
+        'form_welcome_template' => trim((string) ($be['form_welcome_template'] ?? getenv('DC_ENQUIRY_FORM_TEMPLATE') ?: $defaultTpl)),
+        'form_welcome_language' => trim((string) ($be['form_welcome_language'] ?? getenv('DC_ENQUIRY_FORM_TEMPLATE_LANG') ?: $defaultLang)),
+        'inbound_welcome_enabled' => $bool($be['inbound_welcome_enabled'] ?? getenv('DC_ENQUIRY_INBOUND_WELCOME') ?: true, true),
+        'inbound_welcome_message' => $inboundWelcome,
     ];
 
     return $cached;
@@ -239,6 +259,117 @@ function business_enquiry_after_website_form(int $leadId, array $data): void
         . 'Message: ' . $snippet;
 
     business_enquiry_notify_staff($text, 'form:' . $leadId);
+
+    business_enquiry_send_form_welcome_whatsapp($leadId, $data);
+}
+
+/**
+ * @param array{name:string,email:string,phone:string,service:string,message:string,budget:string} $data
+ */
+function business_enquiry_send_form_welcome_whatsapp(int $leadId, array $data): void
+{
+    $cfg = business_enquiry_config();
+    if (!$cfg['enabled'] || !$cfg['form_welcome_enabled']) {
+        return;
+    }
+
+    require_once __DIR__ . '/whatsapp_send.php';
+    require_once __DIR__ . '/whatsapp_cloud.php';
+
+    $phone = whatsapp_normalize_recipient((string) ($data['phone'] ?? ''));
+    if ($phone === '') {
+        return;
+    }
+
+    if (whatsapp_contacts_table_exists(db())) {
+        $status = business_enquiry_contact_status($phone);
+        if ($status === 'opted_out') {
+            return;
+        }
+    }
+
+    $pdo = db();
+    $dedupeKey = 'form_welcome:lead:' . $leadId;
+    try {
+        $pdo->beginTransaction();
+        if (!whatsapp_register_dedupe($pdo, $dedupeKey, 'form_welcome')) {
+            $pdo->commit();
+
+            return;
+        }
+        $pdo->commit();
+    } catch (Throwable $e) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+
+        return;
+    }
+
+    $template = $cfg['form_welcome_template'];
+    $lang = $cfg['form_welcome_language'];
+    $params = business_enquiry_template_params_for_data($template, $lang, $data);
+
+    $result = whatsapp_send_template_message($phone, $template, $lang, [], $params);
+    if (!$result['ok']) {
+        whatsapp_log_event('form_welcome_failed', [
+            'lead_id' => $leadId,
+            'phone_masked' => whatsapp_mask_wa_id($phone),
+            'template' => $template,
+            'error' => substr((string) ($result['error'] ?? ''), 0, 200),
+        ]);
+
+        return;
+    }
+
+    whatsapp_log_event('form_welcome_sent', [
+        'lead_id' => $leadId,
+        'phone_masked' => whatsapp_mask_wa_id($phone),
+        'template' => $template,
+        'wa_message_id' => (string) ($result['wa_message_id'] ?? ''),
+    ]);
+}
+
+function business_enquiry_contact_status(string $waId): string
+{
+    $pdo = db();
+    if (!whatsapp_contacts_table_exists($pdo)) {
+        return 'unknown';
+    }
+    $waId = whatsapp_normalize_recipient($waId);
+    $stmt = $pdo->prepare('SELECT consent_status FROM whatsapp_contacts WHERE wa_id = ? LIMIT 1');
+    $stmt->execute([$waId]);
+    $s = $stmt->fetchColumn();
+
+    return is_string($s) && $s !== '' ? $s : 'unknown';
+}
+
+/**
+ * Map lead/form data to template variable values (positional order).
+ *
+ * @param array{name?:string,service?:string,message?:string} $data
+ * @return list<string>
+ */
+function business_enquiry_template_params_for_data(string $templateName, string $languageCode, array $data): array
+{
+    require_once __DIR__ . '/whatsapp_send.php';
+    $def = whatsapp_lookup_template_definition($templateName, $languageCode);
+    if ($def === null) {
+        return [];
+    }
+    $parameterFormat = strtolower((string) ($def['parameter_format'] ?? ''));
+    $slots = $def['param_slots'] ?? whatsapp_template_param_slots($def['components'] ?? [], $parameterFormat);
+    $needed = count($slots);
+    if ($needed === 0) {
+        return [];
+    }
+
+    $name = trim((string) ($data['name'] ?? 'Customer'));
+    $first = trim(explode(' ', $name)[0] ?: 'Customer');
+    $service = business_enquiry_service_label((string) ($data['service'] ?? 'our services'));
+    $pool = [$first, $service, $name, 'Digital Creatorss'];
+
+    return array_slice($pool, 0, $needed);
 }
 
 function business_enquiry_notify_staff(string $text, string $dedupeSuffix): void
@@ -352,7 +483,14 @@ function business_enquiry_process_whatsapp_inbound(PDO $pdo, array $row): bool
         return true;
     }
 
-    if ($cfg['whatsapp_ack']) {
+    require_once __DIR__ . '/whatsapp_automation.php';
+    $isShortOrGreeting = mb_strlen(trim($body), 'UTF-8') < 8
+        || whatsapp_automation_is_welcome_trigger($body);
+
+    if ($cfg['inbound_welcome_enabled'] && $isShortOrGreeting) {
+        whatsapp_automation_send_once($pdo, $from, $wamid, 'inbound_welcome', $cfg['inbound_welcome_message']);
+        $sentReply = true;
+    } elseif ($cfg['whatsapp_ack']) {
         $detected = business_enquiry_detect_service($body);
         $serviceLabel = $detected['label'] ?? 'your project';
         $ack = "Thank you for contacting Digital Creatorss. We received your enquiry about {$serviceLabel}. "

@@ -44,6 +44,10 @@ $config = [
             'staff_notify' => filter_var(getenv('DC_ENQUIRY_STAFF_NOTIFY') ?: '0', FILTER_VALIDATE_BOOLEAN),
             'staff_wa_ids' => getenv('DC_ENQUIRY_STAFF_WA_IDS') ?: '',
             'services_menu_enabled' => filter_var(getenv('DC_ENQUIRY_SERVICES_MENU') ?: '1', FILTER_VALIDATE_BOOLEAN),
+            'form_welcome_enabled' => filter_var(getenv('DC_ENQUIRY_FORM_WELCOME') ?: '1', FILTER_VALIDATE_BOOLEAN),
+            'form_welcome_template' => getenv('DC_ENQUIRY_FORM_TEMPLATE') ?: '',
+            'form_welcome_language' => getenv('DC_ENQUIRY_FORM_TEMPLATE_LANG') ?: '',
+            'inbound_welcome_enabled' => filter_var(getenv('DC_ENQUIRY_INBOUND_WELCOME') ?: '1', FILTER_VALIDATE_BOOLEAN),
         ],
     ],
 ];
