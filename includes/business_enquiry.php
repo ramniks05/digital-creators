@@ -246,20 +246,18 @@ function business_enquiry_after_website_form(int $leadId, array $data): void
         'phone_masked' => $phone !== '' ? whatsapp_mask_wa_id($phone) : '',
     ]);
 
-    if (!$cfg['enabled'] || !$cfg['staff_notify'] || $cfg['staff_wa_ids'] === []) {
-        return;
+    if ($cfg['enabled'] && $cfg['staff_notify'] && $cfg['staff_wa_ids'] !== []) {
+        $label = business_enquiry_service_label((string) ($data['service'] ?? ''));
+        $snippet = mb_substr(preg_replace('/\s+/u', ' ', (string) ($data['message'] ?? '')) ?: '', 0, 120);
+        $text = "New website enquiry #{$leadId}\n"
+            . 'Name: ' . ($data['name'] ?? '') . "\n"
+            . 'Service: ' . $label . "\n"
+            . 'Phone: ' . ($data['phone'] ?? '') . "\n"
+            . 'Email: ' . ($data['email'] ?? '') . "\n"
+            . 'Message: ' . $snippet;
+
+        business_enquiry_notify_staff($text, 'form:' . $leadId);
     }
-
-    $label = business_enquiry_service_label((string) ($data['service'] ?? ''));
-    $snippet = mb_substr(preg_replace('/\s+/u', ' ', (string) ($data['message'] ?? '')) ?: '', 0, 120);
-    $text = "New website enquiry #{$leadId}\n"
-        . 'Name: ' . ($data['name'] ?? '') . "\n"
-        . 'Service: ' . $label . "\n"
-        . 'Phone: ' . ($data['phone'] ?? '') . "\n"
-        . 'Email: ' . ($data['email'] ?? '') . "\n"
-        . 'Message: ' . $snippet;
-
-    business_enquiry_notify_staff($text, 'form:' . $leadId);
 
     business_enquiry_send_form_welcome_whatsapp($leadId, $data);
 }
@@ -270,21 +268,39 @@ function business_enquiry_after_website_form(int $leadId, array $data): void
 function business_enquiry_send_form_welcome_whatsapp(int $leadId, array $data): void
 {
     $cfg = business_enquiry_config();
-    if (!$cfg['enabled'] || !$cfg['form_welcome_enabled']) {
+    if (!$cfg['form_welcome_enabled']) {
+        whatsapp_log_event('form_welcome_skipped', ['lead_id' => $leadId, 'reason' => 'form_welcome_disabled']);
+
+        return;
+    }
+    if (!$cfg['enabled']) {
+        whatsapp_log_event('form_welcome_skipped', ['lead_id' => $leadId, 'reason' => 'business_enquiry_disabled']);
+
         return;
     }
 
     require_once __DIR__ . '/whatsapp_send.php';
     require_once __DIR__ . '/whatsapp_cloud.php';
 
+    $waCfg = whatsapp_cloud_config();
+    if (trim($waCfg['access_token']) === '' || trim($waCfg['phone_number_id']) === '') {
+        whatsapp_log_event('form_welcome_skipped', ['lead_id' => $leadId, 'reason' => 'whatsapp_not_configured']);
+
+        return;
+    }
+
     $phone = whatsapp_normalize_recipient((string) ($data['phone'] ?? ''));
     if ($phone === '') {
+        whatsapp_log_event('form_welcome_skipped', ['lead_id' => $leadId, 'reason' => 'invalid_phone']);
+
         return;
     }
 
     if (whatsapp_contacts_table_exists(db())) {
         $status = business_enquiry_contact_status($phone);
         if ($status === 'opted_out') {
+            whatsapp_log_event('form_welcome_skipped', ['lead_id' => $leadId, 'reason' => 'opted_out']);
+
             return;
         }
     }
@@ -308,7 +324,18 @@ function business_enquiry_send_form_welcome_whatsapp(int $leadId, array $data): 
     }
 
     $template = $cfg['form_welcome_template'];
-    $lang = $cfg['form_welcome_language'];
+    $resolved = business_enquiry_resolve_form_welcome_template($template, $cfg['form_welcome_language']);
+    if ($resolved === null) {
+        whatsapp_log_event('form_welcome_failed', [
+            'lead_id' => $leadId,
+            'phone_masked' => whatsapp_mask_wa_id($phone),
+            'template' => $template,
+            'error' => 'Template not found on WABA (check name and language en vs en_US)',
+        ]);
+
+        return;
+    }
+    $lang = $resolved['language'];
     $params = business_enquiry_template_params_for_data($template, $lang, $data);
 
     $result = whatsapp_send_template_message($phone, $template, $lang, [], $params);
@@ -317,6 +344,8 @@ function business_enquiry_send_form_welcome_whatsapp(int $leadId, array $data): 
             'lead_id' => $leadId,
             'phone_masked' => whatsapp_mask_wa_id($phone),
             'template' => $template,
+            'language' => $lang,
+            'param_count' => count($params),
             'error' => substr((string) ($result['error'] ?? ''), 0, 200),
         ]);
 
@@ -351,10 +380,35 @@ function business_enquiry_contact_status(string $waId): string
  * @param array{name?:string,service?:string,message?:string} $data
  * @return list<string>
  */
+/**
+ * @return array{language:string}|null
+ */
+function business_enquiry_resolve_form_welcome_template(string $templateName, string $languageCode): ?array
+{
+    require_once __DIR__ . '/whatsapp_send.php';
+    $candidates = array_values(array_unique([
+        whatsapp_normalize_template_language($languageCode),
+        'en',
+        'en_US',
+        'en_GB',
+    ]));
+    foreach ($candidates as $lang) {
+        $def = whatsapp_lookup_template_definition($templateName, $lang);
+        if ($def !== null) {
+            return ['language' => whatsapp_normalize_template_language((string) $def['language'])];
+        }
+    }
+
+    return null;
+}
+
 function business_enquiry_template_params_for_data(string $templateName, string $languageCode, array $data): array
 {
     require_once __DIR__ . '/whatsapp_send.php';
-    $def = whatsapp_lookup_template_definition($templateName, $languageCode);
+    $resolved = business_enquiry_resolve_form_welcome_template($templateName, $languageCode);
+    $def = $resolved !== null
+        ? whatsapp_lookup_template_definition($templateName, $resolved['language'])
+        : null;
     if ($def === null) {
         return [];
     }
