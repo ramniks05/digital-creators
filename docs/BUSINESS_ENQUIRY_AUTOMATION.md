@@ -74,7 +74,32 @@ Matches your core offerings: Custom Software, Website Development, App Developme
 
 Customer can reply **services** / **menu** to receive the list (when automation enabled).
 
-**Repeat messages:** Welcome and enquiry ack are **not sent again** if your business already sent a WhatsApp to that number within the cooldown (default **4 hours**). Typing `services` / `menu` still works anytime. Adjust: `inbound_autoreply_cooldown_hours` in private config or `DC_ENQUIRY_COOLDOWN_HOURS`.
+**Repeat messages:** Welcome and enquiry ack are **not sent again** if your business already sent a WhatsApp to that number within the cooldown (default **4 hours**). Typing `services` / `menu` still works anytime.
+
+**One lead per chat (default 24h):** Further WhatsApp messages from the same phone do **not** create new rows in Admin → Leads until `whatsapp_lead_cooldown_hours` passes.
+
+### Where to set (Hostinger — not in Git)
+
+Edit:
+
+`~/domains/digitalcreatorss.com/private/digital_creators_config.php`
+
+```php
+<?php
+return [
+    'whatsapp' => [
+        'access_token' => '...',
+        'phone_number_id' => '...',
+        'business_enquiry' => [
+            'enabled' => true,
+            'inbound_autoreply_cooldown_hours' => 4,
+            'whatsapp_lead_cooldown_hours' => 24,
+        ],
+    ],
+];
+```
+
+Env alternatives: `DC_ENQUIRY_COOLDOWN_HOURS`, `DC_ENQUIRY_LEAD_COOLDOWN_HOURS`.
 
 ## Compliance
 

@@ -115,7 +115,9 @@ function business_enquiry_detect_service(?string $text, ?string $hintSlug = null
  *   form_welcome_template:string,
  *   form_welcome_language:string,
  *   inbound_welcome_enabled:bool,
- *   inbound_welcome_message:string
+ *   inbound_welcome_message:string,
+ *   inbound_autoreply_cooldown_hours:float,
+ *   whatsapp_lead_cooldown_hours:float
  * }
  */
 function business_enquiry_config(): array
@@ -175,6 +177,12 @@ function business_enquiry_config(): array
         'form_welcome_language' => trim((string) ($be['form_welcome_language'] ?? getenv('DC_ENQUIRY_FORM_TEMPLATE_LANG') ?: $defaultLang)),
         'inbound_welcome_enabled' => $bool($be['inbound_welcome_enabled'] ?? getenv('DC_ENQUIRY_INBOUND_WELCOME') ?: true, true),
         'inbound_welcome_message' => $inboundWelcome,
+        'inbound_autoreply_cooldown_hours' => is_numeric($be['inbound_autoreply_cooldown_hours'] ?? getenv('DC_ENQUIRY_COOLDOWN_HOURS') ?: 4)
+            ? (float) ($be['inbound_autoreply_cooldown_hours'] ?? getenv('DC_ENQUIRY_COOLDOWN_HOURS') ?: 4)
+            : 4.0,
+        'whatsapp_lead_cooldown_hours' => is_numeric($be['whatsapp_lead_cooldown_hours'] ?? getenv('DC_ENQUIRY_LEAD_COOLDOWN_HOURS') ?: 24)
+            ? (float) ($be['whatsapp_lead_cooldown_hours'] ?? getenv('DC_ENQUIRY_LEAD_COOLDOWN_HOURS') ?: 24)
+            : 24.0,
     ];
 
     return $cached;
@@ -210,15 +218,34 @@ function business_enquiry_is_website_followup_message(?string $body): bool
 
 function business_enquiry_recent_form_lead(PDO $pdo, string $phone, int $withinHours = 72): ?array
 {
+    return business_enquiry_recent_lead_for_phone($pdo, $phone, $withinHours, 'website_form');
+}
+
+/**
+ * Avoid duplicate Admin → Leads rows for every message in the same chat.
+ */
+function business_enquiry_recent_lead_for_phone(
+    PDO $pdo,
+    string $phone,
+    int $withinHours,
+    ?string $source = null
+): ?array {
+    require_once __DIR__ . '/whatsapp_send.php';
     $waId = whatsapp_normalize_recipient($phone);
     $variants = whatsapp_wa_id_variants($waId);
     if ($variants === []) {
         return null;
     }
     $placeholders = implode(',', array_fill(0, count($variants), '?'));
-    $sql = "SELECT * FROM leads WHERE source = 'website_form' AND REPLACE(REPLACE(REPLACE(phone,' ',''),'-',''),'+','') IN ({$placeholders})
+    $sourceSql = $source !== null ? ' AND source = ? ' : '';
+    $sql = "SELECT * FROM leads WHERE REPLACE(REPLACE(REPLACE(phone,' ',''),'-',''),'+','') IN ({$placeholders})
+            {$sourceSql}
             AND created_at >= DATE_SUB(NOW(), INTERVAL ? HOUR) ORDER BY id DESC LIMIT 1";
-    $params = array_merge($variants, [$withinHours]);
+    $params = $variants;
+    if ($source !== null) {
+        $params[] = $source;
+    }
+    $params[] = $withinHours;
     $stmt = $pdo->prepare($sql);
     $stmt->execute($params);
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -579,6 +606,20 @@ function business_enquiry_create_whatsapp_lead(
     $stmt = $pdo->prepare('SELECT id FROM leads WHERE wa_message_id = ? LIMIT 1');
     $stmt->execute([$wamid]);
     if ($stmt->fetchColumn()) {
+        return;
+    }
+
+    $cfg = business_enquiry_config();
+    $leadCooldownHours = max(1, (int) ceil($cfg['whatsapp_lead_cooldown_hours']));
+    $existing = business_enquiry_recent_lead_for_phone($pdo, $fromWa, $leadCooldownHours, null);
+    if ($existing !== null) {
+        whatsapp_log_event('lead_whatsapp_skipped_duplicate', [
+            'existing_lead_id' => (int) $existing['id'],
+            'wamid' => $wamid,
+            'phone_masked' => whatsapp_mask_wa_id($fromWa),
+            'cooldown_hours' => $leadCooldownHours,
+        ]);
+
         return;
     }
 

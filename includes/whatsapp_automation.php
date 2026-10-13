@@ -28,12 +28,18 @@ function whatsapp_inbound_autoreply_cooldown_seconds(): int
         return $seconds;
     }
 
-    $config = require __DIR__ . '/config.php';
-    $be = is_array($config['whatsapp']['business_enquiry'] ?? null)
-        ? $config['whatsapp']['business_enquiry']
-        : [];
-    $hours = $be['inbound_autoreply_cooldown_hours'] ?? getenv('DC_ENQUIRY_COOLDOWN_HOURS') ?: 4;
-    $hours = is_numeric($hours) ? (float) $hours : 4.0;
+    if (is_file(__DIR__ . '/business_enquiry.php')) {
+        require_once __DIR__ . '/business_enquiry.php';
+        $cfg = business_enquiry_config();
+        $hours = (float) ($cfg['inbound_autoreply_cooldown_hours'] ?? 4);
+    } else {
+        $config = require __DIR__ . '/config.php';
+        $be = is_array($config['whatsapp']['business_enquiry'] ?? null)
+            ? $config['whatsapp']['business_enquiry']
+            : [];
+        $hours = $be['inbound_autoreply_cooldown_hours'] ?? getenv('DC_ENQUIRY_COOLDOWN_HOURS') ?: 4;
+        $hours = is_numeric($hours) ? (float) $hours : 4.0;
+    }
     $seconds = (int) max(600, round($hours * 3600));
 
     return $seconds;
