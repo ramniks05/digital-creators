@@ -244,7 +244,7 @@
         </div>
         <h3 class="font-headings text-2xl font-bold mb-3 text-text-primary">Registration Complete!</h3>
         <p class="text-sm text-text-secondary leading-relaxed mb-8 max-w-[340px] font-light">
-          Thank you for reaching out. We have received your query, and our team will get in touch with you shortly.
+          Thank you! Your enquiry is saved. A WhatsApp confirmation was sent to your mobile number. Our team will reply within 24 hours.
         </p>
         <button onclick="closeContactPopup()"
           class="inline-flex items-center justify-center gap-2 px-6 py-2.5 font-headings text-xs font-semibold rounded-xl bg-slate-50 border border-slate-200 text-text-primary hover:bg-slate-100 transition-all duration-300 cursor-pointer">
@@ -862,9 +862,6 @@
 
         if (!isValid) return;
 
-        // Open blank tab synchronously to bypass popup blocker
-        const newTab = window.open('', '_blank');
-
         // Submit AJAX to api/contact
         submitBtn.disabled = true;
         const originalText = submitBtn.innerHTML;
@@ -897,28 +894,12 @@
               successScreen.classList.remove('hidden');
               successScreen.classList.add('flex');
 
-              // Build pre-typed WhatsApp message
-              const popupServiceSelect = document.getElementById('popup-service');
-              const serviceName = popupServiceSelect && popupServiceSelect.selectedIndex >= 0
-                ? popupServiceSelect.options[popupServiceSelect.selectedIndex].text
-                : service;
-              const budgetText = document.getElementById('popup-budget-display').textContent;
-
-              const waMessage = `Hello Digital Creatorss,\n\nI have submitted a query through the website. Here are my details:\n• Name: ${name}\n• Email: ${email}\n• Phone: ${phone}\n• Service: ${serviceName}\n• Message: ${message}\n• Estimated Budget: ${budgetText}\n\nPlease get back to me.`;
-              const whatsappUrl = `https://wa.me/<?php echo htmlspecialchars(whatsapp_number()); ?>?text=${encodeURIComponent(waMessage)}`;
-
-              // Redirect the pre-opened tab to WhatsApp
-              if (newTab) {
-                newTab.location.href = whatsappUrl;
-              }
-
               form.reset();
               // Trigger checkmark icon draw
               if (window.lucide) {
                 window.lucide.createIcons();
               }
               } else if (data.errors) {
-                if (newTab) newTab.close();
                 Object.keys(data.errors).forEach(key => {
                   showError(key, data.errors[key]);
                 });
@@ -926,12 +907,10 @@
                   alert(data.errors.form);
                 }
               } else {
-                if (newTab) newTab.close();
                 alert('Something went wrong. Please try again.');
               }
           })
           .catch(err => {
-            if (newTab) newTab.close();
             submitBtn.disabled = false;
             submitBtn.innerHTML = originalText;
             console.error('Error submitting popup form:', err);

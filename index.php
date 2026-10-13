@@ -745,9 +745,6 @@
           e.preventDefault();
           if (!validate()) return;
 
-          // Open blank tab synchronously to bypass popup blocker
-          const newTab = window.open('', '_blank');
-
           // Update submit button visual state
           submitBtn.disabled = true;
           const originalHtml = submitBtn.innerHTML;
@@ -788,26 +785,11 @@
                 successScreen.classList.remove('hidden');
                 successScreen.classList.add('flex');
 
-                // Build pre-typed WhatsApp message
-                const serviceSelect = document.getElementById('form-service');
-                const serviceName = serviceSelect && serviceSelect.selectedIndex >= 0
-                  ? serviceSelect.options[serviceSelect.selectedIndex].text
-                  : service;
-                
-                const waMessage = `Hello Digital Creatorss,\n\nI have submitted a query through the website. Here are my details:\n• Name: ${name}\n• Email: ${email}\n• Phone: ${phone}\n• Service: ${serviceName}\n• Message: ${message}\n• Estimated Budget: ${budgetText}\n\nPlease get back to me.`;
-                const whatsappUrl = `https://wa.me/${window.DC_WHATSAPP || '918368142191'}?text=${encodeURIComponent(waMessage)}`;
-                
-                // Redirect the pre-opened tab to WhatsApp
-                if (newTab) {
-                  newTab.location.href = whatsappUrl;
-                }
-
                 form.reset();
                 if (window.updateFormBudgetDisplay) {
                   window.updateFormBudgetDisplay(10000);
                 }
               } else if (data.errors) {
-                if (newTab) newTab.close();
                 Object.keys(data.errors).forEach(f => {
                   showError(f, data.errors[f]);
                 });
@@ -815,12 +797,10 @@
                   alert(data.errors.form);
                 }
               } else {
-                if (newTab) newTab.close();
                 alert('Something went wrong. Please try again.');
               }
             })
             .catch(err => {
-              if (newTab) newTab.close();
               submitBtn.disabled = false;
               submitBtn.innerHTML = originalHtml;
               console.error('Submission error:', err);

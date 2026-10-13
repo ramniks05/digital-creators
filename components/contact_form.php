@@ -188,7 +188,7 @@
             Message Sent!
           </h3>
           <p class="text-sm text-text-secondary leading-relaxed mb-8 max-w-[340px] font-light">
-            Thank you for reaching out. A Senior Engineer from our team will contact you shortly.
+            Thank you for reaching out. We saved your enquiry and sent a confirmation on WhatsApp to your mobile number. Our team will contact you within 24 hours.
           </p>
           <button type="button" id="success-reset-btn"
             class="inline-flex items-center justify-center gap-2 px-5 py-2.5 font-headings text-xs font-semibold rounded-lg bg-slate-50 border border-slate-200 text-text-primary hover:bg-slate-100 hover:border-slate-300 transition-all duration-300 cursor-pointer">

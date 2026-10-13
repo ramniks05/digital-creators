@@ -257,7 +257,7 @@ CSS;
                   Message Sent!
                 </h3>
                 <p class="text-sm text-text-secondary leading-relaxed mb-8 max-w-[340px] font-light">
-                  Thank you for reaching out. A Senior Engineer from our team will contact you shortly.
+                  Thank you for reaching out. We saved your enquiry and sent a confirmation on WhatsApp to your mobile number. Our team will contact you within 24 hours.
                 </p>
                 <button type="button" id="success-reset-btn"
                   class="inline-flex items-center justify-center gap-2 px-5 py-2.5 font-headings text-xs font-semibold rounded-xl bg-slate-50 border border-slate-200 text-text-primary hover:bg-slate-100 hover:border-slate-300 transition-all duration-300 cursor-pointer">
@@ -502,9 +502,6 @@ CSS;
           e.preventDefault();
           if (!validate()) return;
 
-          // Open blank tab synchronously to bypass popup blocker
-          const newTab = window.open('', '_blank');
-
           submitBtn.disabled = true;
           const originalHtml = submitBtn.innerHTML;
           submitBtn.innerHTML = `<div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div><span>Submitting...</span>`;
@@ -544,32 +541,11 @@ CSS;
                 successScreen.classList.remove('hidden');
                 successScreen.classList.add('flex');
 
-                // Build pre-typed WhatsApp message
-                const serviceLabels = {
-                  'custom-software': 'Custom Software',
-                  'website-dev': 'Website Development',
-                  'web-app': 'Web Applications',
-                  'cloud-hosting': 'Cloud Hosting',
-                  'server-management': 'Server Management',
-                  'devops': 'DevOps & Infrastructure',
-                  'maintenance': 'Maintenance & Support'
-                };
-                const serviceName = serviceLabels[service] || service;
-
-                const waMessage = `Hello Digital Creatorss,\n\nI have submitted a query through the website. Here are my details:\n• Name: ${name}\n• Email: ${email}\n• Phone: ${phone}\n• Service: ${serviceName}\n• Message: ${message}\n• Estimated Budget: ${budgetText}\n\nPlease get back to me.`;
-                const whatsappUrl = `https://wa.me/${window.DC_WHATSAPP || '918368142191'}?text=${encodeURIComponent(waMessage)}`;
-
-                // Redirect the pre-opened tab to WhatsApp
-                if (newTab) {
-                  newTab.location.href = whatsappUrl;
-                }
-
                 form.reset();
                 if (window.updateFormBudgetDisplay) {
                   window.updateFormBudgetDisplay(10000);
                 }
               } else if (data.errors) {
-                if (newTab) newTab.close();
                 Object.keys(data.errors).forEach(f => {
                   showError(f, data.errors[f]);
                 });
@@ -577,12 +553,10 @@ CSS;
                   alert(data.errors.form);
                 }
               } else {
-                if (newTab) newTab.close();
                 alert('Something went wrong. Please try again.');
               }
             })
             .catch(err => {
-              if (newTab) newTab.close();
               submitBtn.disabled = false;
               submitBtn.innerHTML = originalHtml;
               console.error('Submission error:', err);
