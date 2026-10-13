@@ -92,12 +92,27 @@ window.dcWaInitChatUi = function () {
   if (thread) {
     thread.scrollTop = thread.scrollHeight;
   }
-  const ta = document.querySelector('.wa-reply-row textarea');
+  const ta = document.querySelector('.wa-reply-textarea') || document.querySelector('.wa-reply-row textarea');
   if (!ta || !ta.form) {
     return;
   }
+
+  function autoGrowReplyBox() {
+    ta.style.height = 'auto';
+    const max = 320;
+    const next = Math.min(max, Math.max(ta.scrollHeight, ta.offsetHeight));
+    ta.style.height = next + 'px';
+  }
+
+  ta.addEventListener('input', autoGrowReplyBox);
+  autoGrowReplyBox();
+
   window.requestAnimationFrame(function () {
     ta.focus();
+    const len = ta.value.length;
+    if (typeof ta.setSelectionRange === 'function') {
+      ta.setSelectionRange(len, len);
+    }
   });
   ta.addEventListener('keydown', function (e) {
     if (e.key === 'Enter' && !e.shiftKey) {

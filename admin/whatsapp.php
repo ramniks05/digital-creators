@@ -583,11 +583,21 @@ if ($tablesReady && $view === 'chat' && $chatWaId !== '') {
           <?php if (!empty($lastWamid)): ?>
           <input type="hidden" name="reply_to_wamid" value="<?= e($lastWamid) ?>">
           <?php endif; ?>
-          <div class="wa-reply-row">
-            <textarea name="text" rows="2" placeholder="Type a reply…" required></textarea>
-            <button class="btn wa-send-btn" type="submit" aria-label="Send message">Send</button>
+          <div class="wa-reply-compose">
+            <label class="wa-reply-label" for="wa-reply-text">Reply</label>
+            <textarea
+              id="wa-reply-text"
+              class="wa-reply-textarea"
+              name="text"
+              rows="5"
+              placeholder="Type your reply to the customer…"
+              required
+            ></textarea>
+            <div class="wa-reply-actions">
+              <p class="wa-reply-hint muted">Shift+Enter new line · Enter to send</p>
+              <button class="btn wa-send-btn" type="submit" aria-label="Send message">Send message</button>
+            </div>
           </div>
-          <p class="wa-reply-hint muted">Enter to send · Shift+Enter for new line</p>
         </form>
         <details class="wa-compose-more">
           <summary>Quick replies</summary>

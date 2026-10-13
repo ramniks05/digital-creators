@@ -146,7 +146,7 @@ th { color: #64748b; font-size: 0.75rem; text-transform: uppercase; letter-spaci
   word-break: break-word;
 }
 .wa-page-wrap {
-  max-width: 720px;
+  max-width: 920px;
   margin: 0 auto 20px;
 }
 .wa-nav {
@@ -338,33 +338,58 @@ th { color: #64748b; font-size: 0.75rem; text-transform: uppercase; letter-spaci
   box-shadow: none;
 }
 .wa-bubble-compact { max-width: 70%; padding: 6px 10px; opacity: 0.92; }
-.wa-chat-compose { padding: 12px 16px 16px; border-top: 1px solid #e2e8f0; background: #fff; }
-.wa-reply-form { margin-bottom: 10px; }
-.wa-reply-row {
-  display: flex;
-  gap: 8px;
-  align-items: flex-end;
-}
-.wa-reply-row textarea {
-  flex: 1;
-  min-height: 44px;
-  max-height: 120px;
-  resize: none;
-  padding: 10px 14px;
-  border-radius: 24px;
-  border: 1px solid #e2e8f0;
-  font: inherit;
-  background: #f8fafc;
-}
-.wa-reply-row textarea:focus {
-  outline: none;
-  border-color: #25d366;
+.wa-chat-compose {
+  padding: 16px 18px 18px;
+  border-top: 1px solid #e2e8f0;
   background: #fff;
-  box-shadow: 0 0 0 3px rgba(37, 211, 102, 0.15);
+  box-shadow: 0 -4px 20px rgba(15, 23, 42, 0.04);
+}
+.wa-reply-form { margin-bottom: 12px; }
+.wa-reply-compose {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.wa-reply-label {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+.wa-reply-textarea {
+  width: 100%;
+  min-height: 140px;
+  max-height: 320px;
+  resize: vertical;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid #cbd5e1;
+  font: inherit;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  background: #f8fafc;
+  box-sizing: border-box;
+}
+.wa-reply-textarea:focus {
+  outline: none;
+  border-color: #128c7e;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(18, 140, 126, 0.18);
+}
+.wa-reply-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
 }
 .wa-send-btn {
-  border-radius: 24px;
-  padding: 10px 18px;
+  border-radius: 10px;
+  padding: 11px 22px;
+  min-width: 140px;
+  font-weight: 600;
   background: #128c7e;
   border-color: #128c7e;
 }
@@ -373,9 +398,28 @@ th { color: #64748b; font-size: 0.75rem; text-transform: uppercase; letter-spaci
   border-color: #0f7669;
 }
 .wa-reply-hint {
-  margin: 6px 0 0;
-  font-size: 0.72rem;
-  text-align: right;
+  margin: 0;
+  font-size: 0.78rem;
+  flex: 1;
+  min-width: 160px;
+}
+/* Legacy single-row layout (if any) */
+.wa-reply-row {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+.wa-reply-row textarea {
+  flex: 1;
+  min-height: 140px;
+  max-height: 320px;
+  resize: vertical;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid #cbd5e1;
+  font: inherit;
+  line-height: 1.55;
+  background: #f8fafc;
 }
 .wa-chat-list {
   list-style: none;
@@ -495,5 +539,7 @@ th { color: #64748b; font-size: 0.75rem; text-transform: uppercase; letter-spaci
   .wa-chat-head-actions .btn { padding: 6px 10px; font-size: 0.75rem; }
   .wa-window-pill { display: none; }
   .wa-reply-row { flex-direction: column; align-items: stretch; }
+  .wa-reply-actions { flex-direction: column; align-items: stretch; }
   .wa-send-btn { width: 100%; }
+  .wa-reply-textarea { min-height: 120px; }
 }
