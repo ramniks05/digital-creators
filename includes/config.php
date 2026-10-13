@@ -3,6 +3,11 @@
  * Database & app config.
  * Local XAMPP defaults can be overridden by env vars or a local config file.
  */
+$appTimezone = getenv('APP_TIMEZONE') ?: 'Asia/Kolkata';
+if ($appTimezone !== '') {
+    date_default_timezone_set($appTimezone);
+}
+
 $config = [
     'db' => [
         'host' => getenv('DB_HOST') ?: '127.0.0.1',
@@ -14,6 +19,7 @@ $config = [
     ],
     'app' => [
         'name' => 'Digital Creatorss',
+        'timezone' => $appTimezone,
         'upload_dir' => __DIR__ . '/../assets/uploads',
         'upload_url' => 'assets/uploads',
     ],

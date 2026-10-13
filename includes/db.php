@@ -26,5 +26,16 @@ function db(): PDO
         PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => true,
     ]);
 
+    $tz = (string) (($config['app']['timezone'] ?? '') ?: 'Asia/Kolkata');
+    if ($tz === 'Asia/Kolkata') {
+        $pdo->exec("SET time_zone = '+05:30'");
+    } elseif (preg_match('/^[\w\/]+$/', $tz)) {
+        try {
+            $pdo->exec('SET time_zone = ' . $pdo->quote($tz));
+        } catch (Throwable $e) {
+            $pdo->exec("SET time_zone = '+05:30'");
+        }
+    }
+
     return $pdo;
 }
