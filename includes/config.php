@@ -56,6 +56,8 @@ $config = [
             'form_welcome_template' => getenv('DC_ENQUIRY_FORM_TEMPLATE') ?: 'enquiry_thank_you',
             'form_welcome_language' => getenv('DC_ENQUIRY_FORM_TEMPLATE_LANG') ?: 'en',
             'inbound_welcome_enabled' => filter_var(getenv('DC_ENQUIRY_INBOUND_WELCOME') ?: '1', FILTER_VALIDATE_BOOLEAN),
+            // Skip repeat welcome/ack if we already messaged this user recently (default 4 hours)
+            'inbound_autoreply_cooldown_hours' => getenv('DC_ENQUIRY_COOLDOWN_HOURS') ?: 4,
         ],
     ],
 ];

@@ -74,6 +74,8 @@ Matches your core offerings: Custom Software, Website Development, App Developme
 
 Customer can reply **services** / **menu** to receive the list (when automation enabled).
 
+**Repeat messages:** Welcome and enquiry ack are **not sent again** if your business already sent a WhatsApp to that number within the cooldown (default **4 hours**). Typing `services` / `menu` still works anytime. Adjust: `inbound_autoreply_cooldown_hours` in private config or `DC_ENQUIRY_COOLDOWN_HOURS`.
+
 ## Compliance
 
 - Forms require **consent** checkbox (homepage, contact page, popup).

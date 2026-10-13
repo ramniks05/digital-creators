@@ -538,7 +538,17 @@ function business_enquiry_process_whatsapp_inbound(PDO $pdo, array $row): bool
         return true;
     }
 
-    require_once __DIR__ . '/whatsapp_automation.php';
+    if (whatsapp_should_skip_autoreply_for_active_chat($pdo, $from)) {
+        whatsapp_log_event('autoreply_skipped', [
+            'wamid' => $wamid,
+            'from_masked' => whatsapp_mask_wa_id($from),
+            'reason' => 'active_conversation',
+            'cooldown_seconds' => whatsapp_inbound_autoreply_cooldown_seconds(),
+        ]);
+
+        return false;
+    }
+
     $isShortOrGreeting = mb_strlen(trim($body), 'UTF-8') < 8
         || whatsapp_automation_is_welcome_trigger($body);
 

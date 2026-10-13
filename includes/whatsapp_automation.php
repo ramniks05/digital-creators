@@ -18,6 +18,49 @@ require_once __DIR__ . '/whatsapp_webhook_diagnostics.php';
  *   opt_out_confirm_message:string
  * }
  */
+/**
+ * Do not repeat welcome/ack while a chat is already active (recent business outbound to this user).
+ */
+function whatsapp_inbound_autoreply_cooldown_seconds(): int
+{
+    static $seconds = null;
+    if ($seconds !== null) {
+        return $seconds;
+    }
+
+    $config = require __DIR__ . '/config.php';
+    $be = is_array($config['whatsapp']['business_enquiry'] ?? null)
+        ? $config['whatsapp']['business_enquiry']
+        : [];
+    $hours = $be['inbound_autoreply_cooldown_hours'] ?? getenv('DC_ENQUIRY_COOLDOWN_HOURS') ?: 4;
+    $hours = is_numeric($hours) ? (float) $hours : 4.0;
+    $seconds = (int) max(600, round($hours * 3600));
+
+    return $seconds;
+}
+
+function whatsapp_should_skip_autoreply_for_active_chat(PDO $pdo, string $waId): bool
+{
+    require_once __DIR__ . '/whatsapp_send.php';
+    $variants = whatsapp_wa_id_variants($waId);
+    if ($variants === []) {
+        return false;
+    }
+    [$inSql, $inParams] = whatsapp_wa_id_in_clause('recipient_wa_id', $variants);
+    $cooldown = whatsapp_inbound_autoreply_cooldown_seconds();
+    $stmt = $pdo->prepare(
+        "SELECT 1 FROM whatsapp_outbound_messages
+         WHERE {$inSql}
+           AND created_at >= DATE_SUB(NOW(), INTERVAL ? SECOND)
+           AND wa_message_id IS NOT NULL AND wa_message_id != ''
+           AND delivery_status NOT IN ('failed')
+         LIMIT 1"
+    );
+    $stmt->execute(array_merge($inParams, [$cooldown]));
+
+    return (bool) $stmt->fetchColumn();
+}
+
 function whatsapp_automation_config(): array
 {
     static $cached = null;
@@ -194,6 +237,15 @@ function whatsapp_automation_after_inbound(PDO $pdo, array $newInbound): void
         }
 
         if (!whatsapp_service_window_open($pdo, $from)) {
+            continue;
+        }
+
+        if (whatsapp_should_skip_autoreply_for_active_chat($pdo, $from)) {
+            whatsapp_log_event('welcome_skipped', [
+                'wamid' => $wamid,
+                'from_masked' => whatsapp_mask_wa_id($from),
+                'reason' => 'active_conversation',
+            ]);
             continue;
         }
 
