@@ -37,6 +37,12 @@
           <p class="text-base text-text-secondary leading-relaxed font-light max-w-2xl mx-auto">
             Corporate websites, mobile apps, portals, CRM, and SaaS solutions — plus cloud hosting, server management, and DevOps built to scale.
           </p>
+          <p class="mt-4 text-sm">
+            <a href="whatsapp-business-api.php" class="text-primary font-semibold hover:underline inline-flex items-center gap-1">
+              WhatsApp Business API integration &amp; automation
+              <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+            </a>
+          </p>
         </div>
       </section>
 

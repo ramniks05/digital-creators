@@ -6,4 +6,6 @@ RewriteBase /
 RewriteRule ^api/hook-wa/?$ api/hook-wa.php [L,QSA]
 RewriteRule ^api/wa-health/?$ api/wa-health.php [L,QSA]
 RewriteRule ^api/contact/?$ api/contact.php [L,QSA]
+
+RewriteRule ^services/whatsapp-business-api/?$ whatsapp-business-api.php [L,QSA]
 </IfModule>

@@ -184,6 +184,13 @@ $capabilityPills = [
             <li><a href="services.php" class="footer-link-advanced"><i data-lucide="chevron-right" class="footer-link-icon w-3.5 h-3.5"></i><span>App Development</span><i data-lucide="arrow-up-right" class="footer-link-arrow w-3.5 h-3.5"></i></a></li>
             <li><a href="services.php" class="footer-link-advanced"><i data-lucide="chevron-right" class="footer-link-icon w-3.5 h-3.5"></i><span>Cloud Hosting</span><i data-lucide="arrow-up-right" class="footer-link-arrow w-3.5 h-3.5"></i></a></li>
           <?php endif; ?>
+          <li>
+            <a href="whatsapp-business-api.php" class="footer-link-advanced">
+              <i data-lucide="message-circle" class="footer-link-icon w-3.5 h-3.5"></i>
+              <span>WhatsApp Business API</span>
+              <i data-lucide="arrow-up-right" class="footer-link-arrow w-3.5 h-3.5"></i>
+            </a>
+          </li>
         </ul>
       </nav>
 
