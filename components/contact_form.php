@@ -157,6 +157,18 @@
             </span>
           </div>
 
+          <!-- Privacy & WhatsApp consent -->
+          <div class="flex flex-col gap-2 mt-1">
+            <label class="flex items-start gap-3 cursor-pointer text-sm text-text-secondary leading-snug">
+              <input type="checkbox" id="form-consent" name="consent" value="1" required
+                class="mt-1 w-4 h-4 rounded border-slate-300 text-primary focus:ring-primary/30">
+              <span>I agree to the <a href="privacy.php" class="text-primary hover:underline" target="_blank" rel="noopener">Privacy Policy</a> and <a href="terms.php" class="text-primary hover:underline" target="_blank" rel="noopener">Terms</a>. I consent to contact by email, phone, or WhatsApp about my enquiry.</span>
+            </label>
+            <span id="error-consent" class="text-xs text-red-400 mt-1 font-semibold hidden items-center gap-1">
+              <i data-lucide="alert-circle" class="w-3 h-3"></i> <span>Please accept the privacy terms to continue</span>
+            </span>
+          </div>
+
           <!-- Submit Button -->
           <button type="submit" id="form-submit-btn"
             class="w-full mt-4 py-3.5 font-headings text-sm md:text-base font-bold text-white rounded-lg bg-gradient-to-r from-primary to-info hover:from-info hover:to-indigo transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer shadow-[0_4px_20px_rgba(0,123,255,0.25)] hover:shadow-[0_4px_25px_rgba(253,126,14,0.35)] hover:scale-[1.01] transform active:scale-[0.99]">

@@ -182,13 +182,20 @@
             </div>
             <select id="popup-service" class="popup-select" aria-label="Select a service">
               <option value="" disabled selected class="bg-white text-slate-500">Select Services</option>
-              <option value="custom-software" class="bg-white text-text-primary font-body">Custom Software</option>
-              <option value="website-dev" class="bg-white text-text-primary font-body">Website Development</option>
-              <option value="web-app" class="bg-white text-text-primary font-body">Web Applications</option>
-              <option value="cloud-hosting" class="bg-white text-text-primary font-body">Cloud Hosting</option>
-              <option value="server-management" class="bg-white text-text-primary font-body">Server Management</option>
-              <option value="devops" class="bg-white text-text-primary font-body">DevOps & Infrastructure</option>
-              <option value="maintenance" class="bg-white text-text-primary font-body">Maintenance & Support</option>
+              <?php
+                try {
+                  if (!function_exists('get_services')) {
+                    require_once __DIR__ . '/../includes/content.php';
+                  }
+                  foreach (get_services() as $svcOpt) {
+                    $slug = strtolower(preg_replace('/[^a-z0-9]+/i', '-', $svcOpt['title']));
+                    $slug = trim($slug, '-');
+                    echo '<option value="' . htmlspecialchars($slug) . '" class="bg-white text-text-primary font-body">' . htmlspecialchars($svcOpt['title']) . '</option>';
+                  }
+                } catch (Throwable $e) {
+                  echo '<option value="website-development">Website Development</option>';
+                }
+              ?>
             </select>
             <div
               class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-text-secondary z-10 flex items-center">
@@ -212,6 +219,14 @@
                 aria-label="Select project budget between 10 thousand and 10 lakh rupees" />
             </div>
           </div>
+
+          <label class="flex items-start gap-3 cursor-pointer text-xs text-text-secondary leading-snug mt-2">
+            <input type="checkbox" id="popup-consent" name="consent" value="1" required class="mt-0.5 w-4 h-4 rounded border-slate-300 text-primary">
+            <span>I agree to the Privacy Policy and Terms and consent to contact by email, phone, or WhatsApp.</span>
+          </label>
+          <span id="popup-error-consent" class="popup-error-msg" style="display:none">
+            <i data-lucide="alert-circle" class="w-3 h-3"></i> <span>Please accept the privacy terms</span>
+          </span>
 
           <!-- Submit Button -->
           <button type="submit" id="popup-submit-btn" class="popup-submit">
@@ -757,7 +772,7 @@
         updatePopupBudgetDisplay(10000);
 
         // Hide errors
-        const errorIDs = ['name', 'email', 'phone', 'message', 'service'];
+        const errorIDs = ['name', 'email', 'phone', 'message', 'service', 'consent'];
         errorIDs.forEach(id => {
           const errEl = document.getElementById('popup-error-' + id);
           if (errEl) {
@@ -795,7 +810,7 @@
         e.preventDefault();
 
         // Clear all previous errors
-        const errorIDs = ['name', 'email', 'phone', 'message', 'service'];
+        const errorIDs = ['name', 'email', 'phone', 'message', 'service', 'consent'];
         errorIDs.forEach(id => {
           const errEl = document.getElementById('popup-error-' + id);
           if (errEl) {
@@ -839,6 +854,11 @@
           showError('service', 'Please select a service');
           isValid = false;
         }
+        const consentChecked = document.getElementById('popup-consent')?.checked;
+        if (!consentChecked) {
+          showError('consent', 'Please accept the privacy terms');
+          isValid = false;
+        }
 
         if (!isValid) return;
 
@@ -856,7 +876,8 @@
           phone: phone,
           message: message + ` [Budget Request: ${document.getElementById('popup-budget-display').textContent}]`,
           service: service,
-          budget: budget
+          budget: budget,
+          consent: '1'
         };
 
         fetch('/api/contact', {
@@ -877,16 +898,10 @@
               successScreen.classList.add('flex');
 
               // Build pre-typed WhatsApp message
-              const serviceLabels = {
-                'custom-software': 'Custom Software',
-                'website-dev': 'Website Development',
-                'web-app': 'Web Applications',
-                'cloud-hosting': 'Cloud Hosting',
-                'server-management': 'Server Management',
-                'devops': 'DevOps & Infrastructure',
-                'maintenance': 'Maintenance & Support'
-              };
-              const serviceName = serviceLabels[service] || service;
+              const popupServiceSelect = document.getElementById('popup-service');
+              const serviceName = popupServiceSelect && popupServiceSelect.selectedIndex >= 0
+                ? popupServiceSelect.options[popupServiceSelect.selectedIndex].text
+                : service;
               const budgetText = document.getElementById('popup-budget-display').textContent;
 
               const waMessage = `Hello Digital Creatorss,\n\nI have submitted a query through the website. Here are my details:\n• Name: ${name}\n• Email: ${email}\n• Phone: ${phone}\n• Service: ${serviceName}\n• Message: ${message}\n• Estimated Budget: ${budgetText}\n\nPlease get back to me.`;

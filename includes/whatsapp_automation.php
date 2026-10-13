@@ -166,6 +166,16 @@ function whatsapp_automation_after_inbound(PDO $pdo, array $newInbound): void
             }
         }
 
+        $enquiryReplySent = false;
+        if (is_file(__DIR__ . '/business_enquiry.php')) {
+            require_once __DIR__ . '/business_enquiry.php';
+            $enquiryReplySent = business_enquiry_process_whatsapp_inbound($pdo, $row);
+        }
+
+        if ($enquiryReplySent) {
+            continue;
+        }
+
         if (!$cfg['enabled'] || !$cfg['welcome_hi_enabled']) {
             continue;
         }

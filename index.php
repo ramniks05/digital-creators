@@ -671,7 +671,7 @@
       const submitBtn = document.getElementById('form-submit-btn');
       const resetBtn = document.getElementById('success-reset-btn');
 
-      const fields = ['name', 'email', 'phone', 'service', 'message'];
+      const fields = ['name', 'email', 'phone', 'service', 'message', 'consent'];
 
       function validate() {
         let isValid = true;
@@ -722,6 +722,12 @@
           isValid = false;
         }
 
+        const consentEl = document.getElementById('form-consent');
+        if (!consentEl || !consentEl.checked) {
+          showError('consent', 'Please accept the privacy terms to continue');
+          isValid = false;
+        }
+
         return isValid;
       }
 
@@ -761,7 +767,8 @@
             phone: phone,
             service: service,
             message: message + ` [Budget Request: ${budgetText}]`,
-            budget: budget
+            budget: budget,
+            consent: '1'
           };
 
           fetch('/api/contact', {
@@ -782,16 +789,10 @@
                 successScreen.classList.add('flex');
 
                 // Build pre-typed WhatsApp message
-                const serviceLabels = {
-                  'custom-software': 'Custom Software',
-                  'website-dev': 'Website Development',
-                  'web-app': 'Web Applications',
-                  'cloud-hosting': 'Cloud Hosting',
-                  'server-management': 'Server Management',
-                  'devops': 'DevOps & Infrastructure',
-                  'maintenance': 'Maintenance & Support'
-                };
-                const serviceName = serviceLabels[service] || service;
+                const serviceSelect = document.getElementById('form-service');
+                const serviceName = serviceSelect && serviceSelect.selectedIndex >= 0
+                  ? serviceSelect.options[serviceSelect.selectedIndex].text
+                  : service;
                 
                 const waMessage = `Hello Digital Creatorss,\n\nI have submitted a query through the website. Here are my details:\n• Name: ${name}\n• Email: ${email}\n• Phone: ${phone}\n• Service: ${serviceName}\n• Message: ${message}\n• Estimated Budget: ${budgetText}\n\nPlease get back to me.`;
                 const whatsappUrl = `https://wa.me/${window.DC_WHATSAPP || '918851613806'}?text=${encodeURIComponent(waMessage)}`;

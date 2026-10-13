@@ -34,6 +34,14 @@ $config = [
             'opt_out_confirm_enabled' => filter_var(getenv('WHATSAPP_OPT_OUT_CONFIRM') ?: '0', FILTER_VALIDATE_BOOLEAN),
             'opt_out_confirm_message' => getenv('WHATSAPP_OPT_OUT_MESSAGE') ?: '',
         ],
+        'business_enquiry' => [
+            'enabled' => filter_var(getenv('DC_ENQUIRY_AUTOMATION') ?: '0', FILTER_VALIDATE_BOOLEAN),
+            'whatsapp_leads' => filter_var(getenv('DC_ENQUIRY_WHATSAPP_LEADS') ?: '1', FILTER_VALIDATE_BOOLEAN),
+            'whatsapp_ack' => filter_var(getenv('DC_ENQUIRY_WHATSAPP_ACK') ?: '1', FILTER_VALIDATE_BOOLEAN),
+            'staff_notify' => filter_var(getenv('DC_ENQUIRY_STAFF_NOTIFY') ?: '0', FILTER_VALIDATE_BOOLEAN),
+            'staff_wa_ids' => getenv('DC_ENQUIRY_STAFF_WA_IDS') ?: '',
+            'services_menu_enabled' => filter_var(getenv('DC_ENQUIRY_SERVICES_MENU') ?: '1', FILTER_VALIDATE_BOOLEAN),
+        ],
     ],
 ];
 

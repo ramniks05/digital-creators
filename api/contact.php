@@ -54,10 +54,31 @@ if (!empty($errors)) {
 
 try {
     require_once dirname(__DIR__) . '/includes/db.php';
-    $stmt = db()->prepare(
-        'INSERT INTO leads (name, email, phone, service, message, budget, status) VALUES (?,?,?,?,?,?,\'new\')'
-    );
-    $stmt->execute([$name, $email, $phone, $service, $message, $budget]);
+    require_once dirname(__DIR__) . '/includes/business_enquiry.php';
+
+    $pdo = db();
+    $hasEnquiryCols = business_enquiry_leads_columns_ready($pdo);
+    if ($hasEnquiryCols) {
+        $stmt = $pdo->prepare(
+            'INSERT INTO leads (name, email, phone, service, message, budget, source, consent_at, status)
+             VALUES (?,?,?,?,?,?,\'website_form\',CURRENT_TIMESTAMP,\'new\')'
+        );
+        $stmt->execute([$name, $email, $phone, $service, $message, $budget]);
+    } else {
+        $stmt = $pdo->prepare(
+            'INSERT INTO leads (name, email, phone, service, message, budget, status) VALUES (?,?,?,?,?,?,\'new\')'
+        );
+        $stmt->execute([$name, $email, $phone, $service, $message, $budget]);
+    }
+    $leadId = (int) $pdo->lastInsertId();
+    business_enquiry_after_website_form($leadId, [
+        'name' => $name,
+        'email' => $email,
+        'phone' => $phone,
+        'service' => $service,
+        'message' => $message,
+        'budget' => $budget,
+    ]);
 } catch (Throwable $e) {
     http_response_code(500);
     error_log('Contact form save failed: ' . $e->getMessage());

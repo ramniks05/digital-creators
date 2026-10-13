@@ -8,6 +8,7 @@ declare(strict_types=1);
 $root = dirname(__DIR__);
 require_once $root . '/includes/whatsapp_cloud.php';
 require_once $root . '/includes/whatsapp_automation.php';
+require_once $root . '/includes/business_enquiry.php';
 require_once $root . '/includes/whatsapp_webhook_diagnostics.php';
 
 $failures = 0;
@@ -53,6 +54,10 @@ sec_assert(!whatsapp_automation_is_welcome_trigger('I need a website quote pleas
 
 // Mask phone
 sec_assert(whatsapp_mask_wa_id('919876543210') === '********3210', 'Phone masking keeps last 4 digits');
+
+$detected = business_enquiry_detect_service('I need a new website for my business');
+sec_assert($detected['slug'] === 'website-development', 'Service detect: website');
+sec_assert(business_enquiry_is_website_followup_message('I have submitted a query through the website'), 'Website WA follow-up detect');
 
 // Automation defaults off
 $autoCfg = whatsapp_automation_config();

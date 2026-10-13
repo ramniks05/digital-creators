@@ -48,10 +48,19 @@ if ($viewId) {
       <p><strong>Phone:</strong> <?= e($lead['phone']) ?></p>
       <p><strong>Service:</strong> <?= e($lead['service']) ?></p>
       <p><strong>Budget:</strong> <?= e($lead['budget']) ?></p>
+      <?php if (!empty($lead['source'])): ?>
+      <p><strong>Source:</strong> <?= e($lead['source']) ?></p>
+      <?php endif; ?>
       <p><strong>Status:</strong> <span class="badge badge-<?= e($lead['status']) ?>"><?= e($lead['status']) ?></span></p>
       <p><strong>Date:</strong> <?= e($lead['created_at']) ?></p>
       <p><strong>Message:</strong><br><?= nl2br(e($lead['message'])) ?></p>
       <div class="actions">
+        <?php
+          $waDigits = preg_replace('/\D+/', '', (string) $lead['phone']);
+          if ($waDigits !== ''):
+        ?>
+        <a class="btn btn-primary" href="whatsapp.php?view=chat&amp;wa_id=<?= e($waDigits) ?>">Open WhatsApp chat</a>
+        <?php endif; ?>
         <form method="post"><?= csrf_field() ?><input type="hidden" name="action" value="status"><input type="hidden" name="id" value="<?= (int) $lead['id'] ?>"><input type="hidden" name="status" value="archived"><button class="btn btn-secondary" type="submit">Archive</button></form>
         <form method="post" onsubmit="return confirm('Delete this lead?')"><?= csrf_field() ?><input type="hidden" name="action" value="delete"><input type="hidden" name="id" value="<?= (int) $lead['id'] ?>"><button class="btn btn-danger" type="submit">Delete</button></form>
         <a class="btn btn-secondary" href="leads.php">Back</a>
@@ -67,10 +76,10 @@ admin_header('Leads', 'leads.php');
 ?>
 <div class="panel">
   <table>
-    <thead><tr><th>Date</th><th>Name</th><th>Email</th><th>Service</th><th>Status</th><th></th></tr></thead>
+    <thead><tr><th>Date</th><th>Name</th><th>Email</th><th>Service</th><th>Source</th><th>Status</th><th></th></tr></thead>
     <tbody>
     <?php if (!$rows): ?>
-      <tr><td colspan="6" class="muted">No leads yet.</td></tr>
+      <tr><td colspan="7" class="muted">No leads yet.</td></tr>
     <?php endif; ?>
     <?php foreach ($rows as $row): ?>
       <tr>
@@ -78,6 +87,7 @@ admin_header('Leads', 'leads.php');
         <td><strong><?= e($row['name']) ?></strong></td>
         <td><?= e($row['email']) ?></td>
         <td><?= e($row['service']) ?></td>
+        <td><?= e($row['source'] ?? 'website_form') ?></td>
         <td><span class="badge badge-<?= e($row['status']) ?>"><?= e($row['status']) ?></span></td>
         <td class="actions">
           <a class="btn btn-sm btn-secondary" href="leads.php?id=<?= (int) $row['id'] ?>">View</a>

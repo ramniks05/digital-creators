@@ -367,6 +367,7 @@ function whatsapp_process_inbound_messages(PDO $pdo, ?string $wabaId, ?string $p
             'wamid' => $wamid,
             'body' => $body,
             'type' => $type,
+            'contact_name' => $contactName,
         ];
     }
 
