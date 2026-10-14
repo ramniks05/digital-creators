@@ -258,6 +258,69 @@ function whatsapp_echo_recipient_wa_id(array $message): string
     return whatsapp_sanitize_wa_id($message['recipient_id'] ?? null) ?? '';
 }
 
+/**
+ * Meta often puts Cloud API / Business App sends in value.messages[] with a "to" field (not only message_echoes).
+ */
+function whatsapp_is_outbound_echo_message(array $message, ?string $phoneNumberId): bool
+{
+    if (isset($message['to']) && trim((string) $message['to']) !== '') {
+        return true;
+    }
+    $from = trim((string) ($message['from'] ?? ''));
+    if ($phoneNumberId !== null && $phoneNumberId !== '' && $from === $phoneNumberId) {
+        return true;
+    }
+
+    return false;
+}
+
+/**
+ * @param mixed $messages
+ * @return array{inbound:list<array>, echoes:list<array>}
+ */
+function whatsapp_partition_webhook_messages($messages, ?string $phoneNumberId): array
+{
+    $inbound = [];
+    $echoes = [];
+    if (!is_array($messages)) {
+        return ['inbound' => $inbound, 'echoes' => $echoes];
+    }
+    foreach ($messages as $message) {
+        if (!is_array($message)) {
+            continue;
+        }
+        if (whatsapp_is_outbound_echo_message($message, $phoneNumberId)) {
+            $echoes[] = $message;
+        } else {
+            $inbound[] = $message;
+        }
+    }
+
+    return ['inbound' => $inbound, 'echoes' => $echoes];
+}
+
+/**
+ * @return array{name:string,language:string}|null
+ */
+function whatsapp_resolve_template_for_meta_status(?array $tplFromStatus): ?array
+{
+    if ($tplFromStatus !== null) {
+        return $tplFromStatus;
+    }
+    if (!is_file(__DIR__ . '/whatsapp_send.php')) {
+        return null;
+    }
+    require_once __DIR__ . '/whatsapp_send.php';
+    foreach (whatsapp_meta_status_template_guess_candidates() as $candidate) {
+        $def = whatsapp_lookup_template_definition($candidate['name'], $candidate['language']);
+        if (is_array($def) && strtoupper((string) ($def['status'] ?? '')) === 'APPROVED') {
+            return $candidate;
+        }
+    }
+
+    return null;
+}
+
 function whatsapp_template_language_from_message(array $message): string
 {
     if (!is_array($message['template'] ?? null)) {
@@ -455,16 +518,20 @@ function whatsapp_process_webhook_payload(array $payload, PDO $pdo): array
             if (($field === 'message_echoes' || $field === 'smb_message_echoes') && $echoes === [] && is_array($value['messages'] ?? null)) {
                 $echoes = $value['messages'];
             }
-            whatsapp_process_message_echoes($pdo, $wabaId, $phoneNumberId, $echoes);
 
             if ($field !== 'messages') {
+                whatsapp_process_message_echoes($pdo, $wabaId, $phoneNumberId, $echoes);
                 continue;
             }
+
+            $partition = whatsapp_partition_webhook_messages($value['messages'] ?? [], $phoneNumberId);
+            $echoes = array_merge($echoes, $partition['echoes']);
+            whatsapp_process_message_echoes($pdo, $wabaId, $phoneNumberId, $echoes);
 
             $contactNames = whatsapp_contact_name_map($value['contacts'] ?? []);
             $newInbound = array_merge(
                 $newInbound,
-                whatsapp_process_inbound_messages($pdo, $wabaId, $phoneNumberId, $value['messages'] ?? [], $contactNames)
+                whatsapp_process_inbound_messages($pdo, $wabaId, $phoneNumberId, $partition['inbound'], $contactNames)
             );
             whatsapp_process_status_updates($pdo, $wabaId, $phoneNumberId, $value['statuses'] ?? []);
         }
@@ -674,17 +741,18 @@ function whatsapp_process_status_updates(PDO $pdo, ?string $wabaId, ?string $pho
 
         if ($outbound->rowCount() === 0 && $recipient !== null && $recipient !== '') {
             $tplFromStatus = whatsapp_extract_template_from_status($statusRow);
-            $templateName = $tplFromStatus['name'] ?? null;
-            $templateLang = $tplFromStatus['language'] ?? null;
+            $resolvedTpl = whatsapp_resolve_template_for_meta_status($tplFromStatus);
+            $templateName = $resolvedTpl['name'] ?? null;
+            $templateLang = $resolvedTpl['language'] ?? null;
             $previewText = null;
             if (is_file(__DIR__ . '/whatsapp_send.php')) {
                 require_once __DIR__ . '/whatsapp_send.php';
                 if (function_exists('whatsapp_outbound_body_preview')) {
                     $previewText = whatsapp_outbound_body_preview('', $templateName, $templateLang);
+                    if ($previewText === 'Outbound message (Meta Cloud API)') {
+                        $previewText = null;
+                    }
                 }
-            }
-            if ($previewText === null || $previewText === 'Outbound message (Meta Cloud API)') {
-                $previewText = null;
             }
             $payload = [
                 'source' => 'meta_status_webhook',
@@ -694,6 +762,9 @@ function whatsapp_process_status_updates(PDO $pdo, ?string $wabaId, ?string $pho
                 $payload['template'] = $templateName;
                 if ($templateLang !== null) {
                     $payload['template_language'] = $templateLang;
+                }
+                if ($tplFromStatus === null) {
+                    $payload['template_guessed'] = true;
                 }
             }
 

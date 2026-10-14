@@ -44,15 +44,7 @@ function admin_whatsapp_outbound_preview(array $row): string
         return 'Document: ' . $p['document_url'];
     }
 
-    $templateName = (string) ($row['template_name'] ?? ($p['template'] ?? ''));
-    $templateLang = (string) ($p['template_language'] ?? '');
-    $storedText = isset($p['text']) ? (string) $p['text'] : '';
-
-    return whatsapp_outbound_body_preview(
-        $storedText,
-        $templateName !== '' ? $templateName : null,
-        $templateLang !== '' ? $templateLang : null
-    );
+    return whatsapp_outbound_row_preview($row);
 }
 
 /** @return list<string> */

@@ -171,6 +171,35 @@ try {
     $echoJson = is_array($echoRow) ? json_decode((string) ($echoRow['payload_json'] ?? ''), true) : null;
     assert_true(is_array($echoJson) && ($echoJson['text'] ?? '') === 'Echo from Meta Business app', 'Message echo stored with body text');
 
+    $echoInMessagesId = 'wamid.ECHO2_' . bin2hex(random_bytes(8));
+    $echoInMessagesPayload = [
+        'object' => 'whatsapp_business_account',
+        'entry' => [[
+            'id' => 'WABA_TEST',
+            'changes' => [[
+                'field' => 'messages',
+                'value' => [
+                    'metadata' => ['phone_number_id' => 'PHONE_ID_TEST'],
+                    'messages' => [[
+                        'from' => 'PHONE_ID_TEST',
+                        'to' => '917777777777',
+                        'id' => $echoInMessagesId,
+                        'timestamp' => '1700000004',
+                        'type' => 'text',
+                        'text' => ['body' => 'Echo inside messages array'],
+                    ]],
+                ],
+            ]],
+        ]],
+    ];
+    $pdo->beginTransaction();
+    whatsapp_process_webhook_payload($echoInMessagesPayload, $pdo);
+    $pdo->commit();
+    $echo2 = $pdo->prepare('SELECT payload_json FROM whatsapp_outbound_messages WHERE wa_message_id = ?');
+    $echo2->execute([$echoInMessagesId]);
+    $echo2Json = json_decode((string) ($echo2->fetchColumn() ?: ''), true);
+    assert_true(is_array($echo2Json) && ($echo2Json['text'] ?? '') === 'Echo inside messages array', 'Outbound echo in messages[] routed correctly');
+
     // Cleanup synthetic rows
     $pdo->prepare('DELETE FROM whatsapp_inbound_messages WHERE wa_message_id = ?')->execute([$wamid]);
     $pdo->prepare('DELETE FROM whatsapp_webhook_dedupe WHERE dedupe_key LIKE ?')->execute(['inbound:' . $wamid]);
@@ -182,6 +211,8 @@ try {
     $pdo->prepare('DELETE FROM whatsapp_message_status_log WHERE wa_message_id = ?')->execute([$externalId]);
     $pdo->prepare('DELETE FROM whatsapp_webhook_dedupe WHERE dedupe_key LIKE ?')->execute(['status:' . $externalId . '%']);
     $pdo->prepare('DELETE FROM whatsapp_webhook_dedupe WHERE dedupe_key LIKE ?')->execute(['echo:' . $echoId]);
+    $pdo->prepare('DELETE FROM whatsapp_outbound_messages WHERE wa_message_id = ?')->execute([$echoInMessagesId]);
+    $pdo->prepare('DELETE FROM whatsapp_webhook_dedupe WHERE dedupe_key LIKE ?')->execute(['echo:' . $echoInMessagesId]);
 } catch (Throwable $e) {
     echo "SKIP DB tests (run sql/migrate_whatsapp_webhook.php first): " . $e->getMessage() . "\n";
 }

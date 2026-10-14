@@ -608,6 +608,84 @@ function whatsapp_outbound_body_preview(?string $bodyText, ?string $templateName
 }
 
 /**
+ * Templates to try when Meta sends only delivery status (no body / no template name in webhook).
+ *
+ * @return list<array{name:string,language:string}>
+ */
+function whatsapp_meta_status_template_guess_candidates(): array
+{
+    $config = require __DIR__ . '/config.php';
+    $wa = $config['whatsapp'] ?? [];
+    $candidates = [];
+    $pairs = [
+        [whatsapp_default_template_name(), whatsapp_default_template_language()],
+        [
+            (string) ($wa['form_welcome_template'] ?? ''),
+            (string) ($wa['form_welcome_language'] ?? 'en'),
+        ],
+        [
+            (string) ($wa['business_enquiry']['form_welcome_template'] ?? ''),
+            (string) ($wa['business_enquiry']['form_welcome_language'] ?? 'en'),
+        ],
+    ];
+    $seen = [];
+    foreach ($pairs as [$name, $lang]) {
+        $name = preg_replace('/[^a-z0-9_]/i', '', (string) $name);
+        if ($name === '' || isset($seen[$name])) {
+            continue;
+        }
+        $seen[$name] = true;
+        $candidates[] = [
+            'name' => $name,
+            'language' => $lang !== '' ? whatsapp_normalize_template_language($lang) : whatsapp_default_template_language(),
+        ];
+    }
+
+    return $candidates;
+}
+
+/**
+ * Preview for outbound DB rows (portal send, echo, or Meta status-only).
+ */
+function whatsapp_outbound_row_preview(array $row): string
+{
+    $p = [];
+    if (!empty($row['payload_json'])) {
+        $decoded = json_decode((string) $row['payload_json'], true);
+        if (is_array($decoded)) {
+            $p = $decoded;
+        }
+    }
+
+    $templateName = (string) ($row['template_name'] ?? ($p['template'] ?? ''));
+    $templateLang = (string) ($p['template_language'] ?? '');
+    $storedText = isset($p['text']) ? (string) $p['text'] : '';
+
+    $preview = whatsapp_outbound_body_preview(
+        $storedText,
+        $templateName !== '' ? $templateName : null,
+        $templateLang !== '' ? $templateLang : null
+    );
+
+    $source = (string) ($p['source'] ?? '');
+    $messageType = (string) ($row['message_type'] ?? '');
+    $needsGuess = $preview === 'Outbound message (Meta Cloud API)'
+        || whatsapp_is_meta_status_placeholder_text($preview);
+    if (!$needsGuess || ($source !== 'meta_status_webhook' && $messageType !== 'external')) {
+        return $preview;
+    }
+
+    foreach (whatsapp_meta_status_template_guess_candidates() as $candidate) {
+        $try = whatsapp_outbound_body_preview('', $candidate['name'], $candidate['language']);
+        if ($try !== 'Outbound message (Meta Cloud API)' && trim($try) !== '') {
+            return $try;
+        }
+    }
+
+    return $preview;
+}
+
+/**
  * @param list<string> $paramValues Flat list matching whatsapp_template_param_slots() order.
  * @return list<array<string, mixed>>
  */
