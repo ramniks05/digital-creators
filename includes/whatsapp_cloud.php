@@ -168,8 +168,8 @@ function whatsapp_upsert_outbound_from_webhook(
     if ($payloadJson === false) {
         $payloadJson = null;
     }
-    $isEcho = ($payload['source'] ?? '') === 'message_echo';
-    if ($isEcho) {
+    $forceContent = in_array((string) ($payload['source'] ?? ''), ['message_echo', 'graph_api'], true);
+    if ($forceContent) {
         $force = $pdo->prepare(
             'UPDATE whatsapp_outbound_messages
              SET phone_number_id = COALESCE(?, phone_number_id),
@@ -205,12 +205,17 @@ function whatsapp_upsert_outbound_from_webhook(
            message_type = IF(VALUES(message_type) = \'external\' AND message_type NOT IN (\'external\', \'unknown\'), message_type, VALUES(message_type)),
            template_name = COALESCE(VALUES(template_name), template_name),
            payload_json = IF(
-             JSON_UNQUOTE(JSON_EXTRACT(VALUES(payload_json), \'$.source\')) = \'message_echo\',
+             JSON_UNQUOTE(JSON_EXTRACT(VALUES(payload_json), \'$.source\')) IN (\'message_echo\', \'graph_api\'),
              VALUES(payload_json),
              IF(
-               JSON_UNQUOTE(JSON_EXTRACT(payload_json, \'$.source\')) = \'meta_status_webhook\',
+               JSON_UNQUOTE(JSON_EXTRACT(payload_json, \'$.source\')) = \'meta_status_webhook\'
+               AND JSON_UNQUOTE(JSON_EXTRACT(VALUES(payload_json), \'$.source\')) = \'graph_api\',
                VALUES(payload_json),
-               COALESCE(VALUES(payload_json), payload_json)
+               IF(
+                 JSON_UNQUOTE(JSON_EXTRACT(payload_json, \'$.source\')) = \'meta_status_webhook\',
+                 COALESCE(VALUES(payload_json), payload_json),
+                 COALESCE(VALUES(payload_json), payload_json)
+               )
              )
            ),
            delivery_status = VALUES(delivery_status),
@@ -741,30 +746,23 @@ function whatsapp_process_status_updates(PDO $pdo, ?string $wabaId, ?string $pho
 
         if ($outbound->rowCount() === 0 && $recipient !== null && $recipient !== '') {
             $tplFromStatus = whatsapp_extract_template_from_status($statusRow);
-            $resolvedTpl = whatsapp_resolve_template_for_meta_status($tplFromStatus);
-            $templateName = $resolvedTpl['name'] ?? null;
-            $templateLang = $resolvedTpl['language'] ?? null;
-            $previewText = null;
-            if (is_file(__DIR__ . '/whatsapp_send.php')) {
-                require_once __DIR__ . '/whatsapp_send.php';
-                if (function_exists('whatsapp_outbound_body_preview')) {
-                    $previewText = whatsapp_outbound_body_preview('', $templateName, $templateLang);
-                    if ($previewText === 'Outbound message (Meta Cloud API)') {
-                        $previewText = null;
-                    }
-                }
-            }
+            $templateName = $tplFromStatus['name'] ?? null;
+            $templateLang = $tplFromStatus['language'] ?? null;
             $payload = [
                 'source' => 'meta_status_webhook',
-                'text' => $previewText,
+                'text' => null,
             ];
             if ($templateName !== null) {
                 $payload['template'] = $templateName;
                 if ($templateLang !== null) {
                     $payload['template_language'] = $templateLang;
                 }
-                if ($tplFromStatus === null) {
-                    $payload['template_guessed'] = true;
+                if (is_file(__DIR__ . '/whatsapp_send.php')) {
+                    require_once __DIR__ . '/whatsapp_send.php';
+                    $previewText = whatsapp_outbound_body_preview('', $templateName, $templateLang);
+                    if ($previewText !== 'Outbound message (Meta Cloud API)') {
+                        $payload['text'] = $previewText;
+                    }
                 }
             }
 
@@ -773,7 +771,7 @@ function whatsapp_process_status_updates(PDO $pdo, ?string $wabaId, ?string $pho
                 $wamid,
                 $phoneNumberId,
                 $recipient,
-                $templateName !== null ? 'template' : 'external',
+                $templateName !== null ? 'template' : 'text',
                 $templateName,
                 $payload,
                 $status

@@ -784,8 +784,35 @@ if ($tablesReady) {
       <tr><th>Webhook URL</th><td><code><?= e($conn['webhook_url']) ?></code></td></tr>
       <tr><th>Health</th><td><a href="<?= e($conn['health_url']) ?>" target="_blank" rel="noopener"><?= e($conn['health_url']) ?></a></td></tr>
       <tr><th>Docs</th><td><a href="../docs/WHATSAPP_INTEGRATION.md" target="_blank" rel="noopener">WHATSAPP_INTEGRATION.md</a></td></tr>
+      <?php
+        $msgApiKey = whatsapp_messages_api_key();
+        $msgApiMasked = $msgApiKey !== '' ? (str_repeat('•', 8) . substr($msgApiKey, -4)) : 'Not configured';
+        $waMessagesUrl = preg_replace('#/api/hook-wa/?$#', '/api/wa-messages', (string) ($conn['webhook_url'] ?? ''));
+        if ($waMessagesUrl === ($conn['webhook_url'] ?? '')) {
+            $waMessagesUrl = 'https://digitalcreatorss.com/api/wa-messages';
+        }
+        ?>
+      <tr><th>Portal chat log API</th><td><code><?= e($waMessagesUrl) ?></code> · key: <?= e($msgApiMasked) ?></td></tr>
     </tbody>
   </table>
+  <div class="panel" style="margin-top:16px;background:#ecfdf5;border:1px solid #a7f3d0">
+    <h3 style="margin-top:0">Send like Meta’s curl — and show text in chat</h3>
+    <p class="muted" style="margin-top:0">
+      Direct <code>POST graph.facebook.com/…/messages</code> delivers to the phone but <strong>does not</strong> send message text to our server (Meta webhooks only send delivery status).
+      Use this URL with the same JSON body; we forward to Graph and save the text in <strong>Chats</strong>.
+    </p>
+    <p class="muted">Set in private config: <code>'messages_api_key' =&gt; 'your-long-random-secret'</code> under <code>whatsapp</code> (or env <code>WHATSAPP_MESSAGES_API_KEY</code>).</p>
+    <pre style="background:#0f172a;color:#e2e8f0;padding:12px;border-radius:8px;font-size:0.75rem;overflow:auto;white-space:pre-wrap">curl --request POST \
+  --url <?= e($waMessagesUrl) ?> \
+  --header 'Authorization: Bearer YOUR_MESSAGES_API_KEY' \
+  --header 'Content-Type: application/json' \
+  --data '{
+  "messaging_product": "whatsapp",
+  "to": "917903152429",
+  "type": "text",
+  "text": { "body": "hello this is test message" }
+}'</pre>
+  </div>
   <div class="panel" style="margin-top:16px;background:#f8fafc">
     <h3 style="margin-top:0">For Meta Developer Support</h3>
     <p class="muted" style="margin-top:0">Copy the block below into your Meta ticket. After <code>git pull</code>, failed sends also log <code>graph_code</code>, <code>graph_subcode</code>, and <code>fbtrace_id</code> in PHP error log.</p>

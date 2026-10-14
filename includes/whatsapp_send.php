@@ -139,6 +139,72 @@ function whatsapp_send_graph(array $payload): array
     return $lastError;
 }
 
+/**
+ * Persist outbound body when send uses Graph JSON (portal or /api/wa-messages).
+ */
+function whatsapp_sync_outbound_from_graph_payload(array $payload, string $waMessageId): void
+{
+    $to = whatsapp_normalize_recipient((string) ($payload['to'] ?? ''));
+    if ($to === '' || $waMessageId === '') {
+        return;
+    }
+
+    $type = substr((string) ($payload['type'] ?? 'text'), 0, 32);
+    $templateName = null;
+    $templateLang = null;
+    $dbPayload = ['source' => 'graph_api'];
+
+    if ($type === 'text' && is_array($payload['text'] ?? null)) {
+        $dbPayload['text'] = trim((string) ($payload['text']['body'] ?? ''));
+    } elseif ($type === 'template' && is_array($payload['template'] ?? null)) {
+        $templateName = preg_replace('/[^a-z0-9_]/i', '', (string) ($payload['template']['name'] ?? ''));
+        if ($templateName === '') {
+            $templateName = null;
+        }
+        if (is_array($payload['template']['language'] ?? null)) {
+            $templateLang = trim((string) ($payload['template']['language']['code'] ?? ''));
+        }
+        if ($templateName !== null) {
+            $dbPayload['template'] = $templateName;
+        }
+        if ($templateLang !== null && $templateLang !== '') {
+            $dbPayload['template_language'] = $templateLang;
+        }
+        $preview = whatsapp_outbound_body_preview('', $templateName, $templateLang);
+        if ($preview !== 'Outbound message (Meta Cloud API)') {
+            $dbPayload['text'] = $preview;
+        }
+    } elseif ($type === 'image' && is_array($payload['image'] ?? null)) {
+        $dbPayload['image_url'] = (string) ($payload['image']['link'] ?? $payload['image']['id'] ?? '');
+        $cap = trim((string) ($payload['image']['caption'] ?? ''));
+        if ($cap !== '') {
+            $dbPayload['text'] = $cap;
+        }
+    } elseif ($type === 'document' && is_array($payload['document'] ?? null)) {
+        $dbPayload['document_url'] = (string) ($payload['document']['link'] ?? $payload['document']['id'] ?? '');
+        $dbPayload['text'] = trim((string) ($payload['document']['filename'] ?? 'Document'));
+    }
+
+    $messageType = $templateName !== null ? 'template' : $type;
+    whatsapp_upsert_outbound_from_webhook(
+        db(),
+        $waMessageId,
+        null,
+        $to,
+        $messageType,
+        $templateName,
+        $dbPayload,
+        'sent'
+    );
+}
+
+function whatsapp_messages_api_key(): string
+{
+    $config = require __DIR__ . '/config.php';
+
+    return trim((string) ($config['whatsapp']['messages_api_key'] ?? ''));
+}
+
 function whatsapp_normalize_recipient(string $to): string
 {
     $digits = preg_replace('/\D+/', '', $to) ?: $to;

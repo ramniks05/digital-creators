@@ -29,6 +29,8 @@ $config = [
         'webhook_verify_token' => getenv('WHATSAPP_WEBHOOK_VERIFY_TOKEN') ?: '',
         'app_secret' => getenv('META_APP_SECRET') ?: '',
         'api_version' => getenv('WHATSAPP_API_VERSION') ?: 'v21.0',
+        // Optional: Bearer key for POST /api/wa-messages (Graph-compatible send + portal chat log)
+        'messages_api_key' => getenv('WHATSAPP_MESSAGES_API_KEY') ?: '',
         'default_template' => getenv('WHATSAPP_DEFAULT_TEMPLATE') ?: 'hello_world',
         'default_template_language' => getenv('WHATSAPP_DEFAULT_TEMPLATE_LANG') ?: 'en_US',
         'form_welcome_template' => getenv('DC_ENQUIRY_FORM_TEMPLATE') ?: 'enquiry_thank_you',
