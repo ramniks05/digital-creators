@@ -147,6 +147,115 @@ function whatsapp_attach_outbound_message_id(int $outboundRowId, string $waMessa
     $stmt->execute([$waMessageId, $outboundRowId, $waMessageId]);
 }
 
+/**
+ * Upsert outbound row from webhook (message echo or delivery status when send was outside admin).
+ */
+function whatsapp_upsert_outbound_from_webhook(
+    PDO $pdo,
+    string $waMessageId,
+    ?string $phoneNumberId,
+    string $recipientWaId,
+    string $messageType,
+    ?string $templateName,
+    array $payload,
+    string $deliveryStatus
+): void {
+    $recipientWaId = preg_replace('/\D+/', '', $recipientWaId) ?: $recipientWaId;
+    if ($recipientWaId === '' || $waMessageId === '') {
+        return;
+    }
+    $payloadJson = json_encode($payload, JSON_UNESCAPED_UNICODE);
+    if ($payloadJson === false) {
+        $payloadJson = null;
+    }
+    $stmt = $pdo->prepare(
+        'INSERT INTO whatsapp_outbound_messages
+         (wa_message_id, phone_number_id, recipient_wa_id, message_type, template_name, payload_json, delivery_status)
+         VALUES (?,?,?,?,?,?,?)
+         ON DUPLICATE KEY UPDATE
+           phone_number_id = COALESCE(VALUES(phone_number_id), phone_number_id),
+           recipient_wa_id = VALUES(recipient_wa_id),
+           message_type = IF(VALUES(message_type) = \'external\' AND message_type != \'external\', message_type, VALUES(message_type)),
+           template_name = COALESCE(VALUES(template_name), template_name),
+           payload_json = COALESCE(VALUES(payload_json), payload_json),
+           delivery_status = VALUES(delivery_status),
+           updated_at = CURRENT_TIMESTAMP'
+    );
+    $stmt->execute([
+        $waMessageId,
+        $phoneNumberId ?: whatsapp_cloud_config()['phone_number_id'] ?: null,
+        $recipientWaId,
+        substr($messageType, 0, 32),
+        $templateName !== null && $templateName !== '' ? substr($templateName, 0, 128) : null,
+        $payloadJson,
+        substr($deliveryStatus, 0, 32),
+    ]);
+}
+
+function whatsapp_extract_template_name_from_message(array $message): ?string
+{
+    if (($message['type'] ?? '') === 'template' && is_array($message['template'] ?? null)) {
+        $name = trim((string) ($message['template']['name'] ?? ''));
+
+        return $name !== '' ? $name : null;
+    }
+
+    return null;
+}
+
+/**
+ * @param mixed $echoes
+ */
+function whatsapp_process_message_echoes(PDO $pdo, ?string $wabaId, ?string $phoneNumberId, $echoes): void
+{
+    if (!is_array($echoes)) {
+        return;
+    }
+
+    foreach ($echoes as $message) {
+        if (!is_array($message)) {
+            continue;
+        }
+        $wamid = isset($message['id']) ? (string) $message['id'] : '';
+        if ($wamid === '') {
+            continue;
+        }
+
+        $dedupeKey = 'echo:' . $wamid;
+        if (!whatsapp_register_dedupe($pdo, $dedupeKey, 'echo')) {
+            continue;
+        }
+
+        $recipient = whatsapp_sanitize_wa_id($message['to'] ?? null) ?? '';
+        if ($recipient === '') {
+            continue;
+        }
+
+        $type = substr((string) ($message['type'] ?? 'unknown'), 0, 32);
+        $body = whatsapp_extract_message_text($message);
+        $templateName = whatsapp_extract_template_name_from_message($message);
+        $payload = [
+            'source' => 'message_echo',
+            'text' => $body,
+            'raw_type' => $type,
+        ];
+        if ($templateName !== null) {
+            $payload['template'] = $templateName;
+        }
+
+        whatsapp_upsert_outbound_from_webhook(
+            $pdo,
+            $wamid,
+            $phoneNumberId,
+            $recipient,
+            $templateName !== null ? 'template' : $type,
+            $templateName,
+            $payload,
+            'sent'
+        );
+    }
+}
+
 function whatsapp_register_dedupe(PDO $pdo, string $dedupeKey, string $eventKind): bool
 {
     $stmt = $pdo->prepare(
@@ -242,7 +351,7 @@ function whatsapp_process_webhook_payload(array $payload, PDO $pdo): array
                 continue;
             }
             $field = (string) ($change['field'] ?? '');
-            if ($field !== 'messages') {
+            if ($field !== 'messages' && $field !== 'message_echoes') {
                 continue;
             }
             $value = $change['value'] ?? [];
@@ -253,6 +362,16 @@ function whatsapp_process_webhook_payload(array $payload, PDO $pdo): array
             $phoneNumberId = isset($value['metadata']['phone_number_id'])
                 ? (string) $value['metadata']['phone_number_id']
                 : null;
+
+            $echoes = $value['message_echoes'] ?? [];
+            if ($field === 'message_echoes' && $echoes === [] && is_array($value['messages'] ?? null)) {
+                $echoes = $value['messages'];
+            }
+            whatsapp_process_message_echoes($pdo, $wabaId, $phoneNumberId, $echoes);
+
+            if ($field !== 'messages') {
+                continue;
+            }
 
             $contactNames = whatsapp_contact_name_map($value['contacts'] ?? []);
             $newInbound = array_merge(
@@ -464,6 +583,22 @@ function whatsapp_process_status_updates(PDO $pdo, ?string $wabaId, ?string $pho
             $errorMessage ?: $errorTitle,
             $wamid,
         ]);
+
+        if ($outbound->rowCount() === 0 && $recipient !== null && $recipient !== '') {
+            whatsapp_upsert_outbound_from_webhook(
+                $pdo,
+                $wamid,
+                $phoneNumberId,
+                $recipient,
+                'external',
+                null,
+                [
+                    'source' => 'meta_status_webhook',
+                    'text' => 'Message sent via Meta (API / test tool). Open the recipient WhatsApp app to view the full text.',
+                ],
+                $status
+            );
+        }
     }
 }
 
@@ -538,6 +673,7 @@ function whatsapp_handle_webhook_post(string $rawBody): void
         'result' => '200',
         'messages' => $stats['messages'],
         'statuses' => $stats['statuses'],
+        'echoes' => $stats['echoes'] ?? 0,
         'fields' => implode(',', $stats['fields']),
         'object' => $stats['object'],
         'phone_number_id' => $stats['phone_number_id'] ?? '',

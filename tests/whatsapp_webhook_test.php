@@ -114,12 +114,74 @@ try {
     $out = $st->fetch();
     assert_true($out && $out['delivery_status'] === 'delivered', 'Outbound status updated from webhook');
 
+    $externalId = 'wamid.META_' . bin2hex(random_bytes(8));
+    $externalPayload = [
+        'object' => 'whatsapp_business_account',
+        'entry' => [[
+            'id' => 'WABA_TEST',
+            'changes' => [[
+                'field' => 'messages',
+                'value' => [
+                    'metadata' => ['phone_number_id' => 'PHONE_ID_TEST'],
+                    'statuses' => [[
+                        'id' => $externalId,
+                        'status' => 'sent',
+                        'timestamp' => '1700000002',
+                        'recipient_id' => '918888888888',
+                    ]],
+                ],
+            ]],
+        ]],
+    ];
+    $pdo->beginTransaction();
+    whatsapp_process_webhook_payload($externalPayload, $pdo);
+    $pdo->commit();
+    $ext = $pdo->prepare('SELECT recipient_wa_id, message_type, payload_json FROM whatsapp_outbound_messages WHERE wa_message_id = ?');
+    $ext->execute([$externalId]);
+    $extRow = $ext->fetch();
+    assert_true($extRow && $extRow['recipient_wa_id'] === '918888888888', 'Meta-only send creates outbound row from status webhook');
+    assert_true($extRow && $extRow['message_type'] === 'external', 'External send typed as external');
+
+    $echoId = 'wamid.ECHO_' . bin2hex(random_bytes(8));
+    $echoPayload = [
+        'object' => 'whatsapp_business_account',
+        'entry' => [[
+            'id' => 'WABA_TEST',
+            'changes' => [[
+                'field' => 'messages',
+                'value' => [
+                    'metadata' => ['phone_number_id' => 'PHONE_ID_TEST'],
+                    'message_echoes' => [[
+                        'to' => '918888888888',
+                        'id' => $echoId,
+                        'timestamp' => '1700000003',
+                        'type' => 'text',
+                        'text' => ['body' => 'Echo from Meta Business app'],
+                    ]],
+                ],
+            ]],
+        ]],
+    ];
+    $pdo->beginTransaction();
+    whatsapp_process_webhook_payload($echoPayload, $pdo);
+    $pdo->commit();
+    $echoStmt = $pdo->prepare('SELECT payload_json FROM whatsapp_outbound_messages WHERE wa_message_id = ?');
+    $echoStmt->execute([$echoId]);
+    $echoRow = $echoStmt->fetch();
+    $echoJson = is_array($echoRow) ? json_decode((string) ($echoRow['payload_json'] ?? ''), true) : null;
+    assert_true(is_array($echoJson) && ($echoJson['text'] ?? '') === 'Echo from Meta Business app', 'Message echo stored with body text');
+
     // Cleanup synthetic rows
     $pdo->prepare('DELETE FROM whatsapp_inbound_messages WHERE wa_message_id = ?')->execute([$wamid]);
     $pdo->prepare('DELETE FROM whatsapp_webhook_dedupe WHERE dedupe_key LIKE ?')->execute(['inbound:' . $wamid]);
     $pdo->prepare('DELETE FROM whatsapp_outbound_messages WHERE wa_message_id = ?')->execute([$statusId]);
     $pdo->prepare('DELETE FROM whatsapp_message_status_log WHERE wa_message_id = ?')->execute([$statusId]);
     $pdo->prepare('DELETE FROM whatsapp_webhook_dedupe WHERE dedupe_key LIKE ?')->execute(['status:' . $statusId . '%']);
+    $pdo->prepare('DELETE FROM whatsapp_outbound_messages WHERE wa_message_id = ?')->execute([$externalId]);
+    $pdo->prepare('DELETE FROM whatsapp_outbound_messages WHERE wa_message_id = ?')->execute([$echoId]);
+    $pdo->prepare('DELETE FROM whatsapp_message_status_log WHERE wa_message_id = ?')->execute([$externalId]);
+    $pdo->prepare('DELETE FROM whatsapp_webhook_dedupe WHERE dedupe_key LIKE ?')->execute(['status:' . $externalId . '%']);
+    $pdo->prepare('DELETE FROM whatsapp_webhook_dedupe WHERE dedupe_key LIKE ?')->execute(['echo:' . $echoId]);
 } catch (Throwable $e) {
     echo "SKIP DB tests (run sql/migrate_whatsapp_webhook.php first): " . $e->getMessage() . "\n";
 }

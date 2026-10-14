@@ -102,12 +102,13 @@ function whatsapp_webhook_trace_read(int $limit = 25): array
 /**
  * Count inbound vs status events in a Meta webhook JSON payload.
  *
- * @return array{object:string,fields:list<string>,messages:int,statuses:int,phone_number_id:?string}
+ * @return array{object:string,fields:list<string>,messages:int,statuses:int,echoes:int,phone_number_id:?string}
  */
 function whatsapp_webhook_payload_stats(array $payload): array
 {
     $messages = 0;
     $statuses = 0;
+    $echoes = 0;
     $fields = [];
     $phoneNumberId = null;
     $object = (string) ($payload['object'] ?? '');
@@ -118,6 +119,7 @@ function whatsapp_webhook_payload_stats(array $payload): array
             'fields' => [],
             'messages' => 0,
             'statuses' => 0,
+            'echoes' => 0,
             'phone_number_id' => null,
         ];
     }
@@ -137,7 +139,7 @@ function whatsapp_webhook_payload_stats(array $payload): array
             if ($field !== '') {
                 $fields[$field] = true;
             }
-            if ($field !== 'messages') {
+            if ($field !== 'messages' && $field !== 'message_echoes') {
                 continue;
             }
             $value = $change['value'] ?? [];
@@ -147,11 +149,18 @@ function whatsapp_webhook_payload_stats(array $payload): array
             if ($phoneNumberId === null && !empty($value['metadata']['phone_number_id'])) {
                 $phoneNumberId = (string) $value['metadata']['phone_number_id'];
             }
-            if (is_array($value['messages'] ?? null)) {
+            if ($field === 'messages' && is_array($value['messages'] ?? null)) {
                 $messages += count($value['messages']);
             }
             if (is_array($value['statuses'] ?? null)) {
                 $statuses += count($value['statuses']);
+            }
+            $echoBatch = $value['message_echoes'] ?? [];
+            if ($field === 'message_echoes' && $echoBatch === [] && is_array($value['messages'] ?? null)) {
+                $echoBatch = $value['messages'];
+            }
+            if (is_array($echoBatch)) {
+                $echoes += count($echoBatch);
             }
         }
     }
@@ -161,6 +170,7 @@ function whatsapp_webhook_payload_stats(array $payload): array
         'fields' => array_keys($fields),
         'messages' => $messages,
         'statuses' => $statuses,
+        'echoes' => $echoes,
         'phone_number_id' => $phoneNumberId,
     ];
 }

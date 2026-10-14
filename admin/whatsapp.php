@@ -202,6 +202,61 @@ function admin_whatsapp_avatar_initials(?string $name, string $waId): string
     return strtoupper(substr(preg_replace('/\D/', '', $waId), -2));
 }
 
+/**
+ * @return list<array{wa_id:string,last_at:string,contact_name:?string,preview:string}>
+ */
+function admin_whatsapp_conversation_summaries(PDO $pdo, int $limit = 100): array
+{
+    $limit = max(1, min(200, $limit));
+    $stmt = $pdo->query(
+        'SELECT wa_id, MAX(last_at) AS last_at FROM (
+            SELECT from_wa_id AS wa_id, created_at AS last_at FROM whatsapp_inbound_messages
+            UNION ALL
+            SELECT recipient_wa_id, updated_at FROM whatsapp_outbound_messages
+         ) e GROUP BY wa_id ORDER BY last_at DESC LIMIT ' . $limit
+    );
+    $peers = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $out = [];
+    foreach ($peers as $peer) {
+        $waId = (string) ($peer['wa_id'] ?? '');
+        if ($waId === '') {
+            continue;
+        }
+        $variants = whatsapp_wa_id_variants($waId);
+        [$inSql, $inParams] = whatsapp_wa_id_in_clause('from_wa_id', $variants);
+        $nameStmt = $pdo->prepare(
+            "SELECT contact_name, body_text FROM whatsapp_inbound_messages
+             WHERE {$inSql} ORDER BY id DESC LIMIT 1"
+        );
+        $nameStmt->execute($inParams);
+        $inRow = $nameStmt->fetch(PDO::FETCH_ASSOC) ?: [];
+        $contactName = trim((string) ($inRow['contact_name'] ?? ''));
+        $preview = trim((string) ($inRow['body_text'] ?? ''));
+
+        if ($preview === '') {
+            [$outSql, $outParams] = whatsapp_wa_id_in_clause('recipient_wa_id', $variants);
+            $outStmt = $pdo->prepare(
+                "SELECT message_type, template_name, payload_json, delivery_status
+                 FROM whatsapp_outbound_messages WHERE {$outSql} ORDER BY id DESC LIMIT 1"
+            );
+            $outStmt->execute($outParams);
+            $oRow = $outStmt->fetch(PDO::FETCH_ASSOC);
+            if (is_array($oRow)) {
+                $preview = admin_whatsapp_excerpt(admin_whatsapp_outbound_preview($oRow), 72);
+            }
+        }
+
+        $out[] = [
+            'wa_id' => $waId,
+            'last_at' => (string) ($peer['last_at'] ?? ''),
+            'contact_name' => $contactName !== '' ? $contactName : null,
+            'preview' => $preview !== '' ? $preview : '—',
+        ];
+    }
+
+    return $out;
+}
+
 function admin_whatsapp_format_list_time(string $datetime): string
 {
     $ts = strtotime($datetime);
@@ -779,7 +834,7 @@ if ($tablesReady) {
     ?>
   <div class="panel" style="margin-top:16px;background:#fff">
     <h3 style="margin-top:0">Incoming messages (webhook)</h3>
-    <p class="muted" style="margin-top:0">Callback URL: <code>https://digitalcreatorss.com/api/hook-wa</code> → <code>api/hook-wa.php</code> → <code>webhook/whatsapp.php</code>. Only the <strong>messages</strong> field is processed (<code>value.messages[]</code> = customer → you; <code>value.statuses[]</code> = delivery updates for outbound).</p>
+    <p class="muted" style="margin-top:0">Callback URL: <code>https://digitalcreatorss.com/api/hook-wa</code> → <code>api/hook-wa.php</code> → <code>webhook/whatsapp.php</code>. Subscribe <strong>messages</strong> (inbound + delivery statuses) and <strong>message_echoes</strong> (business sends from Meta / WhatsApp Business app — shows text in admin chat). <code>value.statuses[]</code> alone creates a chat row with a short note if the send was outside the portal.</p>
     <table>
       <tbody>
         <tr><th style="width:220px">Inbound rows in DB</th><td><?= $inboundTotal >= 0 ? (string) $inboundTotal : '— (tables missing?)' ?></td></tr>
@@ -984,41 +1039,33 @@ if ($tablesReady) {
   <?php endif; ?>
   <p class="muted">Server PHP error log also records failed sends: <code>WhatsApp template send failed: template=…</code></p>
 <?php elseif ($view === 'chats'):
-    $rows = $pdo->query(
-        'SELECT m.from_wa_id, m.contact_name, m.body_text, m.created_at
-         FROM whatsapp_inbound_messages m
-         INNER JOIN (
-           SELECT from_wa_id, MAX(id) AS max_id FROM whatsapp_inbound_messages GROUP BY from_wa_id
-         ) t ON m.id = t.max_id
-         ORDER BY m.id DESC
-         LIMIT 100'
-    )->fetchAll();
+    $rows = admin_whatsapp_conversation_summaries($pdo, 100);
     ?>
   <div class="wa-page-wrap">
   <?php if (!$rows): ?>
     <div class="wa-empty-state">
       <p><strong>No conversations yet</strong></p>
-      <p class="muted">When a customer messages your business on WhatsApp, they appear here. You can also start with <a href="whatsapp.php?view=compose">New message</a>.</p>
+      <p class="muted">Customer inbound chats and outbound sends (portal or Meta webhook) appear here. Start with <a href="whatsapp.php?view=compose">New message</a>.</p>
     </div>
   <?php else: ?>
   <ul class="wa-chat-list">
     <?php foreach ($rows as $row): ?>
       <?php
-      $listName = $row['contact_name'] ?: $row['from_wa_id'];
-      $initials = admin_whatsapp_avatar_initials($row['contact_name'] ?: null, (string) $row['from_wa_id']);
-      $preview = admin_whatsapp_excerpt((string) $row['body_text'], 72) ?: '—';
+      $listName = $row['contact_name'] ?: $row['wa_id'];
+      $initials = admin_whatsapp_avatar_initials($row['contact_name'] ?: null, (string) $row['wa_id']);
+      $preview = admin_whatsapp_excerpt((string) $row['preview'], 72) ?: '—';
       ?>
     <li>
-      <a class="wa-chat-list-item" href="whatsapp.php?view=chat&amp;wa_id=<?= e($row['from_wa_id']) ?>">
+      <a class="wa-chat-list-item" href="whatsapp.php?view=chat&amp;wa_id=<?= e($row['wa_id']) ?>">
         <span class="wa-chat-avatar wa-chat-avatar-sm"><?= e($initials) ?></span>
         <span class="wa-chat-list-body">
           <span class="wa-chat-list-top">
             <strong><?= e($listName) ?></strong>
-            <time><?= e(admin_whatsapp_format_list_time((string) $row['created_at'])) ?></time>
+            <time><?= e(admin_whatsapp_format_list_time((string) $row['last_at'])) ?></time>
           </span>
           <span class="wa-chat-list-preview"><?= e($preview) ?></span>
           <?php if (!$row['contact_name']): ?>
-          <span class="wa-chat-list-sub"><?= e($row['from_wa_id']) ?></span>
+          <span class="wa-chat-list-sub"><?= e($row['wa_id']) ?></span>
           <?php endif; ?>
         </span>
       </a>
