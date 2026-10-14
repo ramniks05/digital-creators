@@ -30,28 +30,29 @@ function admin_whatsapp_excerpt(?string $text, int $max = 80): string
 
 function admin_whatsapp_outbound_preview(array $row): string
 {
+    $p = [];
     if (!empty($row['payload_json'])) {
-        $p = json_decode((string) $row['payload_json'], true);
-        if (is_array($p)) {
-            if (!empty($p['text'])) {
-                return (string) $p['text'];
-            }
-            if (!empty($p['template'])) {
-                return 'Template: ' . $p['template'];
-            }
-            if (!empty($p['image_url'])) {
-                return 'Image: ' . $p['image_url'];
-            }
-            if (!empty($p['document_url'])) {
-                return 'Document: ' . $p['document_url'];
-            }
+        $decoded = json_decode((string) $row['payload_json'], true);
+        if (is_array($decoded)) {
+            $p = $decoded;
         }
     }
-    if (!empty($row['template_name'])) {
-        return 'Template: ' . $row['template_name'];
+    if (!empty($p['image_url'])) {
+        return 'Image: ' . $p['image_url'];
+    }
+    if (!empty($p['document_url'])) {
+        return 'Document: ' . $p['document_url'];
     }
 
-    return 'Outbound message';
+    $templateName = (string) ($row['template_name'] ?? ($p['template'] ?? ''));
+    $templateLang = (string) ($p['template_language'] ?? '');
+    $storedText = isset($p['text']) ? (string) $p['text'] : '';
+
+    return whatsapp_outbound_body_preview(
+        $storedText,
+        $templateName !== '' ? $templateName : null,
+        $templateLang !== '' ? $templateLang : null
+    );
 }
 
 /** @return list<string> */

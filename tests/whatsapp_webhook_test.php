@@ -140,7 +140,7 @@ try {
     $ext->execute([$externalId]);
     $extRow = $ext->fetch();
     assert_true($extRow && $extRow['recipient_wa_id'] === '918888888888', 'Meta-only send creates outbound row from status webhook');
-    assert_true($extRow && $extRow['message_type'] === 'external', 'External send typed as external');
+    assert_true($extRow && in_array($extRow['message_type'], ['external', 'template'], true), 'External send typed as external or template');
 
     $echoId = 'wamid.ECHO_' . bin2hex(random_bytes(8));
     $echoPayload = [

@@ -139,7 +139,7 @@ function whatsapp_webhook_payload_stats(array $payload): array
             if ($field !== '') {
                 $fields[$field] = true;
             }
-            if ($field !== 'messages' && $field !== 'message_echoes') {
+            if ($field !== 'messages' && $field !== 'message_echoes' && $field !== 'smb_message_echoes') {
                 continue;
             }
             $value = $change['value'] ?? [];

@@ -561,6 +561,52 @@ function whatsapp_template_body_preview_text($components): string
     return '';
 }
 
+/** Placeholder stored when Meta sends only delivery status (no message body in webhook). */
+function whatsapp_meta_status_placeholder_text(): string
+{
+    return 'Message sent via Meta (API / test tool). Open the recipient WhatsApp app to view the full text.';
+}
+
+function whatsapp_is_meta_status_placeholder_text(?string $text): bool
+{
+    $text = trim((string) $text);
+
+    return $text === '' || $text === whatsapp_meta_status_placeholder_text();
+}
+
+/**
+ * Best-effort chat preview for outbound rows (portal, echo, or Meta status webhook).
+ */
+function whatsapp_outbound_body_preview(?string $bodyText, ?string $templateName, ?string $templateLanguage = null): string
+{
+    $bodyText = trim((string) $bodyText);
+    if ($bodyText !== '' && !whatsapp_is_meta_status_placeholder_text($bodyText)) {
+        return $bodyText;
+    }
+
+    $templateName = preg_replace('/[^a-z0-9_]/i', '', (string) $templateName);
+    if ($templateName !== '') {
+        $lang = $templateLanguage !== null && $templateLanguage !== ''
+            ? whatsapp_normalize_template_language($templateLanguage)
+            : whatsapp_default_template_language();
+        $def = whatsapp_lookup_template_definition($templateName, $lang);
+        if (is_array($def)) {
+            $preview = trim((string) ($def['body_preview'] ?? ''));
+            if ($preview !== '') {
+                return $preview;
+            }
+        }
+
+        return 'Template: ' . $templateName;
+    }
+
+    if ($bodyText !== '') {
+        return $bodyText;
+    }
+
+    return 'Outbound message (Meta Cloud API)';
+}
+
 /**
  * @param list<string> $paramValues Flat list matching whatsapp_template_param_slots() order.
  * @return list<array<string, mixed>>
