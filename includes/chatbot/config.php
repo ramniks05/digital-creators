@@ -9,7 +9,14 @@ function chatbot_enabled(): bool
     }
     $config = require dirname(__DIR__) . '/config.php';
     $cb = $config['whatsapp']['chatbot'] ?? [];
-    $on = filter_var($cb['enabled'] ?? getenv('WHATSAPP_CHATBOT_ENABLED') ?: '0', FILTER_VALIDATE_BOOLEAN);
+    $raw = $cb['enabled'] ?? getenv('WHATSAPP_CHATBOT_ENABLED') ?: '0';
+    if (is_bool($raw)) {
+        $on = $raw;
+    } elseif (is_int($raw)) {
+        $on = $raw === 1;
+    } else {
+        $on = filter_var((string) $raw, FILTER_VALIDATE_BOOLEAN);
+    }
 
     return $on;
 }

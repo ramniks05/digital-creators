@@ -44,11 +44,6 @@ final class ChatbotFlowController
             return false;
         }
 
-        $tenantId = (int) ($row['tenant_id'] ?? 0);
-        if ($tenantId > 0 && $tenantId !== $this->tenantId) {
-            return false;
-        }
-
         $contactName = isset($row['contact_name']) ? (string) $row['contact_name'] : null;
         $contactId = crm_touch_contact($this->pdo, $this->tenantId, $from, $contactName);
         $convId = crm_conversation_id_for_peer($this->pdo, $this->tenantId, $from);
@@ -65,6 +60,13 @@ final class ChatbotFlowController
 
         if (($session['mode'] ?? 'bot') === 'human') {
             $this->sessions->save($session);
+            if (is_file(dirname(__DIR__) . '/whatsapp_webhook_diagnostics.php')) {
+                require_once dirname(__DIR__) . '/whatsapp_webhook_diagnostics.php';
+                whatsapp_log_event('chatbot_skipped', [
+                    'reason' => 'human_mode',
+                    'from_masked' => whatsapp_mask_wa_id($from),
+                ]);
+            }
 
             return true;
         }
@@ -102,6 +104,7 @@ final class ChatbotFlowController
                 return true;
             }
             if ($action === null) {
+                $this->sessions->save($session);
                 $this->showMainMenu($from, $wamid);
 
                 return true;
@@ -318,9 +321,9 @@ final class ChatbotFlowController
 
     private function showMainMenu(string $phone, string $wamid): void
     {
-        $this->sender->sendButtons(
+        $ok = $this->sender->sendButtons(
             $phone,
-            "Welcome to Digital Creatorss 👋\nHow can we help you today?",
+            "Welcome to Digital Creatorss!\nHow can we help you today?",
             [
                 ['id' => 'GET_BROCHURE', 'title' => 'Get brochure'],
                 ['id' => 'EXPLORE_SERVICES', 'title' => 'Our services'],
@@ -328,6 +331,18 @@ final class ChatbotFlowController
             ],
             'cb-menu-' . $wamid
         );
+        if (!$ok) {
+            $this->sender->sendText(
+                $phone,
+                "Welcome to Digital Creatorss!\n\n"
+                . "Reply with:\n"
+                . "• *brochure* — company PDF\n"
+                . "• *services* — our offerings\n"
+                . "• *agent* — talk to our team\n"
+                . "• *menu* — show this again",
+                'cb-menu-text-' . $wamid
+            );
+        }
     }
 
     private function showPostBrochureMenu(string $phone, string $key): void

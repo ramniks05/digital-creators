@@ -217,6 +217,9 @@ function whatsapp_automation_after_inbound(PDO $pdo, array $newInbound): void
 
         if (is_file(__DIR__ . '/whatsapp_chatbot.php')) {
             require_once __DIR__ . '/whatsapp_chatbot.php';
+            if (chatbot_enabled() && !chatbot_tables_ready($pdo)) {
+                whatsapp_log_event('chatbot_skipped', ['reason' => 'tables_missing', 'hint' => 'php sql/migrate_crm_chatbot.php']);
+            }
             if (chatbot_enabled() && chatbot_tables_ready($pdo)) {
                 try {
                     $tenantId = (int) ($row['tenant_id'] ?? 0);

@@ -14,11 +14,12 @@ final class ChatbotWhatsAppMessageSender
         $jobs = new CrmOutboundJobService($this->pdo, $this->tenantId);
         $result = $jobs->enqueueText(0, $phone, $text, $idempotencyKey);
         if (!$result['ok']) {
+            $this->logSendFailure((string) ($result['error'] ?? 'enqueue failed'), $phone);
+
             return false;
         }
-        $jobs->processPendingJobs(1);
 
-        return true;
+        return $jobs->processPendingJobs(1) >= 1;
     }
 
     /**
@@ -117,10 +118,27 @@ final class ChatbotWhatsAppMessageSender
         $jobs = new CrmOutboundJobService($this->pdo, $this->tenantId);
         $result = $jobs->enqueueGraphPayload(0, $phone, $payload, $idempotencyKey);
         if (!$result['ok']) {
+            $this->logSendFailure((string) ($result['error'] ?? 'enqueue failed'), $phone);
+
             return false;
         }
-        $jobs->processPendingJobs(1);
+        $processed = $jobs->processPendingJobs(1);
+        if ($processed < 1) {
+            $this->logSendFailure('job queued but send did not complete (check crm_outbound_jobs.last_error)', $phone);
+        }
 
-        return true;
+        return $processed >= 1;
+    }
+
+    private function logSendFailure(string $error, string $phone): void
+    {
+        if (!is_file(dirname(__DIR__) . '/whatsapp_webhook_diagnostics.php')) {
+            return;
+        }
+        require_once dirname(__DIR__) . '/whatsapp_webhook_diagnostics.php';
+        whatsapp_log_event('chatbot_send_failed', [
+            'error' => substr($error, 0, 200),
+            'to_masked' => function_exists('whatsapp_mask_wa_id') ? whatsapp_mask_wa_id($phone) : '***',
+        ]);
     }
 }
