@@ -215,6 +215,29 @@ function whatsapp_automation_after_inbound(PDO $pdo, array $newInbound): void
             }
         }
 
+        if (is_file(__DIR__ . '/whatsapp_chatbot.php')) {
+            require_once __DIR__ . '/whatsapp_chatbot.php';
+            if (chatbot_enabled() && chatbot_tables_ready($pdo)) {
+                try {
+                    $tenantId = (int) ($row['tenant_id'] ?? 0);
+                    if ($tenantId <= 0 && is_file(__DIR__ . '/crm/tenant.php')) {
+                        require_once __DIR__ . '/crm/tenant.php';
+                        $tenantId = crm_webhook_resolve_tenant($pdo, (string) ($row['phone_number_id'] ?? ''));
+                    }
+                    if ($tenantId <= 0) {
+                        require_once __DIR__ . '/crm/tenant.php';
+                        $tenantId = crm_default_tenant_id();
+                    }
+                    $chatbot = new ChatbotFlowController($pdo, $tenantId);
+                    if ($chatbot->handleInbound($row)) {
+                        continue;
+                    }
+                } catch (Throwable $e) {
+                    error_log('Chatbot automation: ' . $e->getMessage());
+                }
+            }
+        }
+
         $enquiryReplySent = false;
         if (is_file(__DIR__ . '/business_enquiry.php')) {
             require_once __DIR__ . '/business_enquiry.php';

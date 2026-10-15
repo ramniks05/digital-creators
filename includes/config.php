@@ -59,6 +59,9 @@ $config = [
             'opt_out_confirm_enabled' => filter_var(getenv('WHATSAPP_OPT_OUT_CONFIRM') ?: '0', FILTER_VALIDATE_BOOLEAN),
             'opt_out_confirm_message' => getenv('WHATSAPP_OPT_OUT_MESSAGE') ?: '',
         ],
+        'chatbot' => [
+            'enabled' => filter_var(getenv('WHATSAPP_CHATBOT_ENABLED') ?: '0', FILTER_VALIDATE_BOOLEAN),
+        ],
         'business_enquiry' => [
             'enabled' => filter_var(getenv('DC_ENQUIRY_AUTOMATION') ?: '0', FILTER_VALIDATE_BOOLEAN),
             'whatsapp_leads' => filter_var(getenv('DC_ENQUIRY_WHATSAPP_LEADS') ?: '1', FILTER_VALIDATE_BOOLEAN),

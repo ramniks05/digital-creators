@@ -52,6 +52,49 @@ final class CrmMessagePolicyService
     }
 
     /**
+     * Session messages (interactive menus, documents) within the 24h window.
+     *
+     * @return array{ok:bool, error?:string, code?:string}
+     */
+    public function validateOutboundSession(string $recipientWaId): array
+    {
+        require_once dirname(__DIR__, 2) . '/whatsapp_send.php';
+        require_once dirname(__DIR__, 2) . '/whatsapp_contacts.php';
+
+        if ($this->isPaused()) {
+            return ['ok' => false, 'error' => 'Outbound messaging is paused for this account.', 'code' => 'paused'];
+        }
+
+        $to = whatsapp_normalize_recipient($recipientWaId);
+        if ($to === '') {
+            return ['ok' => false, 'error' => 'Recipient is required.', 'code' => 'validation'];
+        }
+
+        if (whatsapp_contact_is_opted_out($this->pdo, $to)) {
+            return ['ok' => false, 'error' => 'Contact has opted out (STOP).', 'code' => 'opt_out'];
+        }
+
+        if ($this->isSuppressed($to)) {
+            return ['ok' => false, 'error' => 'Contact is on suppression list.', 'code' => 'suppressed'];
+        }
+
+        $rate = new CrmRateLimitService($this->pdo, $this->tenantId);
+        if (!$rate->allowOutboundToRecipient($to)) {
+            return ['ok' => false, 'error' => 'Daily send limit reached for this contact.', 'code' => 'rate_limit'];
+        }
+
+        if (!whatsapp_service_window_open($this->pdo, $to)) {
+            return [
+                'ok' => false,
+                'error' => '24-hour customer service window closed. Send an approved template instead.',
+                'code' => 'window_closed',
+            ];
+        }
+
+        return ['ok' => true];
+    }
+
+    /**
      * @return array{ok:bool, error?:string, code?:string}
      */
     public function validateTemplateSend(string $recipientWaId, string $templateName): array

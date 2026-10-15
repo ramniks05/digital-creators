@@ -1513,6 +1513,58 @@ function whatsapp_send_document_link(string $to, string $docUrl, ?string $filena
 /**
  * @return array{ok:bool, lead_id?:int, error?:string}
  */
+/**
+ * @return array{ok:bool, media_id?:string, error?:string}
+ */
+function whatsapp_upload_media_from_path(string $filePath, string $mimeType = 'application/pdf'): array
+{
+    $cfg = whatsapp_cloud_config();
+    $token = trim($cfg['access_token']);
+    $phoneId = trim($cfg['phone_number_id']);
+    if ($token === '' || $phoneId === '') {
+        return ['ok' => false, 'error' => 'WhatsApp is not configured.'];
+    }
+    if (!is_readable($filePath)) {
+        return ['ok' => false, 'error' => 'File not readable.'];
+    }
+    if (!function_exists('curl_init')) {
+        return ['ok' => false, 'error' => 'cURL not available.'];
+    }
+
+    $url = sprintf(
+        'https://graph.facebook.com/%s/%s/media',
+        rawurlencode($cfg['api_version']),
+        rawurlencode($phoneId)
+    );
+
+    $cfile = new CURLFile($filePath, $mimeType, basename($filePath));
+    $post = [
+        'messaging_product' => 'whatsapp',
+        'type' => $mimeType,
+        'file' => $cfile,
+    ];
+
+    $ch = curl_init($url);
+    curl_setopt_array($ch, [
+        CURLOPT_POST => true,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_HTTPHEADER => ['Authorization: Bearer ' . $token],
+        CURLOPT_POSTFIELDS => $post,
+        CURLOPT_TIMEOUT => 120,
+    ]);
+    $body = curl_exec($ch);
+    $httpCode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+    $data = is_string($body) ? json_decode($body, true) : null;
+    if ($httpCode < 200 || $httpCode >= 300 || !is_array($data) || empty($data['id'])) {
+        $err = is_array($data) ? whatsapp_parse_graph_error($data)['message'] : 'Upload failed.';
+
+        return ['ok' => false, 'error' => $err];
+    }
+
+    return ['ok' => true, 'media_id' => (string) $data['id']];
+}
+
 function whatsapp_create_lead_from_chat(string $waId): array
 {
     $waId = whatsapp_normalize_recipient($waId);

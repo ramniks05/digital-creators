@@ -478,6 +478,23 @@ function whatsapp_extract_message_text(array $message): ?string
     return null;
 }
 
+function whatsapp_extract_interactive_reply_id(array $message): ?string
+{
+    $type = (string) ($message['type'] ?? '');
+    if ($type !== 'interactive') {
+        return null;
+    }
+    $interactive = $message['interactive'] ?? [];
+    if (isset($interactive['button_reply']['id'])) {
+        return (string) $interactive['button_reply']['id'];
+    }
+    if (isset($interactive['list_reply']['id'])) {
+        return (string) $interactive['list_reply']['id'];
+    }
+
+    return null;
+}
+
 /**
  * @return array<string, mixed>|null Media metadata without binary content.
  */
@@ -704,6 +721,7 @@ function whatsapp_process_inbound_messages(PDO $pdo, ?string $wabaId, ?string $p
             'wamid' => $wamid,
             'body' => $body,
             'type' => $type,
+            'interactive_id' => whatsapp_extract_interactive_reply_id($message),
             'contact_name' => $contactName,
             'phone_number_id' => $phoneNumberId,
             'tenant_id' => $tenantId ?? 0,

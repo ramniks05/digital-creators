@@ -376,7 +376,7 @@
     if (els.mobileTitle) els.mobileTitle.textContent = name;
   }
 
-  function renderSide(conv, notes) {
+  function renderSide(conv, notes, chatbot) {
     if (!els.side || !conv) return;
     var tags = [];
     try {
@@ -394,7 +394,22 @@
         return '<li>' + escapeHtml(n.body || '') + '<br><small>' + escapeHtml(n.created_at || '') + '</small></li>';
       })
       .join('');
+    var botMode = chatbot && chatbot.session ? chatbot.session.mode || 'bot' : 'bot';
+    var botStep = chatbot && chatbot.session ? chatbot.session.current_step || '' : '';
+    var botControls =
+      chatbot && chatbot.chatbot_enabled
+        ? '<div class="crm-side-bot"><h3>Automation</h3><p class="crm-field-hint">Mode: <strong>' +
+          escapeHtml(botMode) +
+          '</strong>' +
+          (botStep ? ' · Step: ' + escapeHtml(botStep) : '') +
+          '</p><div class="crm-side-bot-actions">' +
+          '<button type="button" class="crm-btn crm-btn-secondary crm-btn-sm" data-chatbot-action="takeover">Take over</button> ' +
+          '<button type="button" class="crm-btn crm-btn-ghost crm-btn-sm" data-chatbot-action="resume">Resume bot</button> ' +
+          '<button type="button" class="crm-btn crm-btn-ghost crm-btn-sm" data-chatbot-action="close">Close enquiry</button>' +
+          '</div></div>'
+        : '';
     els.side.innerHTML =
+      botControls +
       '<h3>Customer</h3><dl>' +
       '<dt>Phone</dt><dd>+' +
       escapeHtml(conv.peer_wa_id || '') +
@@ -419,6 +434,22 @@
       '<div class="crm-side-notes"><h3>Recent notes</h3><ul>' +
       (notesHtml || '<li class="crm-inbox-empty">No internal notes yet.</li>') +
       '</ul></div>';
+    els.side.querySelectorAll('[data-chatbot-action]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var action = btn.getAttribute('data-chatbot-action');
+        if (!activeId || !action) return;
+        var path = '/conversations/' + activeId + '/chatbot/' + action;
+        if (action === 'takeover') path = '/conversations/' + activeId + '/chatbot/takeover';
+        api(path, { method: 'POST', body: {} })
+          .then(function () {
+            toast(action === 'takeover' ? 'You took over this chat' : 'Updated', 'success');
+            return openConversation(activeId);
+          })
+          .catch(function (e) {
+            toast(e.message, 'error');
+          });
+      });
+    });
   }
 
   async function loadNotes(contactId) {
@@ -464,8 +495,15 @@
       if (reqId !== openRequestId) return;
       var notes = await loadNotes(activeConv.contact_id ? Number(activeConv.contact_id) : 0);
       if (reqId !== openRequestId) return;
+      var chatbot = null;
+      try {
+        chatbot = await api('/conversations/' + id + '/chatbot');
+      } catch (eBot) {
+        chatbot = null;
+      }
+      if (reqId !== openRequestId) return;
       renderTimeline(msgData.messages || [], notes);
-      renderSide(activeConv, notes);
+      renderSide(activeConv, notes, chatbot);
       await loadConversations();
       updateComposeUi();
     } catch (e) {

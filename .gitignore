@@ -16,6 +16,8 @@ includes/config.local.php
 assets/uploads/*
 !assets/uploads/.gitkeep
 !assets/uploads/.htaccess
+!assets/uploads/brochures/
+!assets/uploads/brochures/digital-creatorss-brochure.pdf
 
 # Editor directories and files
 .vscode/*

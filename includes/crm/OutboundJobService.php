@@ -75,6 +75,33 @@ final class CrmOutboundJobService
     }
 
     /**
+     * @param array<string, mixed> $payload Full Graph API message payload (interactive, document, etc.)
+     * @return array{ok:bool, job_id?:int, error?:string}
+     */
+    public function enqueueGraphPayload(
+        int $adminId,
+        string $recipientWaId,
+        array $payload,
+        ?string $idempotencyKey = null
+    ): array {
+        require_once dirname(__DIR__) . '/whatsapp_send.php';
+        $to = whatsapp_normalize_recipient($recipientWaId);
+        $payload['to'] = $to;
+        $payload['messaging_product'] = 'whatsapp';
+
+        $policy = new CrmMessagePolicyService($this->pdo, $this->tenantId);
+        $check = $policy->validateOutboundSession($to);
+        if (!$check['ok']) {
+            return ['ok' => false, 'error' => $check['error'] ?? 'Policy blocked'];
+        }
+
+        $type = (string) ($payload['type'] ?? 'text');
+        $jobType = $type === 'document' ? 'document' : 'text';
+
+        return $this->insertJob($adminId, $to, $jobType, $payload, $idempotencyKey);
+    }
+
+    /**
      * @param array<string, mixed> $payload
      * @return array{ok:bool, job_id?:int, error?:string}
      */
@@ -157,6 +184,12 @@ final class CrmOutboundJobService
                     $this->failJob($jobId, $check['error'] ?? 'Policy blocked', false);
                     continue;
                 }
+            } elseif ($type === 'interactive' || $type === 'document') {
+                $check = $policy->validateOutboundSession($to);
+                if (!$check['ok']) {
+                    $this->failJob($jobId, $check['error'] ?? 'Policy blocked', false);
+                    continue;
+                }
             }
 
             $result = whatsapp_send_graph($payload);
@@ -171,6 +204,10 @@ final class CrmOutboundJobService
             $bodyText = null;
             if ($type === 'text') {
                 $bodyText = (string) ($payload['text']['body'] ?? '');
+            } elseif ($type === 'interactive') {
+                $bodyText = (string) ($payload['interactive']['body']['text'] ?? 'Interactive message');
+            } elseif ($type === 'document') {
+                $bodyText = (string) ($payload['document']['caption'] ?? 'Document');
             } elseif ($type === 'template' && function_exists('whatsapp_outbound_body_preview')) {
                 $tpl = (string) ($payload['template']['name'] ?? '');
                 $lang = (string) ($payload['template']['language']['code'] ?? '');

@@ -170,6 +170,105 @@ try {
         crm_api_json(['updated' => true]);
     }
 
+    if (preg_match('#^/conversations/(\d+)/chatbot$#', $path, $m) && $method === 'GET') {
+        crm_require_permission($pdo, 'inbox.view');
+        $tenantId = crm_api_tenant_id($pdo);
+        $convId = (int) $m[1];
+        $conv = crm_get_conversation($pdo, $tenantId, $convId);
+        if ($conv === null) {
+            crm_api_error('Conversation not found', 404);
+        }
+        $session = null;
+        $handoff = null;
+        if (is_file(dirname(__DIR__, 2) . '/includes/chatbot/FlowController.php')) {
+            require_once dirname(__DIR__, 2) . '/includes/chatbot/config.php';
+            require_once dirname(__DIR__, 2) . '/includes/chatbot/FlowController.php';
+            require_once dirname(__DIR__, 2) . '/includes/chatbot/HandoffService.php';
+            $bot = new ChatbotFlowController($pdo, $tenantId);
+            $session = $bot->sessionForConversation($convId);
+            $handoffs = new ChatbotHandoffService($pdo, $tenantId);
+            $handoff = $handoffs->activeHandoff($convId);
+        }
+        crm_api_json([
+            'session' => $session,
+            'handoff' => $handoff,
+            'chatbot_enabled' => function_exists('chatbot_enabled') ? chatbot_enabled() : false,
+        ]);
+    }
+
+    if (preg_match('#^/conversations/(\d+)/chatbot/takeover$#', $path, $m) && $method === 'POST') {
+        crm_require_permission($pdo, 'conversations.assign');
+        crm_api_verify_csrf_header();
+        $tenantId = crm_api_tenant_id($pdo);
+        $convId = (int) $m[1];
+        $conv = crm_get_conversation($pdo, $tenantId, $convId);
+        if ($conv === null) {
+            crm_api_error('Conversation not found', 404);
+        }
+        require_once dirname(__DIR__, 2) . '/includes/chatbot/config.php';
+        require_once dirname(__DIR__, 2) . '/includes/chatbot/FlowController.php';
+        require_once dirname(__DIR__, 2) . '/includes/chatbot/HandoffService.php';
+        $adminId = crm_api_actor_admin_id();
+        crm_update_conversation($pdo, $tenantId, $convId, 'open', $adminId);
+        $handoffs = new ChatbotHandoffService($pdo, $tenantId);
+        $handoffs->assign($convId, $adminId);
+        $bot = new ChatbotFlowController($pdo, $tenantId);
+        $bot->pauseBot((string) ($conv['peer_wa_id'] ?? ''));
+        crm_audit_log($pdo, 'chatbot.takeover', 'conversation', (string) $convId, ['admin_id' => $adminId]);
+        crm_api_json(['mode' => 'human', 'assigned_admin_id' => $adminId]);
+    }
+
+    if (preg_match('#^/conversations/(\d+)/chatbot/transfer$#', $path, $m) && $method === 'POST') {
+        crm_require_permission($pdo, 'conversations.assign');
+        crm_api_verify_csrf_header();
+        $tenantId = crm_api_tenant_id($pdo);
+        $convId = (int) $m[1];
+        $conv = crm_get_conversation($pdo, $tenantId, $convId);
+        if ($conv === null) {
+            crm_api_error('Conversation not found', 404);
+        }
+        $body = crm_api_read_json_body();
+        $assign = (int) ($body['assigned_admin_id'] ?? 0);
+        require_once dirname(__DIR__, 2) . '/includes/chatbot/HandoffService.php';
+        crm_update_conversation($pdo, $tenantId, $convId, null, $assign);
+        $handoffs = new ChatbotHandoffService($pdo, $tenantId);
+        $handoffs->assign($convId, $assign);
+        crm_api_json(['assigned_admin_id' => $assign > 0 ? $assign : null]);
+    }
+
+    if (preg_match('#^/conversations/(\d+)/chatbot/close$#', $path, $m) && $method === 'POST') {
+        crm_require_permission($pdo, 'conversations.assign');
+        crm_api_verify_csrf_header();
+        $tenantId = crm_api_tenant_id($pdo);
+        $convId = (int) $m[1];
+        if (crm_get_conversation($pdo, $tenantId, $convId) === null) {
+            crm_api_error('Conversation not found', 404);
+        }
+        require_once dirname(__DIR__, 2) . '/includes/chatbot/HandoffService.php';
+        crm_update_conversation($pdo, $tenantId, $convId, 'resolved', null);
+        $handoffs = new ChatbotHandoffService($pdo, $tenantId);
+        $handoffs->close($convId);
+        crm_api_json(['status' => 'resolved']);
+    }
+
+    if (preg_match('#^/conversations/(\d+)/chatbot/resume$#', $path, $m) && $method === 'POST') {
+        crm_require_permission($pdo, 'conversations.assign');
+        crm_api_verify_csrf_header();
+        $tenantId = crm_api_tenant_id($pdo);
+        $convId = (int) $m[1];
+        $conv = crm_get_conversation($pdo, $tenantId, $convId);
+        if ($conv === null) {
+            crm_api_error('Conversation not found', 404);
+        }
+        require_once dirname(__DIR__, 2) . '/includes/chatbot/FlowController.php';
+        require_once dirname(__DIR__, 2) . '/includes/chatbot/HandoffService.php';
+        $bot = new ChatbotFlowController($pdo, $tenantId);
+        $bot->resumeBot((string) ($conv['peer_wa_id'] ?? ''));
+        $handoffs = new ChatbotHandoffService($pdo, $tenantId);
+        $handoffs->close($convId);
+        crm_api_json(['mode' => 'bot']);
+    }
+
     if (crm_api_handle_contacts_routes($method, $path, $pdo)) {
         exit;
     }
