@@ -45,11 +45,12 @@ function chatbot_enabled(): bool
  */
 function chatbot_config_status(): array
 {
+    $includesDir = dirname(__DIR__);
     $candidates = [
-        dirname(__DIR__, 2) . '/private/digital_creators_config.php',
-        dirname(__DIR__) . '/../private/digital_creators_config.php',
-        dirname(__DIR__) . '/private/digital_creators_config.php',
-        dirname(__DIR__) . '/config.local.php',
+        dirname($includesDir, 2) . '/private/digital_creators_config.php',
+        dirname($includesDir) . '/../private/digital_creators_config.php',
+        $includesDir . '/private/digital_creators_config.php',
+        $includesDir . '/config.local.php',
     ];
     $private = null;
     foreach ($candidates as $path) {
