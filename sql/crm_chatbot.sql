@@ -1,5 +1,3 @@
--- Rule-based WhatsApp chatbot (CRM integration). Run migrate_crm_chatbot.php after CRM foundation.
-
 CREATE TABLE IF NOT EXISTS `chatbot_services` (
   `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   `tenant_id` BIGINT UNSIGNED NOT NULL,

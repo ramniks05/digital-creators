@@ -16,13 +16,18 @@ if ($sql === false) {
 }
 
 foreach (array_filter(array_map('trim', explode(';', $sql))) as $stmt) {
-    if ($stmt === '' || str_starts_with($stmt, '--')) {
+    // Strip line comments so the first CREATE is not skipped when bundled with file header "-- ..."
+    $stmt = trim(preg_replace('/^\s*--[^\n]*\n/m', '', $stmt) ?? $stmt);
+    if ($stmt === '') {
         continue;
     }
     try {
         $pdo->exec($stmt);
+        if (preg_match('/CREATE TABLE(?:\s+IF NOT EXISTS)?\s+`?(\w+)`?/i', $stmt, $m)) {
+            echo 'OK: ' . $m[1] . "\n";
+        }
     } catch (Throwable $e) {
-        echo 'NOTE: ' . substr($e->getMessage(), 0, 120) . "\n";
+        echo 'ERR: ' . substr($e->getMessage(), 0, 200) . "\n";
     }
 }
 
