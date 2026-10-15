@@ -15,11 +15,19 @@ $peer = isset($argv[1]) ? preg_replace('/\D+/', '', (string) $argv[1]) : '';
 
 echo "=== Chatbot health ===\n\n";
 
-$enabled = chatbot_enabled();
-echo 'chatbot_enabled: ' . ($enabled ? 'YES' : 'NO') . "\n";
-if (!$enabled) {
-    echo "  Fix: private/digital_creators_config.php -> whatsapp.chatbot.enabled = true\n";
-    echo "  Or env WHATSAPP_CHATBOT_ENABLED=1\n\n";
+$status = chatbot_config_status();
+echo 'chatbot_enabled: ' . ($status['enabled'] ? 'YES' : 'NO') . "\n";
+echo 'config_source: ' . $status['source'] . "\n";
+echo 'private_config: ' . ($status['private_config'] ?? '(not found — only includes/config.php defaults)') . "\n";
+if ($status['misplaced']) {
+    echo "  NOTE: chatbot is under business_enquiry — move it to whatsapp.chatbot (sibling of business_enquiry).\n";
+}
+if (!$status['enabled']) {
+    echo "  Fix: in private config, same level as business_enquiry:\n";
+    echo "    'chatbot' => ['enabled' => true],\n";
+    echo "  Or Hostinger env: WHATSAPP_CHATBOT_ENABLED=1\n\n";
+} else {
+    echo "\n";
 }
 
 $tables = chatbot_tables_ready($pdo);
@@ -37,7 +45,8 @@ if ($tables) {
         $svc = (int) $pdo->query('SELECT COUNT(*) FROM chatbot_services')->fetchColumn();
         echo "chatbot_services rows: {$svc}\n";
     } catch (Throwable $e) {
-        echo "chatbot_services: error\n";
+        echo 'chatbot_services: ERROR — ' . $e->getMessage() . "\n";
+        echo "  Fix: php sql/migrate_crm_chatbot.php\n";
     }
     try {
         $human = (int) $pdo->query("SELECT COUNT(*) FROM chatbot_sessions WHERE mode = 'human'")->fetchColumn();
