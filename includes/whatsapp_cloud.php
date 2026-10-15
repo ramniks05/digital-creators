@@ -409,6 +409,21 @@ function whatsapp_process_message_echoes(PDO $pdo, ?string $wabaId, ?string $pho
             $payload,
             'sent'
         );
+
+        if (is_file(__DIR__ . '/crm/conversations.php')) {
+            require_once __DIR__ . '/crm/conversations.php';
+            try {
+                crm_sync_conversation_from_message(
+                    $pdo,
+                    crm_default_tenant_id(),
+                    $recipient,
+                    'outbound',
+                    is_string($body) && $body !== '' ? $body : ($templateName !== null ? 'Template: ' . $templateName : 'Outbound message')
+                );
+            } catch (Throwable $e) {
+                error_log('CRM conversation sync (echo): ' . $e->getMessage());
+            }
+        }
     }
 }
 
@@ -824,27 +839,59 @@ function whatsapp_handle_webhook_post(string $rawBody): void
     $stats = whatsapp_webhook_payload_stats($payload);
 
     $newInbound = [];
+    $pdo = db();
+    $webhookEventId = null;
+    if (is_file(__DIR__ . '/crm/webhook_store.php')) {
+        require_once __DIR__ . '/crm/webhook_store.php';
+        $webhookEventId = crm_store_webhook_event($pdo, $rawBody);
+    }
+    $processError = null;
     try {
-        $pdo = db();
         $pdo->beginTransaction();
         $newInbound = whatsapp_process_webhook_payload($payload, $pdo);
         $pdo->commit();
     } catch (Throwable $e) {
-        if (isset($pdo) && $pdo instanceof PDO && $pdo->inTransaction()) {
+        if ($pdo->inTransaction()) {
             $pdo->rollBack();
         }
-        error_log('WhatsApp webhook processing failed: ' . $e->getMessage());
+        $processError = $e->getMessage();
+        error_log('WhatsApp webhook processing failed: ' . $processError);
         whatsapp_webhook_trace([
             'event' => 'post',
             'result' => '500',
             'reason' => 'db_or_exception',
-            'exception' => substr($e->getMessage(), 0, 120),
+            'exception' => substr($processError, 0, 120),
             'messages' => $stats['messages'],
             'statuses' => $stats['statuses'],
             'fields' => implode(',', $stats['fields']),
         ]);
+        if (is_file(__DIR__ . '/crm/webhook_store.php')) {
+            crm_mark_webhook_event_processed($pdo, $webhookEventId, $processError);
+        }
         http_response_code(500);
         exit;
+    }
+
+    if (is_file(__DIR__ . '/crm/webhook_store.php')) {
+        crm_mark_webhook_event_processed($pdo, $webhookEventId, null);
+    }
+
+    if ($newInbound !== [] && is_file(__DIR__ . '/crm/conversations.php')) {
+        require_once __DIR__ . '/crm/conversations.php';
+        foreach ($newInbound as $inRow) {
+            try {
+                crm_sync_conversation_from_message(
+                    $pdo,
+                    crm_default_tenant_id(),
+                    (string) ($inRow['from'] ?? ''),
+                    'inbound',
+                    (string) ($inRow['body'] ?? '[message]'),
+                    isset($inRow['contact_name']) ? (string) $inRow['contact_name'] : null
+                );
+            } catch (Throwable $e) {
+                error_log('CRM conversation sync (inbound): ' . $e->getMessage());
+            }
+        }
     }
 
     whatsapp_log_event('webhook_post_ok', [

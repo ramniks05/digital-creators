@@ -196,6 +196,20 @@ function whatsapp_sync_outbound_from_graph_payload(array $payload, string $waMes
         $dbPayload,
         'sent'
     );
+
+    if (is_file(__DIR__ . '/crm/conversations.php')) {
+        require_once __DIR__ . '/crm/conversations.php';
+        try {
+            $preview = whatsapp_outbound_body_preview(
+                (string) ($dbPayload['text'] ?? ''),
+                $templateName,
+                $templateLang ?? null
+            );
+            crm_sync_conversation_from_message(db(), crm_default_tenant_id(), $to, 'outbound', $preview);
+        } catch (Throwable $e) {
+            error_log('CRM conversation sync (graph send): ' . $e->getMessage());
+        }
+    }
 }
 
 function whatsapp_messages_api_key(): string
