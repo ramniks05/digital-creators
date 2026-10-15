@@ -1,59 +1,84 @@
+@import url("../../admin/assets/crm-design-system.css");
+
 .saas-shell {
   max-width: 960px;
   margin: 0 auto;
-  padding: 24px 16px;
-  font-family: system-ui, sans-serif;
+  padding: var(--crm-space-6) var(--crm-space-4);
+  font-family: var(--crm-font);
+  color: var(--crm-text);
 }
 
 .saas-hero {
   text-align: center;
-  padding: 48px 16px;
+  padding: var(--crm-space-8) var(--crm-space-4);
 }
 
 .saas-card {
-  background: #fff;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 24px;
+  background: var(--crm-surface);
+  border: 1px solid var(--crm-border);
+  border-radius: var(--crm-radius-lg);
+  padding: var(--crm-space-5);
   max-width: 420px;
-  margin: 0 auto;
+  margin: 0 auto var(--crm-space-4);
+  box-shadow: var(--crm-shadow-sm);
 }
 
 .saas-card label {
   display: block;
-  font-size: 13px;
-  margin-bottom: 4px;
-  color: #475569;
+  font-size: var(--crm-text-sm);
+  font-weight: var(--crm-weight-medium);
+  margin-bottom: var(--crm-space-1);
+  color: var(--crm-text-secondary);
 }
 
-.saas-card input {
+.saas-card input,
+.saas-card select {
   width: 100%;
-  margin-bottom: 12px;
-  padding: 8px 10px;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
+  margin-bottom: var(--crm-space-3);
+  padding: 8px 12px;
+  border: 1px solid var(--crm-border);
+  border-radius: var(--crm-radius-md);
+  background: var(--crm-surface);
+  color: var(--crm-text);
+  font-family: inherit;
 }
 
 .saas-btn {
-  display: inline-block;
-  background: #2563eb;
-  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--crm-accent);
+  color: #fff !important;
   border: none;
   padding: 10px 16px;
-  border-radius: 8px;
+  border-radius: var(--crm-radius-md);
   cursor: pointer;
-  text-decoration: none;
+  text-decoration: none !important;
+  font-weight: var(--crm-weight-semibold);
+  font-size: var(--crm-text-sm);
+}
+
+.saas-btn:hover {
+  background: var(--crm-accent-hover);
 }
 
 .saas-muted {
-  color: #64748b;
-  font-size: 14px;
+  color: var(--crm-text-muted);
+  font-size: var(--crm-text-sm);
 }
 
 .saas-alert-error {
-  background: #fef2f2;
-  color: #b91c1c;
-  padding: 10px;
-  border-radius: 8px;
-  margin-bottom: 12px;
+  background: var(--crm-error-bg);
+  color: var(--crm-error);
+  padding: var(--crm-space-3);
+  border-radius: var(--crm-radius-md);
+  margin-bottom: var(--crm-space-3);
+  border: 1px solid rgba(220, 38, 38, 0.2);
+}
+
+.saas-app-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--crm-space-2);
+  margin-bottom: var(--crm-space-5);
 }

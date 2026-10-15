@@ -8,55 +8,72 @@ require_once dirname(__DIR__, 3) . '/includes/crm/contact_tags.php';
 
 $pdo = db();
 
-require_once dirname(__DIR__, 2) . '/layout.php';
+if (!defined('CRM_ASSET_PREFIX')) {
+    define('CRM_ASSET_PREFIX', '../../assets/');
+}
+require_once dirname(__DIR__) . '/layout.php';
 
-admin_header('CRM Contacts', 'crm/contacts/index.php');
+crm_app_header('Contacts', 'contacts', [
+    ['label' => 'Dashboard', 'href' => '../index.php'],
+    ['label' => 'Contacts'],
+], [
+    'nav_base' => '../',
+    'extra_css' => ['crm-contacts.css'],
+    'extra_js' => ['crm-contacts.js'],
+]);
 
 if (!crm_tables_ready($pdo)): ?>
-  <div class="alert alert-error">Run <code>php sql/migrate_crm_foundation.php</code> and <code>php sql/migrate_crm_stage1_contacts.php</code>.</div>
-  <?php admin_footer(); exit; endif;
+  <div class="crm-alert crm-alert-error">Run <code>php sql/migrate_crm_foundation.php</code> and <code>php sql/migrate_crm_stage1_contacts.php</code>.</div>
+  <?php crm_app_footer(); exit; endif;
 
 $tenantId = crm_current_tenant_id();
 $tags = crm_list_tags($pdo, $tenantId);
 ?>
-<link rel="stylesheet" href="../../assets/crm-contacts.css">
 <div class="crm-contacts-toolbar">
-  <input type="search" id="crm-contacts-search" placeholder="Search name, phone, email…" autocomplete="off">
-  <select id="crm-contacts-tag">
+  <input type="search" id="crm-contacts-search" placeholder="Search name, phone, email…" autocomplete="off" aria-label="Search contacts">
+  <select id="crm-contacts-tag" aria-label="Filter by tag">
     <option value="">All tags</option>
     <?php foreach ($tags as $tag): ?>
       <option value="<?= (int) $tag['id'] ?>"><?= e((string) $tag['label']) ?></option>
     <?php endforeach; ?>
   </select>
-  <a class="btn btn-secondary" href="../index.php">CRM home</a>
-  <a class="btn" href="<?= e('../../api/v1/index.php/contacts/export') ?>">Export CSV</a>
+  <a class="crm-btn crm-btn-secondary" href="../live.php">Inbox</a>
+  <a class="crm-btn crm-btn-primary" href="<?= e('../../api/v1/index.php/contacts/export') ?>">Export CSV</a>
 </div>
 
-<form id="crm-import-form" class="panel" style="margin-bottom:12px">
-  <h3 style="margin-top:0">Import CSV</h3>
-  <p class="muted">Required column: <code>wa_id</code>. Optional: display_name, email, source, tags (pipe-separated), marketing_consent, consent_evidence. Import does <strong>not</strong> grant marketing consent unless both consent columns are set.</p>
-  <input type="file" id="crm-import-file" accept=".csv,text/csv" required>
-  <button class="btn btn-sm" type="submit">Import</button>
-</form>
+<details class="crm-panel crm-contacts-import">
+  <summary style="cursor:pointer;font-weight:600">Import CSV</summary>
+  <p class="crm-field-hint" style="margin:12px 0">Required column: <code>wa_id</code>. Optional: display_name, email, source, tags (pipe-separated), marketing_consent, consent_evidence.</p>
+  <form id="crm-import-form">
+    <div class="crm-field">
+      <label for="crm-import-file">CSV file</label>
+      <input type="file" id="crm-import-file" accept=".csv,text/csv" required>
+    </div>
+    <button class="crm-btn crm-btn-primary crm-btn-sm" type="submit">Import</button>
+  </form>
+</details>
 
-<table class="crm-contacts-table">
-  <thead>
-    <tr>
-      <th>Name</th>
-      <th>WhatsApp</th>
-      <th>Source</th>
-      <th>Consent</th>
-      <th>Tags</th>
-      <th></th>
-    </tr>
-  </thead>
-  <tbody id="crm-contacts-list-body">
-    <tr><td colspan="6" class="muted">Loading…</td></tr>
-  </tbody>
-</table>
+<div class="crm-table-wrap">
+  <table class="crm-table crm-contacts-table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>WhatsApp</th>
+        <th>Source</th>
+        <th>Consent</th>
+        <th>Tags</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody id="crm-contacts-list-body">
+      <tr><td colspan="6"><div class="crm-skeleton" style="height:32px"></div></td></tr>
+    </tbody>
+  </table>
+</div>
+<p id="crm-contacts-pagination" style="display:flex;align-items:center;gap:12px;margin-top:12px"></p>
 <script>
   document.body.dataset.crmApiBase = '../../../api/v1/index.php';
   document.body.dataset.csrf = <?= json_encode(csrf_token(), JSON_THROW_ON_ERROR) ?>;
+  document.body.dataset.crmInitialQ = <?= json_encode((string) ($_GET['q'] ?? ''), JSON_THROW_ON_ERROR) ?>;
 </script>
-<script src="../../assets/crm-contacts.js" defer></script>
-<?php admin_footer(); ?>
+<?php crm_app_footer(); ?>

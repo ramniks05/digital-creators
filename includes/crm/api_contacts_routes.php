@@ -207,7 +207,7 @@ function crm_api_handle_contacts_routes(string $method, string $path, PDO $pdo):
         $body = crm_api_read_json_body();
         $svc = new CrmContactService($pdo, $tenantId);
         try {
-            $noteId = $svc->addNote((int) $m[1], (int) $_SESSION['admin_id'], (string) ($body['body'] ?? ''));
+            $noteId = $svc->addNote((int) $m[1], crm_api_actor_admin_id(), (string) ($body['body'] ?? ''));
         } catch (InvalidArgumentException $e) {
             crm_api_error($e->getMessage(), 422);
         }

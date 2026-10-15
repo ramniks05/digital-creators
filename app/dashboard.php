@@ -23,25 +23,38 @@ $tenantId = crm_current_tenant_id();
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard | WhatsApp CRM</title>
+  <script>(function(){try{var t=localStorage.getItem('crm-theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
   <link rel="stylesheet" href="assets/saas.css">
 </head>
-<body>
-<div class="saas-shell">
-  <h1>Workspace dashboard</h1>
+<body class="crm-auth-page" style="align-items:flex-start;padding-top:48px">
+<button type="button" class="crm-icon-btn crm-auth-theme" id="crm-theme-toggle" aria-label="Toggle theme">◐</button>
+<div class="saas-shell" style="max-width:720px">
+  <h1 style="margin-top:0">Workspace</h1>
   <p class="saas-muted">Signed in as <?= htmlspecialchars((string) ($_SESSION['crm_user_email'] ?? ''), ENT_QUOTES, 'UTF-8') ?></p>
-  <p>Active tenant ID: <strong><?= (int) $tenantId ?></strong> · Role: <?= htmlspecialchars((string) ($_SESSION['crm_role_slug'] ?? ''), ENT_QUOTES, 'UTF-8') ?></p>
-  <p>
+  <div class="saas-card" style="max-width:100%">
+    <p style="margin:0 0 8px">Active tenant: <strong>#<?= (int) $tenantId ?></strong></p>
+    <p class="saas-muted" style="margin:0">Role: <?= htmlspecialchars((string) ($_SESSION['crm_role_slug'] ?? ''), ENT_QUOTES, 'UTF-8') ?></p>
+  </div>
+  <nav class="saas-app-nav" aria-label="Workspace actions">
     <a class="saas-btn" href="../admin/crm/live.php">Open CRM inbox</a>
-    <a class="saas-btn" href="onboarding/whatsapp.php" style="background:#475569;margin-left:8px">Connect WhatsApp</a>
-    <a class="saas-btn" href="billing.php" style="background:#475569;margin-left:8px">Billing</a>
-    <a class="saas-btn" href="logout.php" style="background:#64748b;margin-left:8px">Log out</a>
-  </p>
-  <h2>Your workspaces</h2>
-  <ul>
-    <?php foreach ($workspaces as $w): ?>
-      <li><?= htmlspecialchars((string) $w['name'], ENT_QUOTES, 'UTF-8') ?> (<?= htmlspecialchars((string) $w['slug'], ENT_QUOTES, 'UTF-8') ?>)</li>
-    <?php endforeach; ?>
-  </ul>
+    <a class="saas-btn" href="../admin/crm/index.php" style="background:var(--crm-text-secondary)">CRM dashboard</a>
+    <a class="saas-btn" href="onboarding/whatsapp.php" style="background:var(--crm-text-secondary)">Connect WhatsApp</a>
+    <a class="saas-btn" href="billing.php" style="background:var(--crm-text-secondary)">Billing</a>
+    <a class="saas-btn" href="logout.php" style="background:var(--crm-text-muted)">Log out</a>
+  </nav>
+  <div class="saas-card" style="max-width:100%">
+    <h2 style="margin-top:0;font-size:var(--crm-text-lg)">Your workspaces</h2>
+    <?php if ($workspaces === []): ?>
+      <p class="saas-muted">No workspaces linked to this account.</p>
+    <?php else: ?>
+      <ul style="margin:0;padding-left:1.2rem">
+        <?php foreach ($workspaces as $w): ?>
+          <li><?= htmlspecialchars((string) $w['name'], ENT_QUOTES, 'UTF-8') ?> (<?= htmlspecialchars((string) $w['slug'], ENT_QUOTES, 'UTF-8') ?>)</li>
+        <?php endforeach; ?>
+      </ul>
+    <?php endif; ?>
+  </div>
 </div>
+<script src="../admin/assets/crm-shell.js" defer></script>
 </body>
 </html>

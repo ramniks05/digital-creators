@@ -17,7 +17,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif (!SaasUserAuth::login(db(), (string) ($_POST['email'] ?? ''), (string) ($_POST['password'] ?? ''))) {
         $error = 'Invalid email or password.';
     } else {
-        header('Location: dashboard.php');
+        $next = (string) ($_GET['next'] ?? 'dashboard.php');
+        if (!str_starts_with($next, '/') && !str_starts_with($next, 'http')) {
+            header('Location: ' . $next);
+        } else {
+            header('Location: dashboard.php');
+        }
         exit;
     }
 }
@@ -28,23 +33,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Log in | WhatsApp CRM</title>
+  <script>(function(){try{var t=localStorage.getItem('crm-theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
   <link rel="stylesheet" href="assets/saas.css">
 </head>
-<body>
-<div class="saas-shell">
-  <div class="saas-card">
-    <h1>Log in</h1>
-    <?php if ($error): ?><div class="saas-alert-error"><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></div><?php endif; ?>
-    <form method="post">
-      <?= csrf_field() ?>
-      <label>Email</label>
-      <input type="email" name="email" required>
-      <label>Password</label>
-      <input type="password" name="password" required>
-      <button class="saas-btn" type="submit">Sign in</button>
-    </form>
-    <p class="saas-muted" style="margin-top:12px"><a href="register.php">Create account</a></p>
-  </div>
+<body class="crm-auth-page">
+<button type="button" class="crm-icon-btn crm-auth-theme" id="crm-theme-toggle" aria-label="Toggle theme">◐</button>
+<div class="crm-auth-card">
+  <h1>Sign in</h1>
+  <p class="crm-auth-sub">Digital Creatorss WhatsApp CRM</p>
+  <?php if ($error): ?><div class="saas-alert-error" role="alert"><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></div><?php endif; ?>
+  <form method="post">
+    <?= csrf_field() ?>
+    <div class="crm-field">
+      <label for="email">Email</label>
+      <input type="email" id="email" name="email" required autocomplete="email">
+    </div>
+    <div class="crm-field">
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" required autocomplete="current-password">
+    </div>
+    <button class="saas-btn" type="submit" style="width:100%">Sign in</button>
+  </form>
+  <p class="crm-auth-footer"><a href="register.php">Create an account</a></p>
 </div>
+<script src="../admin/assets/crm-shell.js" defer></script>
 </body>
 </html>

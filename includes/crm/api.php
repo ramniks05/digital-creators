@@ -92,3 +92,9 @@ function crm_api_verify_csrf_header(): void
         crm_api_error('Invalid CSRF token', 403, 'csrf');
     }
 }
+
+/** Legacy admin id for audit/outbound jobs (0 when SaaS-only session). */
+function crm_api_actor_admin_id(): int
+{
+    return (int) ($_SESSION['admin_id'] ?? 0);
+}

@@ -831,7 +831,7 @@ function whatsapp_process_status_updates(PDO $pdo, ?string $wabaId, ?string $pho
                 $wamid,
                 $phoneNumberId,
                 $recipient,
-                $templateName !== null ? 'template' : 'text',
+                $templateName !== null ? 'template' : 'external',
                 $templateName,
                 $payload,
                 $status

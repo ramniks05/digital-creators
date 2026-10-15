@@ -22,13 +22,16 @@ $rzConfigured = saas_razorpay_configured();
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Subscription & Billing</title>
+  <script>(function(){try{var t=localStorage.getItem('crm-theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
   <link rel="stylesheet" href="assets/saas.css">
   <?php if ($rzConfigured): ?>
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <?php endif; ?>
 </head>
-<body>
+<body class="crm-auth-page" style="align-items:flex-start;padding-top:48px">
+<button type="button" class="crm-icon-btn crm-auth-theme" id="crm-theme-toggle" aria-label="Toggle theme">◐</button>
 <div class="saas-shell">
+  <p class="saas-app-nav"><a class="saas-btn" href="../admin/crm/index.php" style="background:var(--crm-text-secondary)">← CRM</a></p>
   <h1>Subscription</h1>
   <p class="saas-muted">SaaS fees are separate from Meta WhatsApp messaging charges.</p>
   <?php if (!$rzConfigured): ?>
@@ -152,5 +155,6 @@ $rzConfigured = saas_razorpay_configured();
   loadHistory();
 </script>
 <?php endif; ?>
+<script src="../admin/assets/crm-shell.js" defer></script>
 </body>
 </html>

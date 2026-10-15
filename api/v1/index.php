@@ -56,8 +56,9 @@ try {
         crm_api_require_session();
         $tenantId = crm_api_tenant_id($pdo);
         crm_api_json([
-            'admin_id' => (int) $_SESSION['admin_id'],
-            'username' => (string) ($_SESSION['admin_username'] ?? ''),
+            'admin_id' => crm_api_actor_admin_id(),
+            'crm_user_id' => (int) ($_SESSION['crm_user_id'] ?? 0),
+            'username' => (string) ($_SESSION['admin_username'] ?? $_SESSION['crm_user_email'] ?? ''),
             'tenant_id' => $tenantId,
             'role' => (string) ($_SESSION['crm_role_slug'] ?? ''),
             'csrf_token' => csrf_token(),
@@ -74,7 +75,7 @@ try {
         if ($assigned === 'unassigned') {
             $assignedParam = 0;
         } elseif ($assigned === 'me') {
-            $assignedParam = (int) $_SESSION['admin_id'];
+            $assignedParam = crm_api_actor_admin_id();
         } elseif ($assigned !== '' && ctype_digit($assigned)) {
             $assignedParam = (int) $assigned;
         }
@@ -124,7 +125,7 @@ try {
         $body = crm_api_read_json_body();
         $text = trim((string) ($body['text'] ?? ''));
         $template = trim((string) ($body['template'] ?? ''));
-        $adminId = (int) $_SESSION['admin_id'];
+        $adminId = crm_api_actor_admin_id();
         $peer = (string) ($conv['peer_wa_id'] ?? '');
         $idempotency = isset($body['idempotency_key']) ? (string) $body['idempotency_key'] : null;
         $jobs = new CrmOutboundJobService($pdo, $tenantId);
