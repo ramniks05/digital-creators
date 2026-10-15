@@ -65,6 +65,19 @@ function whatsapp_contact_record_opt_out(string $waId, string $source = 'admin')
     )->execute([$waId, substr($source, 0, 64)]);
 }
 
+function whatsapp_contact_is_opted_out(PDO $pdo, string $waId): bool
+{
+    if (!whatsapp_contacts_table_exists($pdo)) {
+        return false;
+    }
+    $waId = whatsapp_normalize_recipient($waId);
+    $stmt = $pdo->prepare('SELECT consent_status FROM whatsapp_contacts WHERE wa_id = ? LIMIT 1');
+    $stmt->execute([$waId]);
+    $status = $stmt->fetchColumn();
+
+    return $status === 'opted_out';
+}
+
 function whatsapp_contact_can_receive_marketing(string $waId): bool
 {
     $pdo = db();

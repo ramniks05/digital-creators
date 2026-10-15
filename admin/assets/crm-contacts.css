@@ -1,0 +1,60 @@
+.crm-contacts-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+  align-items: center;
+}
+
+.crm-contacts-toolbar input[type="search"],
+.crm-contacts-toolbar select {
+  min-width: 160px;
+}
+
+.crm-contacts-table td,
+.crm-contacts-table th {
+  vertical-align: middle;
+}
+
+.crm-tag-chip {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  margin: 2px 4px 2px 0;
+  color: #fff;
+  background: #64748b;
+}
+
+.crm-contact-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 900px) {
+  .crm-contact-detail-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.crm-timeline {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.crm-timeline li {
+  padding: 8px 0;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 13px;
+}
+
+.crm-msg-preview {
+  max-height: 280px;
+  overflow-y: auto;
+  background: #f8fafc;
+  padding: 8px;
+  border-radius: 8px;
+  font-size: 13px;
+}

@@ -30,7 +30,9 @@ function crm_store_webhook_event(PDO $pdo, string $rawBody, int $tenantId = 1): 
         $find = $pdo->prepare('SELECT id FROM crm_webhook_events WHERE event_sha256 = ? LIMIT 1');
         $find->execute([$hash]);
 
-        return $find->fetchColumn() ? (int) $find->fetchColumn() : null;
+        $existingId = $find->fetchColumn();
+
+        return $existingId !== false ? (int) $existingId : null;
     }
 
     return (int) $pdo->lastInsertId();

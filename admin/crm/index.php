@@ -35,7 +35,9 @@ $metrics = crm_dashboard_metrics($pdo, $tenantId);
   <h2 style="margin-top:0">WhatsApp CRM</h2>
   <p class="muted">Shared team inbox with assignment, status, and contact sync. Existing webhook and <code>admin/whatsapp.php</code> chat are preserved.</p>
   <p>
-    <a class="btn" href="inbox.php">Open team inbox</a>
+    <a class="btn" href="contacts/index.php">Contacts directory</a>
+    <a class="btn" href="live.php">Live inbox</a>
+    <a class="btn btn-secondary" href="inbox.php">Team inbox (classic)</a>
     <a class="btn btn-secondary" href="../whatsapp.php?view=chats">Classic WhatsApp admin</a>
     <a class="btn btn-secondary" href="../leads.php">Leads</a>
   </p>

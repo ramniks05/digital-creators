@@ -1,0 +1,16 @@
+{
+  "name": "digital-creatorss/portal",
+  "description": "Digital Creatorss website and WhatsApp CRM",
+  "type": "project",
+  "require": {
+    "php": ">=8.2"
+  },
+  "autoload": {
+    "psr-4": {
+      "DigitalCreatorss\\Crm\\": "includes/crm/"
+    }
+  },
+  "config": {
+    "sort-packages": true
+  }
+}

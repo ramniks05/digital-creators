@@ -43,15 +43,33 @@ function require_admin(): void
 
 function attempt_login(string $username, string $password): bool
 {
-    $stmt = db()->prepare('SELECT id, password_hash FROM admins WHERE username = ? LIMIT 1');
+    $pdo = db();
+    $ip = (string) ($_SERVER['REMOTE_ADDR'] ?? '0.0.0.0');
+    if (is_file(__DIR__ . '/crm/auth.php')) {
+        require_once __DIR__ . '/crm/auth.php';
+        if (crm_login_is_rate_limited($pdo, $username, $ip)) {
+            return false;
+        }
+    }
+
+    $stmt = $pdo->prepare('SELECT id, password_hash FROM admins WHERE username = ? LIMIT 1');
     $stmt->execute([$username]);
     $row = $stmt->fetch();
-    if (!$row || !password_verify($password, $row['password_hash'])) {
+    $ok = $row && password_verify($password, $row['password_hash']);
+    if (is_file(__DIR__ . '/crm/auth.php')) {
+        crm_record_login_attempt($pdo, $username, $ip, $ok);
+    }
+    if (!$ok) {
         return false;
     }
     $_SESSION['admin_id'] = (int) $row['id'];
     $_SESSION['admin_username'] = $username;
     session_regenerate_id(true);
+    if (is_file(__DIR__ . '/crm/rbac.php')) {
+        require_once __DIR__ . '/crm/rbac.php';
+        crm_load_admin_session_context($pdo, (int) $row['id']);
+    }
+
     return true;
 }
 

@@ -23,25 +23,57 @@ function crm_touch_contact(PDO $pdo, int $tenantId, string $peerWaId, ?string $d
         return null;
     }
 
-    $pdo->prepare(
-        'INSERT INTO crm_contacts (tenant_id, wa_id, display_name, phone)
-         VALUES (?, ?, ?, ?)
-         ON DUPLICATE KEY UPDATE
-           display_name = COALESCE(VALUES(display_name), display_name),
-           phone = VALUES(phone),
-           updated_at = CURRENT_TIMESTAMP'
-    )->execute([
+    $exists = $pdo->prepare('SELECT id FROM crm_contacts WHERE tenant_id = ? AND wa_id = ? LIMIT 1');
+    $exists->execute([$tenantId, $peerWaId]);
+    $wasNew = $exists->fetchColumn() === false;
+
+    $params = [
         $tenantId,
         $peerWaId,
         $displayName !== null && $displayName !== '' ? substr($displayName, 0, 160) : null,
         $peerWaId,
-    ]);
+    ];
+    try {
+        $pdo->prepare(
+            'INSERT INTO crm_contacts (tenant_id, wa_id, display_name, phone, source)
+             VALUES (?, ?, ?, ?, \'whatsapp_inbound\')
+             ON DUPLICATE KEY UPDATE
+               display_name = COALESCE(VALUES(display_name), display_name),
+               phone = VALUES(phone),
+               updated_at = CURRENT_TIMESTAMP'
+        )->execute($params);
+    } catch (PDOException $e) {
+        $pdo->prepare(
+            'INSERT INTO crm_contacts (tenant_id, wa_id, display_name, phone)
+             VALUES (?, ?, ?, ?)
+             ON DUPLICATE KEY UPDATE
+               display_name = COALESCE(VALUES(display_name), display_name),
+               phone = VALUES(phone),
+               updated_at = CURRENT_TIMESTAMP'
+        )->execute($params);
+    }
 
     $stmt = $pdo->prepare('SELECT id FROM crm_contacts WHERE tenant_id = ? AND wa_id = ? LIMIT 1');
     $stmt->execute([$tenantId, $peerWaId]);
     $id = $stmt->fetchColumn();
+    if ($id === false) {
+        return null;
+    }
+    $contactId = (int) $id;
 
-    return $id !== false ? (int) $id : null;
+    if ($wasNew && is_file(__DIR__ . '/contact_activity.php')) {
+        require_once __DIR__ . '/contact_activity.php';
+        crm_contact_log_activity(
+            $pdo,
+            $tenantId,
+            $contactId,
+            'created',
+            'Auto-created from WhatsApp',
+            ['source' => 'whatsapp_inbound']
+        );
+    }
+
+    return $contactId;
 }
 
 /**
@@ -156,10 +188,11 @@ function crm_list_conversations(
     int $tenantId,
     ?string $status = null,
     ?int $assignedAdminId = null,
-    int $limit = 100
+    int $limit = 100,
+    ?string $search = null
 ): array {
     $limit = max(1, min(200, $limit));
-    $sql = 'SELECT c.*, ct.display_name AS contact_name
+    $sql = 'SELECT c.*, ct.display_name AS contact_name, ct.tags_json, ct.consent_status
             FROM crm_conversations c
             LEFT JOIN crm_contacts ct ON ct.id = c.contact_id
             WHERE c.tenant_id = ?';
@@ -174,11 +207,34 @@ function crm_list_conversations(
     } elseif ($assignedAdminId === 0) {
         $sql .= ' AND c.assigned_admin_id IS NULL';
     }
+    $search = trim((string) $search);
+    if ($search !== '') {
+        $like = '%' . $search . '%';
+        $sql .= ' AND (c.peer_wa_id LIKE ? OR ct.display_name LIKE ? OR ct.phone LIKE ?)';
+        $params[] = $like;
+        $params[] = $like;
+        $params[] = $like;
+    }
     $sql .= ' ORDER BY c.last_message_at DESC, c.id DESC LIMIT ' . $limit;
     $stmt = $pdo->prepare($sql);
     $stmt->execute($params);
 
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function crm_get_conversation(PDO $pdo, int $tenantId, int $conversationId): ?array
+{
+    $stmt = $pdo->prepare(
+        'SELECT c.*, ct.display_name AS contact_name, ct.email AS contact_email,
+                ct.phone AS contact_phone, ct.tags_json, ct.consent_status, ct.custom_fields_json
+         FROM crm_conversations c
+         LEFT JOIN crm_contacts ct ON ct.id = c.contact_id
+         WHERE c.tenant_id = ? AND c.id = ? LIMIT 1'
+    );
+    $stmt->execute([$tenantId, $conversationId]);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    return $row ?: null;
 }
 
 function crm_dashboard_metrics(PDO $pdo, int $tenantId): array

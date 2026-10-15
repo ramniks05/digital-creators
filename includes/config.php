@@ -23,6 +23,18 @@ $config = [
         'upload_dir' => __DIR__ . '/../assets/uploads',
         'upload_url' => 'assets/uploads',
     ],
+    'saas' => [
+        'strict_webhook' => filter_var(getenv('SAAS_STRICT_WEBHOOK') ?: '0', FILTER_VALIDATE_BOOLEAN),
+        'credentials_key' => getenv('CRM_CREDENTIALS_KEY') ?: '',
+        'app_url' => getenv('SAAS_APP_URL') ?: '',
+        'meta_app_id' => getenv('META_APP_ID') ?: '',
+        'meta_config_id' => getenv('META_EMBEDDED_SIGNUP_CONFIG_ID') ?: '',
+    ],
+    'razorpay' => [
+        'key_id' => getenv('RAZORPAY_KEY_ID') ?: '',
+        'key_secret' => getenv('RAZORPAY_KEY_SECRET') ?: '',
+        'webhook_secret' => getenv('RAZORPAY_WEBHOOK_SECRET') ?: '',
+    ],
     'whatsapp' => [
         'access_token' => getenv('WHATSAPP_ACCESS_TOKEN') ?: '',
         'phone_number_id' => getenv('WHATSAPP_PHONE_NUMBER_ID') ?: '',

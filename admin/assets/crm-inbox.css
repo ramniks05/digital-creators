@@ -1,0 +1,162 @@
+.crm-inbox-shell {
+  display: grid;
+  grid-template-columns: 320px 1fr 300px;
+  gap: 0;
+  min-height: calc(100vh - 140px);
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.crm-inbox-col {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-right: 1px solid #e2e8f0;
+}
+
+.crm-inbox-col:last-child {
+  border-right: none;
+}
+
+.crm-inbox-toolbar {
+  padding: 10px 12px;
+  border-bottom: 1px solid #e2e8f0;
+  background: #f8fafc;
+}
+
+.crm-inbox-toolbar input,
+.crm-inbox-toolbar select {
+  width: 100%;
+  margin-bottom: 6px;
+}
+
+.crm-conv-list {
+  overflow-y: auto;
+  flex: 1;
+}
+
+.crm-conv-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  border: none;
+  border-bottom: 1px solid #f1f5f9;
+  background: #fff;
+  cursor: pointer;
+}
+
+.crm-conv-item:hover,
+.crm-conv-item.active {
+  background: #eff6ff;
+}
+
+.crm-conv-item strong {
+  display: block;
+  font-size: 14px;
+}
+
+.crm-conv-item small {
+  color: #64748b;
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.crm-badge {
+  display: inline-block;
+  min-width: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #2563eb;
+  color: #fff;
+  font-size: 11px;
+  margin-left: 6px;
+}
+
+.crm-thread {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  background: #f1f5f9;
+}
+
+.crm-bubble {
+  max-width: 75%;
+  margin-bottom: 10px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.crm-bubble.in {
+  background: #fff;
+  margin-right: auto;
+  border: 1px solid #e2e8f0;
+}
+
+.crm-bubble.out {
+  background: #dcf8c6;
+  margin-left: auto;
+}
+
+.crm-bubble meta {
+  display: block;
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 4px;
+}
+
+.crm-compose {
+  padding: 10px 12px;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  gap: 8px;
+}
+
+.crm-compose textarea {
+  flex: 1;
+  min-height: 44px;
+  resize: vertical;
+}
+
+.crm-side-panel {
+  padding: 12px;
+  overflow-y: auto;
+}
+
+.crm-side-panel dl {
+  margin: 0 0 12px;
+}
+
+.crm-side-panel dt {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.crm-side-panel dd {
+  margin: 0 0 8px;
+  font-size: 14px;
+}
+
+.crm-status-pill {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  font-size: 12px;
+}
+
+@media (max-width: 1024px) {
+  .crm-inbox-shell {
+    grid-template-columns: 1fr;
+  }
+  .crm-inbox-col.side {
+    display: none;
+  }
+}

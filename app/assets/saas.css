@@ -1,0 +1,59 @@
+.saas-shell {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 24px 16px;
+  font-family: system-ui, sans-serif;
+}
+
+.saas-hero {
+  text-align: center;
+  padding: 48px 16px;
+}
+
+.saas-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 24px;
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+.saas-card label {
+  display: block;
+  font-size: 13px;
+  margin-bottom: 4px;
+  color: #475569;
+}
+
+.saas-card input {
+  width: 100%;
+  margin-bottom: 12px;
+  padding: 8px 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+}
+
+.saas-btn {
+  display: inline-block;
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.saas-muted {
+  color: #64748b;
+  font-size: 14px;
+}
+
+.saas-alert-error {
+  background: #fef2f2;
+  color: #b91c1c;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}

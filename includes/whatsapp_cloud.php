@@ -410,18 +410,27 @@ function whatsapp_process_message_echoes(PDO $pdo, ?string $wabaId, ?string $pho
             'sent'
         );
 
-        if (is_file(__DIR__ . '/crm/conversations.php')) {
-            require_once __DIR__ . '/crm/conversations.php';
+        if (is_file(__DIR__ . '/crm/tenant.php')) {
+            require_once __DIR__ . '/crm/tenant.php';
+            require_once __DIR__ . '/crm/messages.php';
+            $tenantId = crm_tenant_id_for_phone_number_id($pdo, $phoneNumberId);
+            $preview = is_string($body) && $body !== ''
+                ? $body
+                : ($templateName !== null ? 'Template: ' . $templateName : 'Outbound message');
             try {
-                crm_sync_conversation_from_message(
+                crm_record_message(
                     $pdo,
-                    crm_default_tenant_id(),
+                    $tenantId,
                     $recipient,
                     'outbound',
-                    is_string($body) && $body !== '' ? $body : ($templateName !== null ? 'Template: ' . $templateName : 'Outbound message')
+                    $wamid,
+                    $templateName !== null ? 'template' : $type,
+                    $preview,
+                    whatsapp_extract_media_meta($message),
+                    'sent'
                 );
             } catch (Throwable $e) {
-                error_log('CRM conversation sync (echo): ' . $e->getMessage());
+                error_log('CRM message sync (echo): ' . $e->getMessage());
             }
         }
     }
@@ -656,12 +665,48 @@ function whatsapp_process_inbound_messages(PDO $pdo, ?string $wabaId, ?string $p
             whatsapp_contact_touch_inbound($pdo, $from, $contactName);
         }
 
+        $inboundRowId = (int) $pdo->lastInsertId();
+        if ($inboundRowId <= 0) {
+            $findIn = $pdo->prepare('SELECT id FROM whatsapp_inbound_messages WHERE wa_message_id = ? LIMIT 1');
+            $findIn->execute([$wamid]);
+            $found = $findIn->fetchColumn();
+            $inboundRowId = $found !== false ? (int) $found : 0;
+        }
+
+        $tenantId = null;
+        if (is_file(__DIR__ . '/crm/tenant.php')) {
+            require_once __DIR__ . '/crm/tenant.php';
+            require_once __DIR__ . '/crm/messages.php';
+            $tenantId = crm_webhook_resolve_tenant($pdo, $phoneNumberId);
+        }
+        if ($tenantId !== null && is_file(__DIR__ . '/crm/messages.php')) {
+            try {
+                crm_record_message(
+                    $pdo,
+                    $tenantId,
+                    $from,
+                    'inbound',
+                    $wamid,
+                    $type,
+                    $body,
+                    $media,
+                    null,
+                    $inboundRowId > 0 ? $inboundRowId : null,
+                    null
+                );
+            } catch (Throwable $e) {
+                error_log('CRM message sync (inbound): ' . $e->getMessage());
+            }
+        }
+
         $newInbound[] = [
             'from' => $from,
             'wamid' => $wamid,
             'body' => $body,
             'type' => $type,
             'contact_name' => $contactName,
+            'phone_number_id' => $phoneNumberId,
+            'tenant_id' => $tenantId ?? 0,
         ];
     }
 
@@ -792,6 +837,21 @@ function whatsapp_process_status_updates(PDO $pdo, ?string $wabaId, ?string $pho
                 $status
             );
         }
+
+        if (is_file(__DIR__ . '/crm/tenant.php')) {
+            require_once __DIR__ . '/crm/tenant.php';
+            require_once __DIR__ . '/crm/messages.php';
+            $tenantId = crm_tenant_id_for_phone_number_id($pdo, $phoneNumberId);
+            crm_record_status_event(
+                $pdo,
+                $tenantId,
+                $wamid,
+                $status,
+                $recipient,
+                $timestamp ?: null,
+                $errorMessage ?: $errorTitle
+            );
+        }
     }
 }
 
@@ -841,9 +901,14 @@ function whatsapp_handle_webhook_post(string $rawBody): void
     $newInbound = [];
     $pdo = db();
     $webhookEventId = null;
+    $webhookTenantId = 1;
+    if (is_file(__DIR__ . '/crm/tenant.php')) {
+        require_once __DIR__ . '/crm/tenant.php';
+        $webhookTenantId = crm_tenant_id_from_webhook_payload($pdo, $payload);
+    }
     if (is_file(__DIR__ . '/crm/webhook_store.php')) {
         require_once __DIR__ . '/crm/webhook_store.php';
-        $webhookEventId = crm_store_webhook_event($pdo, $rawBody);
+        $webhookEventId = crm_store_webhook_event($pdo, $rawBody, $webhookTenantId);
     }
     $processError = null;
     try {
@@ -874,24 +939,6 @@ function whatsapp_handle_webhook_post(string $rawBody): void
 
     if (is_file(__DIR__ . '/crm/webhook_store.php')) {
         crm_mark_webhook_event_processed($pdo, $webhookEventId, null);
-    }
-
-    if ($newInbound !== [] && is_file(__DIR__ . '/crm/conversations.php')) {
-        require_once __DIR__ . '/crm/conversations.php';
-        foreach ($newInbound as $inRow) {
-            try {
-                crm_sync_conversation_from_message(
-                    $pdo,
-                    crm_default_tenant_id(),
-                    (string) ($inRow['from'] ?? ''),
-                    'inbound',
-                    (string) ($inRow['body'] ?? '[message]'),
-                    isset($inRow['contact_name']) ? (string) $inRow['contact_name'] : null
-                );
-            } catch (Throwable $e) {
-                error_log('CRM conversation sync (inbound): ' . $e->getMessage());
-            }
-        }
     }
 
     whatsapp_log_event('webhook_post_ok', [

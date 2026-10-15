@@ -197,17 +197,28 @@ function whatsapp_sync_outbound_from_graph_payload(array $payload, string $waMes
         'sent'
     );
 
-    if (is_file(__DIR__ . '/crm/conversations.php')) {
-        require_once __DIR__ . '/crm/conversations.php';
+    if (is_file(__DIR__ . '/crm/messages.php')) {
+        require_once __DIR__ . '/crm/tenant.php';
+        require_once __DIR__ . '/crm/messages.php';
         try {
             $preview = whatsapp_outbound_body_preview(
                 (string) ($dbPayload['text'] ?? ''),
                 $templateName,
                 $templateLang ?? null
             );
-            crm_sync_conversation_from_message(db(), crm_default_tenant_id(), $to, 'outbound', $preview);
+            crm_record_message(
+                db(),
+                crm_default_tenant_id(),
+                $to,
+                'outbound',
+                $waMessageId,
+                $messageType,
+                $preview !== 'Outbound message (Meta Cloud API)' ? $preview : null,
+                null,
+                'sent'
+            );
         } catch (Throwable $e) {
-            error_log('CRM conversation sync (graph send): ' . $e->getMessage());
+            error_log('CRM message sync (graph send): ' . $e->getMessage());
         }
     }
 }
