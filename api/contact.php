@@ -54,10 +54,10 @@ if (!empty($errors)) {
 
 try {
     require_once dirname(__DIR__) . '/includes/db.php';
-    require_once dirname(__DIR__) . '/includes/business_enquiry.php';
+    require_once dirname(__DIR__) . '/includes/site_enquiry.php';
 
     $pdo = db();
-    $hasEnquiryCols = business_enquiry_leads_columns_ready($pdo);
+    $hasEnquiryCols = site_enquiry_leads_columns_ready($pdo);
     if ($hasEnquiryCols) {
         $stmt = $pdo->prepare(
             'INSERT INTO leads (name, email, phone, service, message, budget, source, consent_at, status)
@@ -71,7 +71,7 @@ try {
         $stmt->execute([$name, $email, $phone, $service, $message, $budget]);
     }
     $leadId = (int) $pdo->lastInsertId();
-    business_enquiry_after_website_form($leadId, [
+    site_enquiry_after_website_form($leadId, [
         'name' => $name,
         'email' => $email,
         'phone' => $phone,

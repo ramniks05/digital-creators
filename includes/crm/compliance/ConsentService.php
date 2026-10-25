@@ -9,9 +9,24 @@ final class CrmConsentService
 
     public function hasMarketingConsent(string $waId): bool
     {
-        require_once dirname(__DIR__, 2) . '/whatsapp_contacts.php';
+        $waId = preg_replace('/\D+/', '', $waId) ?? '';
+        if ($waId === '') {
+            return false;
+        }
+        try {
+            $stmt = $this->pdo->prepare(
+                'SELECT consent_status FROM crm_contacts WHERE tenant_id = ? AND wa_id = ? LIMIT 1'
+            );
+            $stmt->execute([$this->tenantId, $waId]);
+            $status = $stmt->fetchColumn();
+            if ($status === false) {
+                return true;
+            }
 
-        return whatsapp_contact_can_receive_marketing($waId);
+            return (string) $status !== 'opted_out';
+        } catch (Throwable $e) {
+            return false;
+        }
     }
 
     public function recordConsent(int $contactId, string $purpose, string $source, ?string $evidence = null): void

@@ -8,9 +8,9 @@ require_once __DIR__ . '/tenant.php';
 
 function crm_normalize_peer_wa_id(string $waId): string
 {
-    require_once dirname(__DIR__) . '/whatsapp_send.php';
+    require_once dirname(__DIR__) . '/phone_utils.php';
 
-    return whatsapp_normalize_recipient($waId);
+    return phone_normalize_digits($waId);
 }
 
 function crm_touch_contact(PDO $pdo, int $tenantId, string $peerWaId, ?string $displayName = null): ?int
@@ -132,52 +132,8 @@ function crm_sync_conversation_from_message(
 
 function crm_backfill_conversations_from_whatsapp(PDO $pdo, int $tenantId): int
 {
-    if (!crm_tables_ready($pdo)) {
-        return 0;
-    }
-    $peers = $pdo->query(
-        'SELECT wa_id, MAX(last_at) AS last_at FROM (
-            SELECT from_wa_id AS wa_id, created_at AS last_at FROM whatsapp_inbound_messages
-            UNION ALL
-            SELECT recipient_wa_id, updated_at FROM whatsapp_outbound_messages
-         ) u GROUP BY wa_id'
-    )->fetchAll(PDO::FETCH_ASSOC);
-
-    $count = 0;
-    foreach ($peers as $peer) {
-        $waId = (string) ($peer['wa_id'] ?? '');
-        if ($waId === '') {
-            continue;
-        }
-        $nameStmt = $pdo->prepare(
-            'SELECT contact_name, body_text FROM whatsapp_inbound_messages
-             WHERE from_wa_id = ? ORDER BY id DESC LIMIT 1'
-        );
-        $nameStmt->execute([$waId]);
-        $in = $nameStmt->fetch(PDO::FETCH_ASSOC) ?: [];
-        $preview = trim((string) ($in['body_text'] ?? ''));
-        if ($preview === '') {
-            $out = $pdo->prepare(
-                'SELECT payload_json FROM whatsapp_outbound_messages WHERE recipient_wa_id = ? ORDER BY id DESC LIMIT 1'
-            );
-            $out->execute([$waId]);
-            $payload = json_decode((string) ($out->fetchColumn() ?: ''), true);
-            if (is_array($payload) && !empty($payload['text'])) {
-                $preview = (string) $payload['text'];
-            }
-        }
-        crm_sync_conversation_from_message(
-            $pdo,
-            $tenantId,
-            $waId,
-            'outbound',
-            $preview !== '' ? $preview : 'WhatsApp conversation',
-            isset($in['contact_name']) ? (string) $in['contact_name'] : null
-        );
-        $count++;
-    }
-
-    return $count;
+    // Legacy WhatsApp message tables were removed; inbox lives on external platform.
+    return 0;
 }
 
 /**

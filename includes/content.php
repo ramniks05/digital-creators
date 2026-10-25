@@ -380,7 +380,7 @@ function phone_tel(): string
 
 function whatsapp_number(): string
 {
-    require_once __DIR__ . '/whatsapp_public_number.php';
+    require_once __DIR__ . '/public_contact.php';
 
-    return whatsapp_public_chat_digits();
+    return public_whatsapp_chat_digits();
 }

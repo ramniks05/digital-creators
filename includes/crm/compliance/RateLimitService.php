@@ -10,8 +10,8 @@ final class CrmRateLimitService
     /** Max outbound jobs to same recipient in rolling 24h (customer care). */
     public function allowOutboundToRecipient(string $waId, int $maxPerDay = 50): bool
     {
-        require_once dirname(__DIR__, 2) . '/whatsapp_send.php';
-        $waId = whatsapp_normalize_recipient($waId);
+        require_once dirname(__DIR__, 2) . '/phone_utils.php';
+        $waId = phone_normalize_digits($waId);
         try {
             $stmt = $this->pdo->prepare(
                 'SELECT COUNT(*) FROM crm_outbound_jobs

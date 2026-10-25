@@ -44,8 +44,8 @@ function crm_import_contacts_csv(PDO $pdo, int $tenantId, string $csvContent, ?i
                 $skipped++;
                 continue;
             }
-            require_once dirname(__DIR__) . '/whatsapp_send.php';
-            $waId = whatsapp_normalize_recipient($waRaw);
+            require_once dirname(__DIR__) . '/phone_utils.php';
+            $waId = phone_normalize_digits($waRaw);
             if ($waId === '') {
                 $errors[] = 'Line ' . ($lineNo + 2) . ': invalid wa_id';
                 $skipped++;

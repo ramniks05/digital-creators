@@ -32,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Log in | WhatsApp CRM</title>
+  <title>Log in | Digital Creatorss</title>
   <script>(function(){try{var t=localStorage.getItem('crm-theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
   <link rel="stylesheet" href="assets/saas.css">
 </head>
@@ -40,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <button type="button" class="crm-icon-btn crm-auth-theme" id="crm-theme-toggle" aria-label="Toggle theme">◐</button>
 <div class="crm-auth-card">
   <h1>Sign in</h1>
-  <p class="crm-auth-sub">Digital Creatorss WhatsApp CRM</p>
+  <p class="crm-auth-sub">Digital Creatorss account</p>
   <?php if ($error): ?><div class="saas-alert-error" role="alert"><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></div><?php endif; ?>
   <form method="post">
     <?= csrf_field() ?>
@@ -56,6 +56,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   </form>
   <p class="crm-auth-footer"><a href="register.php">Create an account</a></p>
 </div>
-<script src="../admin/assets/crm-shell.js" defer></script>
+<script src="assets/saas-theme.js" defer></script>
 </body>
 </html>

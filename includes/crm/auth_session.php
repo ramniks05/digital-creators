@@ -7,7 +7,7 @@ require_once __DIR__ . '/tenant.php';
 require_once __DIR__ . '/rbac.php';
 
 /**
- * Allow legacy site admins or SaaS tenant users into CRM UI.
+ * Allow legacy site admins or SaaS tenant users (API / app areas; admin CRM UI removed).
  */
 function crm_require_crm_user(): void
 {
@@ -26,7 +26,7 @@ function crm_require_crm_user(): void
 
         return;
     }
-    $next = urlencode($_SERVER['REQUEST_URI'] ?? '/admin/crm/');
+    $next = urlencode($_SERVER['REQUEST_URI'] ?? '/admin/leads.php');
     if (is_file(dirname(__DIR__, 2) . '/app/login.php')) {
         header('Location: /app/login.php?next=' . $next);
     } else {

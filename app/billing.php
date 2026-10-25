@@ -31,7 +31,7 @@ $rzConfigured = saas_razorpay_configured();
 <body class="crm-auth-page" style="align-items:flex-start;padding-top:48px">
 <button type="button" class="crm-icon-btn crm-auth-theme" id="crm-theme-toggle" aria-label="Toggle theme">◐</button>
 <div class="saas-shell">
-  <p class="saas-app-nav"><a class="saas-btn" href="../admin/crm/index.php" style="background:var(--crm-text-secondary)">← CRM</a></p>
+  <p class="saas-app-nav"><a class="saas-btn" href="dashboard.php" style="background:var(--crm-text-secondary)">← Account</a></p>
   <h1>Subscription</h1>
   <p class="saas-muted">SaaS fees are separate from Meta WhatsApp messaging charges.</p>
   <?php if (!$rzConfigured): ?>
@@ -155,6 +155,6 @@ $rzConfigured = saas_razorpay_configured();
   loadHistory();
 </script>
 <?php endif; ?>
-<script src="../admin/assets/crm-shell.js" defer></script>
+<script src="assets/saas-theme.js" defer></script>
 </body>
 </html>

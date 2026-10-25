@@ -9,8 +9,8 @@ final class CrmSuppressionService
 
     public function isSuppressed(string $waId): bool
     {
-        require_once dirname(__DIR__, 2) . '/whatsapp_send.php';
-        $waId = whatsapp_normalize_recipient($waId);
+        require_once dirname(__DIR__, 2) . '/phone_utils.php';
+        $waId = phone_normalize_digits($waId);
         try {
             $stmt = $this->pdo->prepare(
                 'SELECT 1 FROM crm_contact_suppressions WHERE tenant_id = ? AND wa_id = ? LIMIT 1'
@@ -25,8 +25,8 @@ final class CrmSuppressionService
 
     public function suppress(string $waId, string $reason = 'opt_out', string $source = 'system'): void
     {
-        require_once dirname(__DIR__, 2) . '/whatsapp_send.php';
-        $waId = whatsapp_normalize_recipient($waId);
+        require_once dirname(__DIR__, 2) . '/phone_utils.php';
+        $waId = phone_normalize_digits($waId);
         $this->pdo->prepare(
             'INSERT INTO crm_contact_suppressions (tenant_id, wa_id, reason, source)
              VALUES (?,?,?,?)

@@ -337,8 +337,6 @@ final class CrmContactService
         if ($contact === null || empty($contact['wa_id'])) {
             return;
         }
-        require_once dirname(__DIR__) . '/whatsapp_contacts.php';
-        whatsapp_contact_record_opt_out((string) $contact['wa_id'], $source);
         $this->update($contactId, ['consent_status' => 'opted_out']);
         $suppress = new CrmSuppressionService($this->pdo, $this->tenantId);
         $suppress->suppress((string) $contact['wa_id'], 'opt_out', $source);

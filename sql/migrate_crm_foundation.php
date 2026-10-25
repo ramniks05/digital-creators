@@ -6,7 +6,6 @@
 declare(strict_types=1);
 
 require_once dirname(__DIR__) . '/includes/db.php';
-require_once dirname(__DIR__) . '/includes/whatsapp_cloud.php';
 
 $pdo = db();
 $sql = file_get_contents(__DIR__ . '/crm_foundation.sql');
@@ -65,17 +64,6 @@ foreach ($stages as [$slug, $name, $order]) {
     ]);
 }
 echo "OK: seed lead stages\n";
-
-$cfg = whatsapp_cloud_config();
-$phoneId = trim($cfg['phone_number_id']);
-if ($phoneId !== '') {
-    $pdo->prepare(
-        'INSERT INTO crm_whatsapp_accounts (tenant_id, phone_number_id, label, is_active)
-         VALUES (1, ?, ?, 1)
-         ON DUPLICATE KEY UPDATE label = VALUES(label), is_active = 1'
-    )->execute([$phoneId, 'Primary Cloud API line']);
-    echo "OK: link phone_number_id to tenant\n";
-}
 
 // Assign all admins to tenant as owner (bootstrap).
 $admins = $pdo->query('SELECT id FROM admins')->fetchAll(PDO::FETCH_COLUMN);

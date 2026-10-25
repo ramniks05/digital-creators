@@ -13,9 +13,6 @@ require_once dirname(__DIR__, 2) . '/includes/crm/messages.php';
 require_once dirname(__DIR__, 2) . '/includes/crm/contacts.php';
 require_once dirname(__DIR__, 2) . '/includes/crm/api_contacts_routes.php';
 require_once dirname(__DIR__, 2) . '/includes/saas/api_saas_routes.php';
-require_once dirname(__DIR__, 2) . '/includes/crm/OutboundJobService.php';
-require_once dirname(__DIR__, 2) . '/includes/whatsapp_cloud.php';
-require_once dirname(__DIR__, 2) . '/includes/whatsapp_send.php';
 
 $method = strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET'));
 $path = crm_api_request_path();
@@ -114,36 +111,7 @@ try {
     }
 
     if (preg_match('#^/conversations/(\d+)/messages$#', $path, $m) && $method === 'POST') {
-        crm_require_permission($pdo, 'inbox.reply');
-        crm_api_verify_csrf_header();
-        $tenantId = crm_api_tenant_id($pdo);
-        $convId = (int) $m[1];
-        $conv = crm_get_conversation($pdo, $tenantId, $convId);
-        if ($conv === null) {
-            crm_api_error('Conversation not found', 404);
-        }
-        $body = crm_api_read_json_body();
-        $text = trim((string) ($body['text'] ?? ''));
-        $template = trim((string) ($body['template'] ?? ''));
-        $adminId = crm_api_actor_admin_id();
-        $peer = (string) ($conv['peer_wa_id'] ?? '');
-        $idempotency = isset($body['idempotency_key']) ? (string) $body['idempotency_key'] : null;
-        $jobs = new CrmOutboundJobService($pdo, $tenantId);
-        if ($template !== '') {
-            crm_require_permission($pdo, 'templates.send');
-            $result = $jobs->enqueueTemplate($adminId, $peer, $template, (string) ($body['language'] ?? ''), null, $idempotency);
-        } else {
-            if ($text === '') {
-                crm_api_error('Message text or template is required.', 422);
-            }
-            $result = $jobs->enqueueText($adminId, $peer, $text, $idempotency);
-        }
-        if (!$result['ok']) {
-            crm_api_error((string) ($result['error'] ?? 'Send blocked'), 422, 'policy');
-        }
-        $jobs->processPendingJobs(1);
-        crm_audit_log($pdo, 'message.send', 'conversation', (string) $convId, ['job_id' => $result['job_id'] ?? null]);
-        crm_api_json(['job_id' => $result['job_id'] ?? null]);
+        crm_api_error('WhatsApp send removed from this site. Use your external messaging platform.', 501, 'whatsapp_removed');
     }
 
     if (preg_match('#^/conversations/(\d+)/assignment$#', $path, $m) && $method === 'PATCH') {
@@ -170,131 +138,17 @@ try {
         crm_api_json(['updated' => true]);
     }
 
-    if (preg_match('#^/conversations/(\d+)/chatbot$#', $path, $m) && $method === 'GET') {
-        crm_require_permission($pdo, 'inbox.view');
-        $tenantId = crm_api_tenant_id($pdo);
-        $convId = (int) $m[1];
-        $conv = crm_get_conversation($pdo, $tenantId, $convId);
-        if ($conv === null) {
-            crm_api_error('Conversation not found', 404);
-        }
-        $session = null;
-        $handoff = null;
-        if (is_file(dirname(__DIR__, 2) . '/includes/chatbot/FlowController.php')) {
-            require_once dirname(__DIR__, 2) . '/includes/chatbot/config.php';
-            require_once dirname(__DIR__, 2) . '/includes/chatbot/FlowController.php';
-            require_once dirname(__DIR__, 2) . '/includes/chatbot/HandoffService.php';
-            $bot = new ChatbotFlowController($pdo, $tenantId);
-            $session = $bot->sessionForConversation($convId);
-            $handoffs = new ChatbotHandoffService($pdo, $tenantId);
-            $handoff = $handoffs->activeHandoff($convId);
-        }
-        crm_api_json([
-            'session' => $session,
-            'handoff' => $handoff,
-            'chatbot_enabled' => function_exists('chatbot_enabled') ? chatbot_enabled() : false,
-        ]);
-    }
-
-    if (preg_match('#^/conversations/(\d+)/chatbot/takeover$#', $path, $m) && $method === 'POST') {
-        crm_require_permission($pdo, 'conversations.assign');
-        crm_api_verify_csrf_header();
-        $tenantId = crm_api_tenant_id($pdo);
-        $convId = (int) $m[1];
-        $conv = crm_get_conversation($pdo, $tenantId, $convId);
-        if ($conv === null) {
-            crm_api_error('Conversation not found', 404);
-        }
-        require_once dirname(__DIR__, 2) . '/includes/chatbot/config.php';
-        require_once dirname(__DIR__, 2) . '/includes/chatbot/FlowController.php';
-        require_once dirname(__DIR__, 2) . '/includes/chatbot/HandoffService.php';
-        $adminId = crm_api_actor_admin_id();
-        crm_update_conversation($pdo, $tenantId, $convId, 'open', $adminId);
-        $handoffs = new ChatbotHandoffService($pdo, $tenantId);
-        $handoffs->assign($convId, $adminId);
-        $bot = new ChatbotFlowController($pdo, $tenantId);
-        $bot->pauseBot((string) ($conv['peer_wa_id'] ?? ''));
-        crm_audit_log($pdo, 'chatbot.takeover', 'conversation', (string) $convId, ['admin_id' => $adminId]);
-        crm_api_json(['mode' => 'human', 'assigned_admin_id' => $adminId]);
-    }
-
-    if (preg_match('#^/conversations/(\d+)/chatbot/transfer$#', $path, $m) && $method === 'POST') {
-        crm_require_permission($pdo, 'conversations.assign');
-        crm_api_verify_csrf_header();
-        $tenantId = crm_api_tenant_id($pdo);
-        $convId = (int) $m[1];
-        $conv = crm_get_conversation($pdo, $tenantId, $convId);
-        if ($conv === null) {
-            crm_api_error('Conversation not found', 404);
-        }
-        $body = crm_api_read_json_body();
-        $assign = (int) ($body['assigned_admin_id'] ?? 0);
-        require_once dirname(__DIR__, 2) . '/includes/chatbot/HandoffService.php';
-        crm_update_conversation($pdo, $tenantId, $convId, null, $assign);
-        $handoffs = new ChatbotHandoffService($pdo, $tenantId);
-        $handoffs->assign($convId, $assign);
-        crm_api_json(['assigned_admin_id' => $assign > 0 ? $assign : null]);
-    }
-
-    if (preg_match('#^/conversations/(\d+)/chatbot/close$#', $path, $m) && $method === 'POST') {
-        crm_require_permission($pdo, 'conversations.assign');
-        crm_api_verify_csrf_header();
-        $tenantId = crm_api_tenant_id($pdo);
-        $convId = (int) $m[1];
-        if (crm_get_conversation($pdo, $tenantId, $convId) === null) {
-            crm_api_error('Conversation not found', 404);
-        }
-        require_once dirname(__DIR__, 2) . '/includes/chatbot/HandoffService.php';
-        crm_update_conversation($pdo, $tenantId, $convId, 'resolved', null);
-        $handoffs = new ChatbotHandoffService($pdo, $tenantId);
-        $handoffs->close($convId);
-        crm_api_json(['status' => 'resolved']);
-    }
-
-    if (preg_match('#^/conversations/(\d+)/chatbot/resume$#', $path, $m) && $method === 'POST') {
-        crm_require_permission($pdo, 'conversations.assign');
-        crm_api_verify_csrf_header();
-        $tenantId = crm_api_tenant_id($pdo);
-        $convId = (int) $m[1];
-        $conv = crm_get_conversation($pdo, $tenantId, $convId);
-        if ($conv === null) {
-            crm_api_error('Conversation not found', 404);
-        }
-        require_once dirname(__DIR__, 2) . '/includes/chatbot/FlowController.php';
-        require_once dirname(__DIR__, 2) . '/includes/chatbot/HandoffService.php';
-        $bot = new ChatbotFlowController($pdo, $tenantId);
-        $bot->resumeBot((string) ($conv['peer_wa_id'] ?? ''));
-        $handoffs = new ChatbotHandoffService($pdo, $tenantId);
-        $handoffs->close($convId);
-        crm_api_json(['mode' => 'bot']);
-    }
-
     if (crm_api_handle_contacts_routes($method, $path, $pdo)) {
         exit;
     }
 
-    if ($path === '/templates' && $method === 'GET') {
-        crm_require_permission($pdo, 'templates.send');
-        crm_api_tenant_id($pdo);
-        $result = whatsapp_fetch_message_templates_result();
-        $list = [];
-        foreach ($result['templates'] ?? [] as $tpl) {
-            if (strtoupper((string) ($tpl['status'] ?? '')) === 'APPROVED') {
-                $list[] = $tpl;
-            }
-        }
-        crm_api_json(['templates' => $list, 'fetch_error' => $result['error'] ?? null]);
-    }
-
-    if ($path === '/whatsapp/status' && $method === 'GET') {
+    if ($path === '/external-messaging/status' && $method === 'GET') {
         crm_require_permission($pdo, 'inbox.view');
-        crm_api_tenant_id($pdo);
-        $cfg = whatsapp_cloud_config();
+        require_once dirname(__DIR__, 2) . '/includes/external_messaging.php';
+        $cfg = external_messaging_config();
         crm_api_json([
-            'configured' => $cfg['access_token'] !== '' && $cfg['phone_number_id'] !== '',
-            'phone_number_id' => $cfg['phone_number_id'] !== '' ? $cfg['phone_number_id'] : null,
-            'webhook_verify_token_set' => whatsapp_webhook_verify_token_configured(),
-            'app_secret_set' => whatsapp_app_secret_configured(),
+            'enabled' => $cfg['enabled'],
+            'webhook_url_set' => $cfg['webhook_url'] !== '',
         ]);
     }
 

@@ -206,51 +206,5 @@ function crm_list_messages(
 
 function crm_backfill_messages_from_whatsapp(PDO $pdo, int $tenantId): int
 {
-    if (!crm_messages_table_ready($pdo)) {
-        return 0;
-    }
-    $count = 0;
-    $in = $pdo->query('SELECT id, from_wa_id, wa_message_id, message_type, body_text, media_json, delivery_status FROM whatsapp_inbound_messages ORDER BY id ASC');
-    foreach ($in->fetchAll(PDO::FETCH_ASSOC) as $row) {
-        $media = !empty($row['media_json']) ? json_decode((string) $row['media_json'], true) : null;
-        crm_record_message(
-            $pdo,
-            $tenantId,
-            (string) $row['from_wa_id'],
-            'inbound',
-            (string) $row['wa_message_id'],
-            (string) $row['message_type'],
-            $row['body_text'],
-            is_array($media) ? $media : null,
-            null,
-            (int) $row['id'],
-            null
-        );
-        $count++;
-    }
-    require_once dirname(__DIR__) . '/whatsapp_send.php';
-    $out = $pdo->query('SELECT id, recipient_wa_id, wa_message_id, message_type, delivery_status, payload_json FROM whatsapp_outbound_messages ORDER BY id ASC');
-    foreach ($out->fetchAll(PDO::FETCH_ASSOC) as $row) {
-        $payload = json_decode((string) ($row['payload_json'] ?? ''), true);
-        $text = is_array($payload) ? (string) ($payload['text'] ?? '') : '';
-        if ($text === '' && function_exists('whatsapp_outbound_row_preview')) {
-            $text = whatsapp_outbound_row_preview($row);
-        }
-        crm_record_message(
-            $pdo,
-            $tenantId,
-            (string) $row['recipient_wa_id'],
-            'outbound',
-            $row['wa_message_id'] !== null ? (string) $row['wa_message_id'] : null,
-            (string) $row['message_type'],
-            $text !== '' ? $text : null,
-            null,
-            (string) ($row['delivery_status'] ?? 'sent'),
-            null,
-            (int) $row['id']
-        );
-        $count++;
-    }
-
-    return $count;
+    return 0;
 }

@@ -6,6 +6,7 @@ require_once dirname(__DIR__) . '/includes/auth.php';
 require_once dirname(__DIR__) . '/includes/crm/tenant.php';
 require_once dirname(__DIR__) . '/includes/saas/UserAuth.php';
 require_once dirname(__DIR__) . '/includes/saas/TenantGuard.php';
+require_once dirname(__DIR__) . '/includes/external_messaging.php';
 
 if (!SaasUserAuth::loggedIn()) {
     header('Location: login.php');
@@ -16,29 +17,34 @@ $pdo = db();
 $userId = (int) $_SESSION['crm_user_id'];
 $workspaces = CrmTenantGuard::listUserTenants($pdo, $userId);
 $tenantId = crm_current_tenant_id();
+$extMsg = external_messaging_config();
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard | WhatsApp CRM</title>
+  <title>Account | Digital Creatorss</title>
   <script>(function(){try{var t=localStorage.getItem('crm-theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
   <link rel="stylesheet" href="assets/saas.css">
 </head>
 <body class="crm-auth-page" style="align-items:flex-start;padding-top:48px">
 <button type="button" class="crm-icon-btn crm-auth-theme" id="crm-theme-toggle" aria-label="Toggle theme">◐</button>
 <div class="saas-shell" style="max-width:720px">
-  <h1 style="margin-top:0">Workspace</h1>
+  <h1 style="margin-top:0">Account</h1>
   <p class="saas-muted">Signed in as <?= htmlspecialchars((string) ($_SESSION['crm_user_email'] ?? ''), ENT_QUOTES, 'UTF-8') ?></p>
   <div class="saas-card" style="max-width:100%">
     <p style="margin:0 0 8px">Active tenant: <strong>#<?= (int) $tenantId ?></strong></p>
     <p class="saas-muted" style="margin:0">Role: <?= htmlspecialchars((string) ($_SESSION['crm_role_slug'] ?? ''), ENT_QUOTES, 'UTF-8') ?></p>
   </div>
-  <nav class="saas-app-nav" aria-label="Workspace actions">
-    <a class="saas-btn" href="../admin/crm/live.php">Open CRM inbox</a>
-    <a class="saas-btn" href="../admin/crm/index.php" style="background:var(--crm-text-secondary)">CRM dashboard</a>
-    <a class="saas-btn" href="onboarding/whatsapp.php" style="background:var(--crm-text-secondary)">Connect WhatsApp</a>
+  <div class="saas-card" style="max-width:100%;margin-top:16px">
+    <p style="margin:0">WhatsApp inbox and CRM were removed from this website admin. Use your <strong>dedicated messaging platform</strong> for conversations and templates.</p>
+    <p class="saas-muted" style="margin:8px 0 0">Website form leads are managed in <a href="../admin/leads.php">Admin → Leads</a> (site admin login required).</p>
+  </div>
+  <nav class="saas-app-nav" aria-label="Account actions">
+    <?php if ($extMsg['platform_url'] !== ''): ?>
+    <a class="saas-btn" href="<?= htmlspecialchars($extMsg['platform_url'], ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener">Open messaging platform</a>
+    <?php endif; ?>
     <a class="saas-btn" href="billing.php" style="background:var(--crm-text-secondary)">Billing</a>
     <a class="saas-btn" href="logout.php" style="background:var(--crm-text-muted)">Log out</a>
   </nav>
@@ -55,6 +61,6 @@ $tenantId = crm_current_tenant_id();
     <?php endif; ?>
   </div>
 </div>
-<script src="../admin/assets/crm-shell.js" defer></script>
+<script src="assets/saas-theme.js" defer></script>
 </body>
 </html>

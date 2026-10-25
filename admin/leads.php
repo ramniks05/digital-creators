@@ -59,7 +59,7 @@ if ($viewId) {
           $waDigits = preg_replace('/\D+/', '', (string) $lead['phone']);
           if ($waDigits !== ''):
         ?>
-        <a class="btn btn-primary" href="whatsapp.php?view=chat&amp;wa_id=<?= e($waDigits) ?>">Open WhatsApp chat</a>
+        <a class="btn btn-primary" href="https://wa.me/<?= e($waDigits) ?>" target="_blank" rel="noopener">Chat on WhatsApp (wa.me)</a>
         <?php endif; ?>
         <form method="post"><?= csrf_field() ?><input type="hidden" name="action" value="status"><input type="hidden" name="id" value="<?= (int) $lead['id'] ?>"><input type="hidden" name="status" value="archived"><button class="btn btn-secondary" type="submit">Archive</button></form>
         <form method="post" onsubmit="return confirm('Delete this lead?')"><?= csrf_field() ?><input type="hidden" name="action" value="delete"><input type="hidden" name="id" value="<?= (int) $lead['id'] ?>"><button class="btn btn-danger" type="submit">Delete</button></form>

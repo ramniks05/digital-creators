@@ -14,13 +14,6 @@ function admin_header(string $title, string $active = ''): void
         'blog.php' => 'Blog',
         'testimonials.php' => 'Testimonials',
         'leads.php' => 'Leads',
-        'crm/index.php' => 'CRM',
-        'crm/inbox.php' => 'CRM Inbox',
-        'crm/live.php' => 'CRM Live',
-        'crm/contacts/index.php' => 'CRM Contacts',
-        'whatsapp.php' => 'WhatsApp',
-        'whatsapp_contacts.php' => 'WA Contacts',
-        'whatsapp_campaigns.php' => 'WA Campaigns',
         'settings.php' => 'Settings',
     ];
     ?>

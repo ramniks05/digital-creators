@@ -10,7 +10,7 @@ require_once $root . '/includes/crm/tenant.php';
 require_once $root . '/includes/crm/rbac.php';
 require_once $root . '/includes/crm/messages.php';
 require_once $root . '/includes/crm/compliance/MessagePolicyService.php';
-require_once $root . '/includes/whatsapp_contacts.php';
+require_once $root . '/includes/phone_utils.php';
 
 $failures = 0;
 
@@ -33,7 +33,7 @@ $policy = new CrmMessagePolicyService($pdo, 1);
 $blocked = $policy->validateOutboundText('', '');
 assert_true($blocked['ok'] === false, 'empty text blocked');
 
-assert_true(!whatsapp_contact_is_opted_out($pdo, '919999999999'), 'unknown contact not opted out');
+assert_true(phone_normalize_digits('9876543210') === '919876543210', 'phone normalize IN mobile');
 
 if ($failures > 0) {
     echo "\n{$failures} failure(s)\n";

@@ -65,12 +65,6 @@ function crm_lookup_tenant_by_phone_number_id(PDO $pdo, ?string $phoneNumberId):
         // fall through
     }
 
-    require_once dirname(__DIR__) . '/whatsapp_cloud.php';
-    $cfgId = trim(whatsapp_cloud_config()['phone_number_id']);
-    if ($cfgId !== '' && hash_equals($cfgId, $phoneNumberId)) {
-        return crm_default_tenant_id();
-    }
-
     return null;
 }
 
