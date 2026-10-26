@@ -5,11 +5,12 @@ require_once __DIR__ . '/layout.php';
 require_once dirname(__DIR__) . '/includes/content.php';
 require_once dirname(__DIR__) . '/includes/public_contact.php';
 require_once dirname(__DIR__) . '/includes/external_messaging.php';
+require_once dirname(__DIR__) . '/includes/whatsjet.php';
 
 $keys = [
     'phone_1' => 'Phone 1',
     'phone_2' => 'Phone 2',
-    'whatsapp' => 'WhatsApp (digits for wa.me, e.g. 91836…) — or set WHATSAPP_PUBLIC_NUMBER in env',
+    'whatsapp' => 'WhatsApp wa.me digits (default 918368142191) — or WHATSAPP_PUBLIC_NUMBER in env',
     'email' => 'Email',
     'address' => 'Address',
     'footer_blurb' => 'Footer blurb',
@@ -33,6 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $current = get_settings();
 $waMeDigits = public_whatsapp_chat_digits();
 $extCfg = external_messaging_config();
+$wjCfg = whatsjet_config();
 admin_header('Settings', 'settings.php');
 ?>
 <div class="panel" style="margin-bottom:1rem;padding:1rem;background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;">
@@ -44,7 +46,10 @@ admin_header('Settings', 'settings.php');
       (<a href="https://wa.me/<?= e($waMeDigits) ?>" target="_blank" rel="noopener">test link</a>)
       <?php endif; ?>
     </li>
-    <li>Form → external webhook: <?= $extCfg['enabled'] && $extCfg['webhook_url'] !== '' ? '<strong>configured</strong>' : '<span class="muted">off (set EXTERNAL_MESSAGING_* in private config)</span>' ?></li>
+    <li>Form → WhatsJet template: <?= $wjCfg['enabled'] ? '<strong>configured</strong> (' . e($wjCfg['template_name']) . ')' : '<span class="muted">off (set WHATSJET_* on server)</span>' ?></li>
+    <?php if (!$wjCfg['enabled']): ?>
+    <li>Form → legacy webhook: <?= $extCfg['enabled'] && $extCfg['webhook_url'] !== '' ? '<strong>configured</strong>' : '<span class="muted">off</span>' ?></li>
+    <?php endif; ?>
     <?php if ($extCfg['platform_url'] !== ''): ?>
     <li>Admin dashboard link: <a href="<?= e($extCfg['platform_url']) ?>" target="_blank" rel="noopener"><?= e($extCfg['platform_url']) ?></a></li>
     <?php endif; ?>

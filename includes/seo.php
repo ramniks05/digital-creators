@@ -157,6 +157,9 @@ if (!function_exists('seo_organization_graph')) {
      */
     function seo_organization_graph(): array
     {
+        if (!function_exists('phones_display')) {
+            require_once __DIR__ . '/content.php';
+        }
         $base = site_base_url();
         return [
             '@context' => 'https://schema.org',
@@ -165,7 +168,7 @@ if (!function_exists('seo_organization_graph')) {
             'url' => $base . '/',
             'logo' => seo_absolute_url('assets/favicon.png'),
             'email' => 'info@digitalcreatorss.com',
-            'telephone' => '+91-8851613806',
+            'telephone' => phones_display(),
             'sameAs' => [
                 'https://linkedin.com/in/digitalcreatorss',
                 'https://www.youtube.com/@DigitalCreators-neekita',

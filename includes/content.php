@@ -22,7 +22,7 @@ function fallback_team_members(): array
 {
     // Placeholder names + avatars (update later). No employee photos.
     return [
-        ['id' => 1, 'name' => 'Neekita Kumari', 'role' => 'Director', 'bio' => 'Leads strategy, delivery, client success, and day-to-day operations at Digital Creatorss.', 'image' => 'assets/images/director.jpg', 'specialty' => null, 'member_type' => 'director', 'email' => 'info@digitalcreatorss.com', 'phone' => '+917903152429', 'education' => 'MBA (IT)', 'icon' => 'briefcase'],
+        ['id' => 1, 'name' => 'Neekita Kumari', 'role' => 'Director', 'bio' => 'Leads strategy, delivery, client success, and day-to-day operations at Digital Creatorss.', 'image' => 'assets/images/director.jpg', 'specialty' => null, 'member_type' => 'director', 'email' => 'info@digitalcreatorss.com', 'phone' => '+918368142191', 'education' => 'MBA (IT)', 'icon' => 'briefcase'],
         ['id' => 2, 'name' => 'Rahul Mehta', 'role' => 'Senior Frontend Developer', 'bio' => 'Builds interactive web interfaces and consistent responsive design systems.', 'image' => 'assets/images/avatars/avatar-rahul.svg', 'specialty' => 'TailwindCSS / Next.js / GSAP', 'member_type' => 'core', 'email' => null, 'phone' => null, 'education' => null, 'icon' => 'layout'],
         ['id' => 3, 'name' => 'Aman Gupta', 'role' => 'Cloud & Hosting Engineer', 'bio' => 'Manages cloud deployment, SSL, DNS, and scalable hosting environments.', 'image' => 'assets/images/avatars/avatar-aman.svg', 'specialty' => 'AWS / Linux / CDN', 'member_type' => 'core', 'email' => null, 'phone' => null, 'education' => null, 'icon' => 'cloud'],
         ['id' => 4, 'name' => 'Priya Nair', 'role' => 'Server Administrator', 'bio' => 'Handles server hardening, monitoring, backups, and performance tuning across client infrastructure.', 'image' => 'assets/images/avatars/avatar-priya.svg', 'specialty' => 'Linux / Nginx / Security', 'member_type' => 'core', 'email' => null, 'phone' => null, 'education' => null, 'icon' => 'server'],
@@ -362,20 +362,35 @@ function get_testimonials(bool $activeOnly = true): array
     }
 }
 
+function business_phone_display_default(): string
+{
+    return '+91-8368142191';
+}
+
+function business_phone_tel_default(): string
+{
+    return '+918368142191';
+}
+
+function business_whatsapp_digits_default(): string
+{
+    return '918368142191';
+}
+
 function phones_display(): string
 {
-    $p1 = setting('phone_1', '+91-8851613806');
-    $p2 = setting('phone_2', '7903152429');
-    return trim($p1 . ($p2 ? ', ' . $p2 : ''));
+    $p1 = setting('phone_1', business_phone_display_default());
+    $p2 = trim(setting('phone_2', ''));
+    return trim($p1 . ($p2 !== '' ? ', ' . $p2 : ''));
 }
 
 function phone_tel(): string
 {
-    $raw = preg_replace('/[^\d+]/', '', setting('phone_1', '+918851613806'));
+    $raw = preg_replace('/[^\d+]/', '', setting('phone_1', business_phone_tel_default()));
     if ($raw && $raw[0] !== '+') {
         $raw = '+' . ltrim($raw, '+');
     }
-    return $raw ?: '+918851613806';
+    return $raw ?: business_phone_tel_default();
 }
 
 function whatsapp_number(): string

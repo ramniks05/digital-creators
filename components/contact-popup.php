@@ -69,7 +69,7 @@
             </div>
             <div>
               <span class="block text-[9px] font-bold text-text-primary/50 uppercase tracking-wider mb-0.5">WhatsApp</span>
-              <span class="text-sm font-semibold text-text-primary group-hover:underline">Message on Whatsapp</span>
+              <span class="text-sm font-semibold text-text-primary group-hover:underline"><?php echo htmlspecialchars(phones_display()); ?></span>
             </div>
           </a>
         </div>

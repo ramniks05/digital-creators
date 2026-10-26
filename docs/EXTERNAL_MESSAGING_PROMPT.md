@@ -1,17 +1,31 @@
 # External WhatsApp platform — integration prompt
 
-Meta WhatsApp Cloud API, webhooks, chatbot, and in-app sending were **removed from this repository**.  
-Your **independent messaging platform** should handle WhatsApp; this site keeps **website leads** and forwards events to you.
+Meta WhatsApp Cloud API was **removed from this repository**. Website forms save to **`leads`**, then call **WhatsJet** for the approved template (when configured).
 
 ## What still works here (unchanged for visitors)
 
 1. **Contact / CTA forms** → `POST /api/contact.php`
 2. Lead saved in MySQL `leads` (`source = website_form`, `consent_at` when column exists)
-3. **Optional HTTP POST** to your platform (`external_messaging_post_lead`)
+3. **WhatsJet** `POST …/contact/send-template-message` with `enquiry_thank_you` (see `includes/whatsjet.php`)
+4. Legacy **HTTP POST** webhook only if WhatsJet is **not** configured (`external_messaging_post_lead`)
 
-## Configure this site
+## Configure this site (WhatsJet — production)
 
-Private config or environment:
+Server env or private config (**never commit `WHATSJET_API_TOKEN`**):
+
+```env
+WHATSJET_API_BASE=https://whatsapp.digitalcreatorss.com/api
+WHATSJET_VENDOR_UID=your-vendor-uuid
+WHATSJET_API_TOKEN=your-bearer-token
+WHATSJET_TEMPLATE_NAME=enquiry_thank_you
+WHATSJET_TEMPLATE_LANGUAGE=en
+WHATSJET_CONTACT_GROUP=Website Form Leads
+WHATSAPP_PUBLIC_NUMBER=918368142191
+```
+
+When all of `WHATSJET_API_BASE`, `WHATSJET_VENDOR_UID`, and `WHATSJET_API_TOKEN` are set, the generic lead webhook is **not** called (one WhatsApp message per form).
+
+## Optional legacy webhook
 
 ```env
 EXTERNAL_MESSAGING_ENABLED=1

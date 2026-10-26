@@ -57,11 +57,11 @@ echo "Admin user: {$adminUser} / {$adminPass}\n";
 echo "Save this password now; it is not stored in plain text.\n";
 
 $settings = [
-    'phone_1' => '+91-8851613806',
-    'phone_2' => '7903152429',
+    'phone_1' => '+91-8368142191',
+    'phone_2' => '',
     'email' => 'info@digitalcreatorss.com',
     'address' => 'C-84, C Block, Sec-2, Noida, Uttar Pardesh',
-    'whatsapp' => '918851613806',
+    'whatsapp' => '918368142191',
     'footer_blurb' => 'We engineer high-performance web applications, cloud hosting, and managed server infrastructure that keeps your business online and scalable.',
 ];
 $insSet = $pdo->prepare('INSERT INTO settings (setting_key, setting_value) VALUES (?, ?)');
@@ -86,7 +86,7 @@ foreach ($services as $i => $s) {
 echo count($services) . " services.\n";
 
 $team = [
-    ['Neekita Kumari', 'Director', 'Leads Digital Creatorss end-to-end — strategy, sales, delivery, client success, and day-to-day operations. The single point of leadership aligning technology solutions with business goals.', 'assets/images/director.jpg', null, 'director', 'info@digitalcreatorss.com', '+917903152429', 'MBA (IT)', 'briefcase'],
+    ['Neekita Kumari', 'Director', 'Leads Digital Creatorss end-to-end — strategy, sales, delivery, client success, and day-to-day operations. The single point of leadership aligning technology solutions with business goals.', 'assets/images/director.jpg', null, 'director', 'info@digitalcreatorss.com', '+918368142191', 'MBA (IT)', 'briefcase'],
     ['Rahul Mehta', 'Senior Frontend Developer', 'Crafts beautiful interactive web panels, fluid micro-interactions, and maintains CSS standardization across projects.', 'assets/images/avatars/avatar-rahul.svg', 'TailwindCSS / Next.js / GSAP', 'core', null, null, null, 'layout'],
     ['Aman Gupta', 'Cloud & Hosting Engineer', 'Manages cloud deployments, SSL, DNS, and scalable hosting environments so production apps stay fast and available.', 'assets/images/avatars/avatar-aman.svg', 'AWS / Linux / CDN', 'core', null, null, null, 'cloud'],
     ['Priya Nair', 'Server Administrator', 'Handles server hardening, monitoring, backups, and performance tuning across client infrastructure.', 'assets/images/avatars/avatar-priya.svg', 'Linux / Nginx / Security', 'core', null, null, null, 'server'],

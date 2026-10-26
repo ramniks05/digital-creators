@@ -32,7 +32,10 @@ function public_whatsapp_chat_digits(): string
         return $resolved;
     }
 
-    $resolved = '918368142191';
+    if (!function_exists('business_whatsapp_digits_default')) {
+        require_once __DIR__ . '/content.php';
+    }
+    $resolved = business_whatsapp_digits_default();
 
     return $resolved;
 }

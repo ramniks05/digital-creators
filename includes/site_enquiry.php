@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/phone_utils.php';
 require_once __DIR__ . '/external_messaging.php';
+require_once __DIR__ . '/whatsjet.php';
 require_once __DIR__ . '/enquiry_catalog.php';
 
 function site_enquiry_leads_columns_ready(PDO $pdo): bool
@@ -17,12 +18,19 @@ function site_enquiry_leads_columns_ready(PDO $pdo): bool
 }
 
 /**
- * After website form saved (api/contact.php). Keeps DB lead; messaging goes to external platform only.
+ * After website form saved (api/contact.php). DB lead is already committed.
+ * WhatsJet template send when configured; legacy external webhook only if WhatsJet is off (one customer message).
  *
  * @param array{name:string,email:string,phone:string,service:string,message:string,budget:string} $data
  */
 function site_enquiry_after_website_form(int $leadId, array $data): void
 {
+    if (whatsjet_config()['enabled']) {
+        whatsjet_send_enquiry_thank_you_template($leadId, $data);
+
+        return;
+    }
+
     $phone = phone_normalize_digits((string) ($data['phone'] ?? ''));
     external_messaging_post_lead($leadId, [
         'name' => (string) ($data['name'] ?? ''),

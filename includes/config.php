@@ -34,6 +34,15 @@ $config = [
         'platform_url' => getenv('EXTERNAL_MESSAGING_PLATFORM_URL') ?: '',
         'timeout_seconds' => 10,
     ],
+    'whatsjet' => [
+        'api_base' => getenv('WHATSJET_API_BASE') ?: '',
+        'vendor_uid' => getenv('WHATSJET_VENDOR_UID') ?: '',
+        'api_token' => getenv('WHATSJET_API_TOKEN') ?: '',
+        'template_name' => getenv('WHATSJET_TEMPLATE_NAME') ?: 'enquiry_thank_you',
+        'template_language' => getenv('WHATSJET_TEMPLATE_LANGUAGE') ?: 'en',
+        'contact_group' => getenv('WHATSJET_CONTACT_GROUP') ?: 'Website Form Leads',
+        'timeout_seconds' => 15,
+    ],
     'saas' => [
         'strict_webhook' => filter_var(getenv('SAAS_STRICT_WEBHOOK') ?: '0', FILTER_VALIDATE_BOOLEAN),
         'credentials_key' => getenv('CRM_CREDENTIALS_KEY') ?: '',
